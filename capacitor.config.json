@@ -1,0 +1,12 @@
+{
+  "appId": "com.ourbudget.app",
+  "appName": "우리가계부",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#0f172a"
+  }
+}

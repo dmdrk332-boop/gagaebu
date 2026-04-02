@@ -1,0 +1,16 @@
+{
+  "name": "우리가계부",
+  "version": "1.0.0",
+  "description": "우리 가계부 Android 앱",
+  "scripts": {
+    "build": "echo 'No build step needed'",
+    "sync": "npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/core": "5.7.4",
+    "@capacitor/android": "5.7.4"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "5.7.4"
+  }
+}
