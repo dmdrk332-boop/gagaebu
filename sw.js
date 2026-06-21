@@ -1,5 +1,5 @@
 // 우리 가계부 — Service Worker (offline-first PWA)
-const CACHE = 'woori-gagebu-v1';
+const CACHE = 'woori-gagebu-v2';
 const CORE = [
   './',
   './index.html',
