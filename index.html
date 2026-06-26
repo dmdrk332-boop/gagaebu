@@ -1640,38 +1640,12 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
 <div id="page-invest-principle" class="page">
   <div class="top-bar"><div style="display:flex;align-items:center;gap:8px"><span class="page-title">📚 투자(이론설명)</span></div></div>
   <div class="subtab-bar ivchip-bar">
-    <button class="ivchip active" onclick="showInvSec('invest-principle','krvs',this)">⚖️ 한국vs미국</button>
-    <button class="ivchip" onclick="showInvSec('invest-principle','withdraw',this)">📤 인출전략</button>
+    <button class="ivchip active" onclick="showInvSec('invest-principle','withdraw',this)">📤 인출전략</button>
     <button class="ivchip" onclick="showInvSec('invest-principle','alloc',this)">🥧 자산배분</button>
     <button class="ivchip" onclick="showInvSec('invest-principle','index',this)">🇺🇸 지수투자</button>
-    <button class="ivchip" onclick="showInvSec('invest-principle','timing',this)">⏳ 시기관리</button>
-    <button class="ivchip" onclick="showInvSec('invest-principle','tax',this)">🧾 세금·계좌</button>
-    <button class="ivchip" onclick="showInvSec('invest-principle','income',this)">🛟 확정소득</button>
     <button class="ivchip" onclick="showInvSec('invest-principle','isairp',this)">🏦 ISA·IRP</button>
-    <button class="ivchip" onclick="showInvSec('invest-principle','check',this)">✅ 체크리스트</button>
   </div>
-  <div class="inv-sec" data-sec="krvs" style="display:block">
-  <!-- 인트로 -->
-  <div style="margin:0 16px 14px;background:linear-gradient(135deg,rgba(126,98,243,.10),rgba(91,140,255,.07));border:1px solid var(--border2);border-radius:16px;padding:16px">
-    <div style="font-size:14px;font-weight:800;color:#3E3E3E;margin-bottom:6px">🇰🇷 한국 은퇴자 자산관리 원칙</div>
-    <div style="font-size:13px;color:#8a8a85;line-height:1.7">4% 룰 등 글로벌 은퇴 이론을 한국 현실(국민연금·건강보험·세제계좌)에 맞게 재해석했어요. 연관 이론은 <b style="color:#9b85f6">🔗 묶음</b>으로 합쳤고, 어떤 이론이 합쳐졌는지 표기했어요.</div>
-  </div>
-
-  <!-- 한국 현실 조건 -->
-  <div style="margin:0 16px 14px;background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:15px">
-    <div style="font-size:13.5px;font-weight:800;color:#3E3E3E;margin-bottom:10px">⚖️ 미국 이론 vs 한국 현실</div>
-    <div style="display:flex;flex-direction:column;gap:0">
-      <div class="kr-row" style="display:grid;grid-template-columns:0.8fr 1fr 1.1fr;gap:6px;padding:9px 0;border-bottom:1px solid var(--border);font-size:10.5px;color:#9a9a95;font-weight:700"><span>구분</span><span>미국</span><span>한국</span></div>
-      <div class="kr-row" style="display:grid;grid-template-columns:0.8fr 1fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border);font-size:11.5px;color:#8a8a85"><span style="font-weight:700;color:#3E3E3E">공적연금</span><span>Social Security</span><span>국민연금(63~65세~)</span></div>
-      <div class="kr-row" style="display:grid;grid-template-columns:0.8fr 1fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border);font-size:11.5px;color:#8a8a85"><span style="font-weight:700;color:#3E3E3E">세제계좌</span><span>401k·IRA·Roth</span><span>IRP·연금저축·ISA</span></div>
-      <div class="kr-row" style="display:grid;grid-template-columns:0.8fr 1fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border);font-size:11.5px;color:#8a8a85"><span style="font-weight:700;color:#3E3E3E">건강보험</span><span>민간(고비용)</span><span>피부양자 자격 직결</span></div>
-      <div class="kr-row" style="display:grid;grid-template-columns:0.8fr 1fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border);font-size:11.5px;color:#8a8a85"><span style="font-weight:700;color:#3E3E3E">금융소득</span><span>장기 양도세 우대</span><span>연 2천만원↑ 종합과세</span></div>
-      <div class="kr-row" style="display:grid;grid-template-columns:0.8fr 1fr 1.1fr;gap:6px;padding:9px 0;font-size:11.5px;color:#8a8a85"><span style="font-weight:700;color:#3E3E3E">기대수명</span><span>약 78세</span><span>약 84세(더 보수적)</span></div>
-    </div>
-  </div>
-
-  </div><!-- /krvs -->
-  <div class="inv-sec" data-sec="withdraw" style="display:none">
+  <div class="inv-sec" data-sec="withdraw" style="display:block">
   <!-- 인트로 -->
   <div style="margin:0 16px 14px;background:linear-gradient(135deg,rgba(126,98,243,.10),rgba(91,140,255,.07));border:1px solid var(--border2);border-radius:16px;padding:16px">
     <div style="font-size:14px;font-weight:800;color:#3E3E3E;margin-bottom:6px">📤 모은 돈을 어떻게 빼 쓸까 — 인출 전략</div>
@@ -1846,6 +1820,33 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       &nbsp;&nbsp;&nbsp;※ 초과 시 16.5% 분리과세 또는 종합소득세 합산 강제<br>
       ③ <b>20년 이상</b> 장기 수령 설계 → 50% 감면 구간 도달
       <div class="pr-warn"><b style="color:#FF7BAC">⚠️ 주의</b><br>퇴직금 1억 이하 + 근속 20년↑이면 퇴직소득세 자체가 적어 절세효과가 미미할 수 있어요. 이 경우 일시금 후 자유 투자도 합리적 선택입니다. 또 IRP 중도해지·일시 인출 시 감면 혜택이 사라집니다.</div>
+    </div>
+  </div>
+
+  <!-- ⑦ 확정소득: 국민연금 연기 + 플로어-업사이드 (확정소득 탭에서 이동) -->
+  <div class="pr-card" style="margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden">
+    <div class="pr-open-head" style="padding:15px 16px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:24px">🛟</div>
+      <div style="flex:1">
+        <div style="font-size:14.5px;font-weight:800;color:#3E3E3E">⑦ 흔들리지 않는 소득 만들기</div>
+        <div style="font-size:11px;color:#9b85f6;font-weight:700;margin-top:3px">국민연금 연기 · 플로어-업사이드(Merton-Bodie)</div>
+      </div>
+    </div>
+    <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:12.5px;color:#8a8a85;line-height:1.85">
+      <div class="pr-callout"><b style="color:#3E3E3E">💬 쉽게 말하면</b><br>인출의 핵심은 <b>"매도가 필요 없는 확정 소득"</b>을 먼저 깔아두는 거예요. 죽을 때까지 나오는 국민연금·주택연금으로 최소 생활비를 채우면, 시장이 폭락해도 주식을 헐값에 팔 필요가 없어 인출 전략이 훨씬 안전해집니다.</div>
+      <b style="color:#3E3E3E">① 국민연금 연기</b><br>
+      최대 5년 연기 시 연 7.2%씩, 총 <b style="color:#22c55e">+36%</b> 가산. 건강하고 80세 이상 장수 기대면 유리(손익분기 ≈ 80세). 연기 기간 중 금융소득을 줄여 건강보험 피부양자 자격을 지키는 효과도 있어요.<br><br>
+      <b style="color:#3E3E3E">② 플로어-업사이드 (2층 구조)</b><br>
+      <b>Floor</b>(국민연금+주택연금+즉시연금)로 월 최소생활비를 확정 충당하고, 그 위 잉여만 성장 투자. 폭락에도 기본 생활은 안전해요.
+      <div style="background:var(--card2);border-radius:9px;padding:11px;margin:9px 0">
+        <div style="font-size:9.5px;color:#9a9a95;font-weight:700;margin-bottom:8px">🏗️ 2층 구조</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="background:linear-gradient(90deg,#9b85f6,#5B8CFF);border-radius:6px 6px 0 0;padding:8px 10px;text-align:center;font-size:9.5px;color:#fff;font-weight:700">⬆️ Upside · 잉여자산 = 자유로운 성장 투자 (주식)</div>
+          <div style="background:rgba(34,197,94,.85);border-radius:0 0 6px 6px;padding:10px;text-align:center;font-size:9.5px;color:#0a3d20;font-weight:800">🛟 Floor · 국민연금+주택연금 = 죽을 때까지 확정소득</div>
+        </div>
+        <div style="font-size:8.5px;color:#9a9a95;margin-top:6px">바닥(Floor)이 튼튼하면 위층(Upside)이 흔들려도 기본 생활은 안전해요.</div>
+      </div>
+      <div class="pr-callout">💡 시뮬레이션 탭 ④(연금 연기)·⑤(플로어 설계)에서 직접 숫자로 계산해보세요.</div>
     </div>
   </div>
 
@@ -2107,97 +2108,6 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   </div>
 
   </div><!-- /index -->
-  <div class="inv-sec" data-sec="timing" style="display:none">
-  <!-- 묶음 3: 시기별 관리 -->
-  <div class="pr-card" style="margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden">
-    <div class="pr-open-head" style="padding:15px 16px;display:flex;align-items:center;gap:10px">
-      <div style="font-size:24px">⏳</div>
-      <div style="flex:1">
-        <div style="font-size:14.5px;font-weight:800;color:#3E3E3E">3. 시기별 관리 — 버킷 & 생애 지출곡선</div>
-        <div style="font-size:11px;color:#9b85f6;font-weight:700;margin-top:3px">🔗 묶음: 버킷 전략 + 지출 3단계</div>
-      </div>
-      <div class="pr-arrow" style="font-size:13px;color:#9a9a95;transition:transform .2s">▾</div>
-    </div>
-    <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:12.5px;color:#8a8a85;line-height:1.85">
-      <div style="background:rgba(155,133,246,.07);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11.5px;color:#9b85f6;font-weight:600">합쳐진 이론: 버킷 전략 · 지출 3단계(Go-Go/Slow-Go/No-Go, Michael Stein) — "시간 축에 따라 돈을 다르게 다룬다"는 공통점으로 묶었어요.</div>
-      <b style="color:#3E3E3E">① 버킷 3분할</b><br>
-      • 1번(1~2년): CMA·파킹통장 — 폭락장에 성장자산을 강제 매도 안 하게 막는 방패<br>
-      • 2번(3~7년): 채권·배당 ETF·리츠<br>
-      • 3번(7년+): 미국 지수 ETF(연금계좌). 1번이 줄면 2→3 순으로 보충하는 폭포수 운용.<br>
-      <div style="background:var(--card2);border-radius:9px;padding:11px;margin:9px 0">
-        <div style="font-size:9.5px;color:#9a9a95;font-weight:700;margin-bottom:8px">🪣 3개 바구니 (왼쪽=안전·오른쪽=성장)</div>
-        <div style="display:flex;gap:5px;align-items:flex-end;height:54px">
-          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end"><div style="width:100%;height:30%;background:#5B8CFF;border-radius:5px 5px 0 0"></div><span style="font-size:8px;color:#5B8CFF;font-weight:700;margin-top:3px">1번 현금</span><span style="font-size:7px;color:#9a9a95">1~2년</span></div>
-          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end"><div style="width:100%;height:60%;background:#9b85f6;border-radius:5px 5px 0 0"></div><span style="font-size:8px;color:#9b85f6;font-weight:700;margin-top:3px">2번 방어</span><span style="font-size:7px;color:#9a9a95">3~7년</span></div>
-          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end"><div style="width:100%;height:100%;background:#B3FF3B;border-radius:5px 5px 0 0"></div><span style="font-size:8px;color:#8a8a85;font-weight:700;margin-top:3px">3번 성장</span><span style="font-size:7px;color:#9a9a95">7년+</span></div>
-        </div>
-        <div style="font-size:8.5px;color:#9a9a95;margin-top:7px">폭락장엔 1·2번으로 버티고, 3번(주식)은 회복될 때까지 안 팔아요.</div>
-      </div>
-      <b style="color:#3E3E3E">② 생애 지출 3단계</b><br>
-      • <b>활동기</b>(60~70대초): 여행·여가로 최대 지출. 🇰🇷 자녀 결혼 목돈 별도 적립 필요<br>
-      • <b>감속기</b>(70대중~80대초): 활동기 대비 15~20%↓<br>
-      • <b>정지기</b>(85세+): 간병·의료비 중심. 🇰🇷 장기요양보험 있어도 본인부담 15~20%, 요양원 월 100~150만원<br><br>
-      <div style="background:var(--card2);border-radius:8px;padding:10px 12px;font-size:11.5px;color:#8a8a85">💡 활동기 예비자금 + 간병비(5천만~1억)는 4% 룰 목표와 <b>별도</b>로 적립.</div>
-    </div>
-  </div>
-
-  </div><!-- /timing -->
-  <div class="inv-sec" data-sec="tax" style="display:none">
-  <!-- 묶음 4: 한국 세금·계좌 -->
-  <div class="pr-card" style="margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden">
-    <div class="pr-open-head" style="padding:15px 16px;display:flex;align-items:center;gap:10px">
-      <div style="font-size:24px">🧾</div>
-      <div style="flex:1">
-        <div style="font-size:14.5px;font-weight:800;color:#3E3E3E">4. 한국 세금·계좌 최적화</div>
-        <div style="font-size:11px;color:#9b85f6;font-weight:700;margin-top:3px">🔗 묶음: 인출 순서 + ISA·연금 세제 3총사</div>
-      </div>
-      <div class="pr-arrow" style="font-size:13px;color:#9a9a95;transition:transform .2s">▾</div>
-    </div>
-    <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:12.5px;color:#8a8a85;line-height:1.85">
-      <div style="background:rgba(155,133,246,.07);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11.5px;color:#9b85f6;font-weight:600">합쳐진 이론: 자산 인출 순서(Tax Location) · ISA+연금저축+IRP 세제 최적화 — "세금을 가장 늦게·가장 적게"라는 한 목표라 묶었어요.</div>
-      <b style="color:#3E3E3E">① 인출 순서 (세금 적은 것부터)</b><br>
-      1순위 예적금·CMA → 2순위 ISA 만기 → 3순위 일반 주식·ETF(손실 상계) → 4순위 연금저축 → <b>5순위 IRP(최후)</b>. 비과세·이연 혜택 큰 계좌를 끝까지 남겨 복리 유지.<br><br>
-      <b style="color:#3E3E3E">② 세제 3총사 활용</b><br>
-      • <b>ISA</b>(연 2천만원): 비과세 200~400만원, 초과분 9.9% 분리과세 → 배당·채권 ETF<br>
-      • <b>연금저축펀드</b>(연 600만원): 세액공제 13.2~16.5% → 미국 주식 ETF<br>
-      • <b>IRP</b>(합산 900만원): 세액공제 + 퇴직금 연금화 시 퇴직소득세 40% 감면<br><br>
-      <div style="background:var(--card2);border-radius:8px;padding:10px 12px;font-size:11.5px;color:#8a8a85"><b style="color:#FF7BAC">⚠️</b> 연금계좌 연 인출 1,500만원 초과 시 종합과세 합산 → 1,200~1,500만원 이하로 분산. ISA 만기금→연금저축 전환이체로 절세 사이클 구축.</div>
-    </div>
-  </div>
-
-  </div><!-- /tax -->
-  <div class="inv-sec" data-sec="income" style="display:none">
-  <!-- 묶음 5: 확정소득 만들기 -->
-  <div class="pr-card" style="margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden">
-    <div class="pr-open-head" style="padding:15px 16px;display:flex;align-items:center;gap:10px">
-      <div style="font-size:24px">🛟</div>
-      <div style="flex:1">
-        <div style="font-size:14.5px;font-weight:800;color:#3E3E3E">5. 흔들리지 않는 소득 만들기</div>
-        <div style="font-size:11px;color:#9b85f6;font-weight:700;margin-top:3px">🔗 묶음: 국민연금 연기 + 플로어-업사이드 + 배당 투자</div>
-      </div>
-      <div class="pr-arrow" style="font-size:13px;color:#9a9a95;transition:transform .2s">▾</div>
-    </div>
-    <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:12.5px;color:#8a8a85;line-height:1.85">
-      <div style="background:rgba(155,133,246,.07);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11.5px;color:#9b85f6;font-weight:600">합쳐진 이론: 국민연금 연기 · 플로어-업사이드(Merton-Bodie) · 배당 성장 투자 — 모두 "원금을 안 깎고 꾸준한 현금흐름을 만든다"는 결로 묶었어요.</div>
-      <b style="color:#3E3E3E">① 국민연금 연기</b><br>
-      최대 5년 연기 시 연 7.2%씩, 총 +36% 가산. 건강하고 80세 이상 장수 기대면 유리(손익분기 ≈ 80세).<br><br>
-      <b style="color:#3E3E3E">② 플로어-업사이드</b><br>
-      <b>Floor</b>(국민연금+주택연금+즉시연금)로 월 최소생활비를 확정 충당하고, 그 위 잉여만 성장 투자. 폭락에도 기본 생활은 안전.<br>
-      <div style="background:var(--card2);border-radius:9px;padding:11px;margin:9px 0">
-        <div style="font-size:9.5px;color:#9a9a95;font-weight:700;margin-bottom:8px">🏗️ 2층 구조</div>
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <div style="background:linear-gradient(90deg,#9b85f6,#5B8CFF);border-radius:6px 6px 0 0;padding:8px 10px;text-align:center;font-size:9.5px;color:#fff;font-weight:700">⬆️ Upside · 잉여자산 = 자유로운 성장 투자 (주식)</div>
-          <div style="background:rgba(34,197,94,.85);border-radius:0 0 6px 6px;padding:10px;text-align:center;font-size:9.5px;color:#0a3d20;font-weight:800">🛟 Floor · 국민연금+주택연금 = 죽을 때까지 확정소득</div>
-        </div>
-        <div style="font-size:8.5px;color:#9a9a95;margin-top:6px">바닥(Floor)이 튼튼하면 위층(Upside)이 흔들려도 기본 생활은 안전해요.</div>
-      </div>
-      <b style="color:#3E3E3E">③ 배당 성장 투자</b><br>
-      자산을 팔지 않고 배당만으로 생활 → 수익률 순서 위험에서 자유. 🇰🇷 SCHD·TIGER 고배당·리츠는 ISA 안에서 굴려 절세.<br><br>
-      <div style="background:var(--card2);border-radius:8px;padding:10px 12px;font-size:11.5px;color:#8a8a85">💡 시뮬레이션 탭 ④(연금 연기)·⑤(플로어 설계)에서 직접 숫자로 계산해보세요.</div>
-    </div>
-  </div>
-
-  </div><!-- /income -->
   <div class="inv-sec" data-sec="isairp" style="display:none">
   <div style="margin:0 16px 14px;background:linear-gradient(135deg,rgba(155,133,246,.10),rgba(34,197,94,.06));border:1px solid var(--border2);border-radius:16px;padding:16px">
     <div style="font-size:14px;font-weight:800;color:#3E3E3E;margin-bottom:6px">🏦 한국 절세계좌 3총사 (2026 기준)</div>
@@ -2246,28 +2156,6 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
 
   <div style="margin:0 16px 18px;font-size:9.5px;color:#9a9a95;line-height:1.6;text-align:center">ⓘ 2026년 기준 일반 정보이며 세법 개정으로 달라질 수 있어요. 실제 적용은 홈택스·금융기관에서 확인하세요.</div>
   </div><!-- /isairp -->
-  <div class="inv-sec" data-sec="check" style="display:none">
-  <!-- 현실 적용 체크리스트 -->
-  <div style="margin:6px 16px 14px;border-top:1px solid var(--border);padding-top:16px">
-    <span style="font-size:14.5px;font-weight:800;color:#3E3E3E">✅ 현실적 적용 체크리스트</span>
-  </div>
-  <div style="margin:0 16px 10px;background:rgba(179,255,59,.08);border:1px solid var(--border2);border-radius:14px;padding:14px">
-    <div style="font-size:12.5px;font-weight:800;color:#3E3E3E;margin-bottom:8px">📌 즉시 (지금 바로)</div>
-    <div style="font-size:12px;color:#8a8a85;line-height:1.95">• 국민연금 연기/즉시 수령 결정<br>• ISA 개설·운용 (배당·이자 절세)<br>• IRP·연금저축 세액공제 900만원 한도 채우기<br>• 금융소득 2천만원 기준 모니터링</div>
-  </div>
-  <div style="margin:0 16px 10px;background:rgba(91,140,255,.07);border:1px solid var(--border2);border-radius:14px;padding:14px">
-    <div style="font-size:12.5px;font-weight:800;color:#3E3E3E;margin-bottom:8px">📌 중기 (1~3년)</div>
-    <div style="font-size:12px;color:#8a8a85;line-height:1.95">• 버킷 구조 구축(CMA→ISA채권→IRP주식)<br>• 배당 포트폴리오로 월 현금흐름 확보<br>• 올웨더 + 달러 현금 15% 분산<br>• 활동기 예비자금 별도 관리</div>
-  </div>
-  <div style="margin:0 16px 18px;background:rgba(155,133,246,.07);border:1px solid var(--border2);border-radius:14px;padding:14px">
-    <div style="font-size:12.5px;font-weight:800;color:#3E3E3E;margin-bottom:8px">📌 장기 (은퇴 설계)</div>
-    <div style="font-size:12px;color:#8a8a85;line-height:1.95">• Floor 완성(국민연금+주택연금 월 200만원+)<br>• IRP 인출 최후화·1,200만원 이하 분할<br>• 간병자금 5천만~1억 별도 확보<br>• 인출률 3.0~3.5% 기준 자산목표 설정</div>
-  </div>
-
-  <div style="margin:0 16px 24px;font-size:9.5px;color:#9a9a95;line-height:1.6;text-align:center">
-    ⓘ 본 내용은 일반 정보이며 투자·세무 자문이 아니에요. 실제 결정은 전문가 상담 후 진행하세요.
-  </div>
-  </div><!-- /check -->
 </div>
 <!-- /page-invest-principle 종료 -->
 
