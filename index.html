@@ -252,7 +252,7 @@ body.privacy-on input[type="number"]::placeholder{-webkit-text-security:none}
 .mini-graph{width:100%;height:60px;display:block}
 .fx-group-header{display:flex;align-items:center;justify-content:space-between;padding:9px 0 5px;border-bottom:1px solid var(--border2);margin-bottom:6px}
 .fx-group-name{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:-.01em}
-.fx-group-sub{font-size:11px;color:var(--text3)}
+.fx-group-sub{font-size:11px;color:var(--purple)}
 .move-btn{background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text3);font-size:11px;padding:2px 7px;cursor:pointer;line-height:1.6;transition:all .15s}
 .move-btn:active{opacity:.6;transform:scale(.92)}
 
@@ -394,6 +394,9 @@ body.dark-mode .cat-btn.active{background:rgba(179,255,59,.16) !important;border
 /* === 서브탭 필 === */
 body.dark-mode .subtab{background:#141414 !important;border:1px solid rgba(255,255,255,.08) !important;color:#8a8a8f !important;border-radius:99px !important}
 body.dark-mode .subtab.active{background:#B3FF3B !important;color:#0a0a0a !important;border-color:#B3FF3B !important;font-weight:800 !important}
+.ivchip{flex-shrink:0;padding:7px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--card2);color:var(--text3);font-family:inherit;white-space:nowrap}
+body.dark-mode .ivchip{background:#141414 !important;border:1px solid rgba(255,255,255,.08) !important;color:#8a8a8f !important}
+body.dark-mode .ivchip.active{background:#B3FF3B !important;color:#0a0a0a !important;border-color:#B3FF3B !important;font-weight:800 !important}
 
 /* === 연간요약/내역 미니카드 === */
 body.dark-mode .ann-sum-item,
@@ -476,6 +479,10 @@ body.dark-mode #iv-years{accent-color:#5B8CFF !important}
 body.dark-mode #iv-rate{accent-color:#9b85f6 !important}
 body.dark-mode #iv-inflation{accent-color:#FF7BAC !important}
 body.dark-mode #iv-deposit-rate{accent-color:#FFC95B !important}
+body.dark-mode #irp-m-monthly{accent-color:#B3FF3B !important}
+body.dark-mode #irp-m-years{accent-color:#5B8CFF !important}
+body.dark-mode #irp-m-rate{accent-color:#9b85f6 !important}
+body.dark-mode #irp-m-inflation{accent-color:#FF7BAC !important}
 /* === ③ 월 이동 바 알약 === */
 body.dark-mode .month-bar{background:#141414 !important;border:1px solid rgba(255,255,255,.07);border-radius:99px;margin:8px 16px 14px;padding:6px 10px;gap:0 !important;justify-content:space-between}
 body.dark-mode .month-name{color:#B3FF3B !important}
@@ -483,6 +490,12 @@ body.dark-mode .month-year{color:#8a8a8f !important}
 body.dark-mode .arrow-btn{width:34px !important;height:34px !important;border-radius:50% !important;font-size:19px !important}
 /* === ④ 버튼 위계: 1차=라임 / 2차=퍼플 아웃라인 === */
 body.dark-mode .add-btn{background:#B3FF3B !important;border:none !important;color:#0a0a0a !important;font-weight:800 !important;border-radius:99px !important}
+/* 팀 피드백: 탭별 색상 통일 */
+body.dark-mode #page-fixed .top-bar .add-btn{background:#7E62F3 !important;color:#fff !important}
+body.dark-mode #page-expense .top-bar .add-btn{background:#FF7BAC !important;color:#fff !important}
+body.dark-mode #e-list .add-btn{background:#FF7BAC !important;color:#fff !important}
+body.dark-mode #e-month{color:#FF7BAC !important}
+body.dark-mode .fx-end-date,body.dark-mode .fx-end-date:focus{color:var(--purple) !important}
 body.dark-mode #topbar .tb-action{background:rgba(126,98,243,.16) !important;border:1px solid #7E62F366 !important;color:#9b85f6 !important}
 
 /* === ⑤ 다크 깊이감: 카드 상단 하이라이트 === */
@@ -511,7 +524,7 @@ body.dark-mode #exp-amount{font-size:23px !important;font-weight:800 !important;
 /* === ② 앱바 브랜딩 === */
 body.dark-mode #topbar .tb-title{display:flex;align-items:baseline;gap:6px;flex:1;min-width:0;overflow:hidden;white-space:nowrap}
 body.dark-mode #tb-name1,body.dark-mode #tb-name2{flex:none}
-body.dark-mode .tb-tagline{font-family:'Caveat',cursive !important;font-weight:700;font-size:14px;color:#9b85f6;flex-shrink:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.dark-mode .tb-tagline{font-family:'Caveat',cursive !important;font-weight:700;font-size:14px;color:#9b85f6;flex-shrink:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:5px}
 
 /* === ① 토스트: 다크 글래스 + 라임 체크 === */
 body.dark-mode .toast{background:rgba(18,18,18,.92) !important;color:#fff !important;border:1px solid #B3FF3B55 !important;box-shadow:0 12px 34px rgba(0,0,0,.5),0 0 0 1px rgba(179,255,59,.08) !important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;gap:8px}
@@ -546,17 +559,18 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
 </template>
 <div id="toast" class="toast">저장됐어요! ✓</div>
 <div id="splash"><img class="splash-logo" src="icon-192.png" alt=""/><div class="splash-word">우리 <b>가계부</b></div></div>
-<div id="onboard" style="position:fixed;inset:0;z-index:480;background:radial-gradient(800px 500px at 50% 25%,#1b1430,#070608 72%);display:none;flex-direction:column">
-  <div id="ob-track" style="flex:1;display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1)">
-    <div class="ob-slide" style="min-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 40px"><div style="font-family:Caveat,cursive;font-size:30px;color:#B3FF3B;line-height:1;margin-bottom:14px"><span id="ob-name-en">Cute-pig</span> budget</div><img src="icon-192.png" alt="" style="width:104px;height:104px;border-radius:26px;object-fit:cover;margin-bottom:24px;box-shadow:0 14px 40px rgba(126,98,243,.45)"/><div style="font-size:25px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.4"><span id="ob-name-ko" style="color:#B3FF3B">귀여운돼지</span>를 위한<br/>알뜰 가계부</div><div style="font-size:14px;color:#9a9aa5;margin-top:12px;line-height:1.6">수입·지출부터 자산·투자까지<br/>한 앱에서 관리해요</div></div>
-    <div class="ob-slide" style="min-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 40px"><div style="font-family:Caveat,cursive;font-size:26px;color:#B3FF3B;line-height:1;margin-bottom:8px">all in one place</div><div style="font-size:12px;color:#7d7d82;margin-bottom:20px">밀어서 기능을 자세히 봐요 →</div><div style="display:flex;flex-direction:column;gap:16px;width:100%;max-width:280px"><div style="display:flex;align-items:center;gap:14px;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px"><div style="width:46px;height:46px;border-radius:14px;background:rgba(179,255,59,.14);border:1.5px solid #B3FF3B55;display:flex;align-items:center;justify-content:center;font-size:22px">📒</div><div style="text-align:left"><div style="font-size:15px;font-weight:800;color:#fff">가계부</div><div style="font-size:12px;color:#8a8a8f">수입·지출 기록과 예산</div></div></div><div style="display:flex;align-items:center;gap:14px;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px"><div style="width:46px;height:46px;border-radius:14px;background:rgba(126,98,243,.16);border:1.5px solid #7E62F366;display:flex;align-items:center;justify-content:center;font-size:22px">📊</div><div style="text-align:left"><div style="font-size:15px;font-weight:800;color:#fff">소비 리포트</div><div style="font-size:12px;color:#8a8a8f">알뜰소비 지수·추이</div></div></div><div style="display:flex;align-items:center;gap:14px;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px"><div style="width:46px;height:46px;border-radius:14px;background:rgba(91,140,255,.16);border:1.5px solid #5B8CFF66;display:flex;align-items:center;justify-content:center;font-size:22px">🏦</div><div style="text-align:left"><div style="font-size:15px;font-weight:800;color:#fff">자산 관리</div><div style="font-size:12px;color:#8a8a8f">적금·예금·대출·투자</div></div></div></div></div>
-    <div class="ob-slide" style="min-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:52px 26px 24px;overflow-y:auto"><div style="font-family:Caveat,cursive;font-size:22px;color:#B3FF3B;margin-bottom:8px">step 01 · 가계부</div><div style="width:60px;height:60px;border-radius:18px;background:rgba(179,255,59,.14);border:1.5px solid #B3FF3B55;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:12px">📒</div><div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em">매달 들고 나는 돈을 기록</div><div style="font-size:13px;color:#9a9aa5;margin:8px 0 18px;line-height:1.6">상단 <b style="color:#cfcfd4">수입 · 지출 · 고정지출</b> 탭에서<br/>항목만 채우면 합계가 자동으로 모여요</div><div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px"><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">💵</span><span style="font-size:14px;font-weight:800;color:#fff">수입</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 월 600만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.6">본인·배우자 실수령액을 적어요. ‘상세 입력’을 열면 세전·공제·상여까지 나눠 적고, 급여명세서 사진도 붙여둘 수 있어요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">💸</span><span style="font-size:14px;font-weight:800;color:#fff">지출</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 식비 45만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.6">마트·외식·교통처럼 쓴 돈을 ‘+추가’로 기록해요. 분류별 합계가 모여 어디서 새는지 한눈에 보여요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">📌</span><span style="font-size:14px;font-weight:800;color:#fff">고정지출</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 월세 70만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.6">월세·보험료·구독료(넷플릭스 등)처럼 매달 빠지는 돈은 한 번만 등록하면 매월 자동 반영돼요.</div></div></div></div>
-    <div class="ob-slide" style="min-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:52px 26px 24px;overflow-y:auto"><div style="font-family:Caveat,cursive;font-size:22px;color:#B3FF3B;margin-bottom:8px">step 02 · 소비 리포트</div><div style="width:60px;height:60px;border-radius:18px;background:rgba(126,98,243,.16);border:1.5px solid #7E62F366;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:12px">📊</div><div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em">내 소비가 한눈에</div><div style="font-size:13px;color:#9a9aa5;margin:8px 0 18px;line-height:1.6">기록만 하면 <b style="color:#cfcfd4">홈 화면</b>에서<br/>자동으로 분석 카드가 만들어져요</div><div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px"><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🎯</span><span style="font-size:14px;font-weight:800;color:#fff">알뜰소비 지수</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 82점</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.6">수입 대비 얼마나 아껴 썼는지 점수로 보여줘요. 점수가 높을수록 알뜰하게 보낸 달이에요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🟣</span><span style="font-size:14px;font-weight:800;color:#fff">예산 대비 지출</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 68% 사용</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.6">이번 달 예산 중 얼마나 썼는지 도넛 링으로 보여줘요. 남은 예산이 한눈에 들어와요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🏔️</span><span style="font-size:14px;font-weight:800;color:#fff">순자산</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 3,250만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.6">총자산에서 총부채를 뺀 진짜 내 돈. 카드를 탭하면 자산 상세, 최근 7개월 추이 그래프까지 봐요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">📈</span><span style="font-size:14px;font-weight:800;color:#fff">연간 분석</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 월별 비교</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.6">홈 상단 ‘연간 분석’을 켜면 월별 수입·지출 막대그래프와 1년 요약을 정리해서 보여줘요.</div></div></div></div>
-    <div class="ob-slide" style="min-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:52px 26px 24px;overflow-y:auto"><div style="font-family:Caveat,cursive;font-size:22px;color:#B3FF3B;margin-bottom:8px">step 03 · 자산 관리</div><div style="width:60px;height:60px;border-radius:18px;background:rgba(91,140,255,.16);border:1.5px solid #5B8CFF66;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:12px">🏦</div><div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em">모으는 돈도 따로 관리</div><div style="font-size:13px;color:#9a9aa5;margin:8px 0 18px;line-height:1.6"><b style="color:#cfcfd4">적금 · 예금 · 투자 · 대출</b> 탭에서<br/>자산이 늘고 주는 흐름을 추적해요</div><div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px"><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🏦</span><span style="font-size:14px;font-weight:800;color:#fff">적금</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 월 50만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.6">매달 모으는 적금이에요. 납입액·기간을 등록하면 만기 예상액과 월별 누적 그래프가 자동으로 그려져요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">💎</span><span style="font-size:14px;font-weight:800;color:#fff">예금</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 1,000만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.6">한 번에 맡겨둔 목돈을 관리해요. 만기일·금리를 적어두면 받을 이자도 함께 챙겨봐요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">📈</span><span style="font-size:14px;font-weight:800;color:#fff">투자</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 평가액 850만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.6">주식·펀드 평가액을 기록해 수익률 변화를 추적해요. 총자산에 자동으로 합산돼요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🏛️</span><span style="font-size:14px;font-weight:800;color:#fff">대출</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 잔액 1.2억</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.6">대출 잔액과 매월 상환액을 등록하면 순자산 계산에 자동으로 빠져 반영돼요.</div></div></div></div>
-    <div class="ob-slide" style="min-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 40px"><div style="font-family:Caveat,cursive;font-size:26px;color:#B3FF3B;line-height:1;margin-bottom:14px">let's start</div><div style="width:92px;height:92px;border-radius:50%;background:rgba(179,255,59,.12);border:1.5px dashed #B3FF3B88;display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:22px">🍒</div><div style="font-size:25px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.4">이제 시작해볼까요?</div><div style="font-size:14px;color:#9a9aa5;margin-top:12px;line-height:1.6">앱 이름은 <b style="color:#B3FF3B">설정</b>에서<br/>내 마음대로 바꿀 수 있어요</div><button onclick="obGoSettings()" style="margin-top:22px;background:rgba(126,98,243,.16);border:1.5px solid #7E62F366;color:#9b85f6;border-radius:99px;padding:12px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🏷️ 앱 이름 설정하러 가기</button></div>
+<div id="onboard" style="position:fixed;inset:0;z-index:480;overflow:hidden;background:radial-gradient(800px 500px at 50% 25%,#1b1430,#070608 72%);display:none;flex-direction:column">
+  <div id="ob-track" style="flex:1;display:flex;min-height:0;transition:transform .35s cubic-bezier(.4,0,.2,1)">
+    <div class="ob-slide" style="min-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 40px"><div style="font-family:Caveat,cursive;font-size:30px;color:#B3FF3B;line-height:1;margin-bottom:14px"><span id="ob-name-en">Cute-pig</span> budget</div><img src="icon-192.png" alt="" style="width:104px;height:104px;border-radius:26px;object-fit:cover;margin-bottom:24px;box-shadow:0 14px 40px rgba(126,98,243,.45)"/><div style="font-size:25px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.4"><span id="ob-name-ko" style="color:#B3FF3B">귀여운돼지</span>를 위한<br/>알뜰 가계부</div><div style="font-size:14px;color:#9a9aa5;margin-top:12px;line-height:1.6">수입·지출부터 자산·투자, 연말정산까지<br/>한 앱에서 관리해요</div><div style="font-size:12px;color:#7d7d82;margin-top:18px">밀거나 <b style="color:#B3FF3B">다음</b>을 눌러 사용법을 봐요 →</div></div>
+    <div class="ob-slide" style="min-width:100%;width:100%;flex-shrink:0;height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:44px 22px 16px;overflow-y:auto"><div style="font-family:Caveat,cursive;font-size:22px;color:#B3FF3B;margin-bottom:8px">how it works</div><div style="width:60px;height:60px;border-radius:18px;background:rgba(126,98,243,.16);border:1.5px solid #7E62F366;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:12px">🧭</div><div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em">먼저, 화면 이동법부터</div><div style="font-size:13px;color:#9a9aa5;margin:8px 0 18px;line-height:1.6">처음이어도 걱정 마세요.<br/>딱 4가지만 알면 끝나요</div><div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px"><div style="text-align:left;display:flex;align-items:flex-start;gap:11px;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:13px 15px"><div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:rgba(179,255,59,.14);border:1.5px solid #B3FF3B55;color:#B3FF3B;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">1</div><div style="font-size:12.5px;color:#cfcfd4;line-height:1.6"><b style="color:#fff">왼쪽 위 ☰ 메뉴</b>를 누르면 홈·수입·지출·자산·투자·대출·정산·설정 탭이 모두 열려요.</div></div><div style="text-align:left;display:flex;align-items:flex-start;gap:11px;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:13px 15px"><div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:rgba(179,255,59,.14);border:1.5px solid #B3FF3B55;color:#B3FF3B;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">2</div><div style="font-size:12.5px;color:#cfcfd4;line-height:1.6">각 탭 위쪽의 <b style="color:#fff">작은 버튼(서브탭)</b>으로 세부 화면을 바꿔요. 예: 수입 ↔ 지출 ↔ 고정지출.</div></div><div style="text-align:left;display:flex;align-items:flex-start;gap:11px;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:13px 15px"><div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:rgba(179,255,59,.14);border:1.5px solid #B3FF3B55;color:#B3FF3B;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">3</div><div style="font-size:12.5px;color:#cfcfd4;line-height:1.6"><b style="color:#fff">‹ › 화살표</b>로 달을 옮기고, 가운데 <b style="color:#fff">날짜를 탭</b>하면 원하는 달로 바로 이동해요.</div></div><div style="text-align:left;display:flex;align-items:flex-start;gap:11px;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:13px 15px"><div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:rgba(179,255,59,.14);border:1.5px solid #B3FF3B55;color:#B3FF3B;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">4</div><div style="font-size:12.5px;color:#cfcfd4;line-height:1.6">입력하면 <b style="color:#fff">자동으로 저장</b>돼요. 따로 저장 버튼을 누를 필요가 없어요.</div></div></div></div>
+    <div class="ob-slide" style="min-width:100%;width:100%;flex-shrink:0;height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:44px 22px 16px;overflow-y:auto"><div style="font-family:Caveat,cursive;font-size:22px;color:#B3FF3B;margin-bottom:8px">tab · 홈</div><div style="width:60px;height:60px;border-radius:18px;background:rgba(179,255,59,.14);border:1.5px solid #B3FF3B55;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:12px">🏠</div><div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em">이달의 살림을 한눈에</div><div style="font-size:13px;color:#9a9aa5;margin:8px 0 18px;line-height:1.6">기록만 하면 <b style="color:#cfcfd4">홈 화면</b>이<br/>자동으로 요약 카드를 만들어줘요</div><div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px"><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">📅</span><span style="font-size:14px;font-weight:800;color:#fff">이달 보기 · 연간 분석</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">상단 토글</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">위쪽 토글로 전환해요. 이달의 수입·지출 요약과 1년치 흐름을 한 화면에서 봐요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🎯</span><span style="font-size:14px;font-weight:800;color:#fff">알뜰소비 지수</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 82점</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">수입 대비 얼마나 아껴 썼는지 점수로 보여줘요. 높을수록 알뜰하게 보낸 달이에요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🟣</span><span style="font-size:14px;font-weight:800;color:#fff">예산 대비 지출</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 68% 사용</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">이번 달 예산 중 얼마를 썼는지 도넛 링으로 보여줘서 남은 예산이 바로 보여요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🏔️</span><span style="font-size:14px;font-weight:800;color:#fff">순자산</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 3,250만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">총자산에서 빚을 뺀 진짜 내 돈. 카드를 탭하면 자산 상세와 최근 추이 그래프까지 봐요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🗓️</span><span style="font-size:14px;font-weight:800;color:#fff">소비 달력</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">날짜별</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">어떤 날 많이 썼는지 달력에 표시돼요. 날짜를 누르면 그날 내역을 확인해요.</div></div></div></div>
+    <div class="ob-slide" style="min-width:100%;width:100%;flex-shrink:0;height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:44px 22px 16px;overflow-y:auto"><div style="font-family:Caveat,cursive;font-size:22px;color:#B3FF3B;margin-bottom:8px">tab · 수입·지출</div><div style="width:60px;height:60px;border-radius:18px;background:rgba(179,255,59,.14);border:1.5px solid #B3FF3B55;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:12px">💸</div><div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em">들고 나는 돈을 기록</div><div style="font-size:13px;color:#9a9aa5;margin:8px 0 18px;line-height:1.6">상단 <b style="color:#cfcfd4">수입 · 지출 · 고정지출</b> 서브탭에서<br/>항목만 채우면 합계가 자동으로 모여요</div><div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px"><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">💵</span><span style="font-size:14px;font-weight:800;color:#fff">수입 — 급여 입력</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 월 600만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">본인·배우자 <b style="color:#cfcfd4">실수령액</b>을 적어요. 항목 옆 <b style="color:#fff">✏️ 아이콘</b>을 누르면 이름을 자유롭게 바꿀 수 있어요 (예: ‘남편 급여’).</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">📋</span><span style="font-size:14px;font-weight:800;color:#fff">수입 — 상세 입력</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">선택</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">‘상세 입력 열기’를 누르면 세전·공제·상여를 나눠 적을 수 있고, 급여명세서 사진도 붙여둘 수 있어요. 연말정산에도 연동돼요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">➕</span><span style="font-size:14px;font-weight:800;color:#fff">수입 — 항목 추가 / 삭제</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">자유</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">‘+ 항목 추가’로 상여금·부업수입 등을 급여 카드처럼 추가해요. 이름·금액·비고를 적고, <b style="color:#fff">🗑️ 버튼</b>으로 삭제하면 확인 창이 한 번 떠요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">💸</span><span style="font-size:14px;font-weight:800;color:#fff">지출 기록</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 식비 45만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">상단 <b style="color:#cfcfd4">+추가</b>로 마트·외식·교통 등 쓴 돈을 적어요. 분류별 합계가 모여 어디서 새는지 한눈에 보여요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">📌</span><span style="font-size:14px;font-weight:800;color:#fff">고정지출</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 월세 70만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">월세·보험료·구독료(넷플릭스 등)처럼 매달 빠지는 돈은 한 번만 등록하면 매월 자동 반영돼요.</div></div></div></div>
+    <div class="ob-slide" style="min-width:100%;width:100%;flex-shrink:0;height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:44px 22px 16px;overflow-y:auto"><div style="font-family:Caveat,cursive;font-size:22px;color:#B3FF3B;margin-bottom:8px">tab · 자산·투자·대출</div><div style="width:60px;height:60px;border-radius:18px;background:rgba(91,140,255,.16);border:1.5px solid #5B8CFF66;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:12px">🏦</div><div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em">모으는 돈, 갚는 돈</div><div style="font-size:13px;color:#9a9aa5;margin:8px 0 18px;line-height:1.6"><b style="color:#cfcfd4">자산 · 투자 · 대출</b> 탭에서<br/>늘고 주는 흐름을 추적해요</div><div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px"><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🏦</span><span style="font-size:14px;font-weight:800;color:#fff">적금</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 월 50만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">매달 모으는 적금. 납입액·기간을 등록하면 만기 예상액과 누적 그래프가 자동으로 그려져요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">💎</span><span style="font-size:14px;font-weight:800;color:#fff">예금</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 1,000만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">한 번에 맡겨둔 목돈을 관리해요. 만기일·금리를 적어두면 받을 이자도 함께 챙겨봐요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">📈</span><span style="font-size:14px;font-weight:800;color:#fff">투자</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 평가액 850만원</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">주식·펀드 평가액을 기록해 수익률 변화를 추적해요. 총자산에 자동 합산돼요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🏛️</span><span style="font-size:14px;font-weight:800;color:#fff">대출</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">예) 잔액 1.2억</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">대출 잔액·금리·상환을 관리해요. 순자산에서 빚으로 빠지고, 상환 진행도도 보여줘요.</div></div></div></div>
+    <div class="ob-slide" style="min-width:100%;width:100%;flex-shrink:0;height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:44px 22px 16px;overflow-y:auto"><div style="font-family:Caveat,cursive;font-size:22px;color:#B3FF3B;margin-bottom:8px">tab · 정산·설정</div><div style="width:60px;height:60px;border-radius:18px;background:rgba(255,201,91,.16);border:1.5px solid #FFC95B66;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:12px">🧾</div><div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em">정산하고, 내 앱으로 꾸미기</div><div style="font-size:13px;color:#9a9aa5;margin:8px 0 18px;line-height:1.6"><b style="color:#cfcfd4">정산 · 설정</b> 탭에서<br/>마무리와 개인 설정을 해요</div><div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px"><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🧾</span><span style="font-size:14px;font-weight:800;color:#fff">연말정산 시뮬레이션</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">정산 탭</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">한 해 수입·공제를 바탕으로 예상 환급/추가 납부를 미리 계산해요. 원천징수영수증 PDF로도 내보내요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🏷️</span><span style="font-size:14px;font-weight:800;color:#fff">앱 이름 바꾸기</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">설정 탭</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">상단에 보이는 앱 이름과 손글씨 태그라인을 내 마음대로 바꿀 수 있어요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">🙈</span><span style="font-size:14px;font-weight:800;color:#fff">프라이버시 모드</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">설정 탭</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">켜면 모든 금액이 별표(***)로 가려져요. 화면을 공유하거나 보여줄 때 좋아요.</div></div><div style="text-align:left;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 15px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="font-size:17px">💾</span><span style="font-size:14px;font-weight:800;color:#fff">JSON 백업·복원</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:#B3FF3B;background:rgba(179,255,59,.12);border-radius:99px;padding:3px 9px">꼭 챙기기</span></div><div style="font-size:12px;color:#9a9aa5;line-height:1.65">데이터는 이 기기에만 저장돼요. 앱 삭제·브라우저 정리 시 사라지니 <b style="color:#fff">설정 → JSON 백업</b>으로 파일을 정기적으로 저장해 두세요.</div></div></div></div>
+    <div class="ob-slide" style="min-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 40px"><div style="font-family:Caveat,cursive;font-size:26px;color:#B3FF3B;line-height:1;margin-bottom:14px">let’s start</div><div style="width:92px;height:92px;border-radius:50%;background:rgba(179,255,59,.12);border:1.5px dashed #B3FF3B88;display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:22px">🍒</div><div style="font-size:25px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.4">이제 시작해볼까요?</div><div style="font-size:14px;color:#9a9aa5;margin-top:12px;line-height:1.6">사용법은 언제든 <b style="color:#B3FF3B">설정 → 튜토리얼 다시 보기</b>에서<br/>또 볼 수 있어요</div><button onclick="obGoSettings()" style="margin-top:22px;background:rgba(126,98,243,.16);border:1.5px solid #7E62F366;color:#9b85f6;border-radius:99px;padding:12px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🏷️ 앱 이름 설정하러 가기</button></div>
   </div>
-  <div style="padding:0 40px 44px;display:flex;flex-direction:column;align-items:center;gap:22px">
-    <div id="ob-dots" style="display:flex;gap:8px"><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span></div>
+  <div style="padding:0 28px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:14px">
+    <div id="ob-dots" style="display:flex;gap:8px"><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span></div>
     <button id="ob-next" onclick="obNext()" style="width:100%;max-width:320px;background:#B3FF3B;color:#0a0a0a;border:none;border-radius:99px;padding:16px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit">다음</button>
     <button onclick="obFinish()" style="background:none;border:none;color:#7d7d82;font-size:13px;cursor:pointer">건너뛰기</button>
   </div>
@@ -853,7 +867,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   <div class="section" style="margin-top:14px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
       <span class="section-label" style="margin-bottom:0">🎯 카테고리별 예산</span>
-      <button onclick="openBudgetModal()" style="font-size:11px;color:var(--blue);background:var(--blue-dim);border:1px solid var(--blue-border);border-radius:99px;padding:4px 11px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:600">⚙️ 예산 설정</button>
+      <button onclick="openBudgetModal()" style="font-size:11px;color:var(--minus);background:var(--minus-dim);border:1px solid var(--minus-border);border-radius:99px;padding:4px 11px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:600">⚙️ 예산 설정</button>
     </div>
     <div class="card" id="e-budget"></div>
   </div>
@@ -960,11 +974,6 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
 <!-- ══ INVEST ═══════════════════════════════════════════════════════════════ -->
 <!-- ══ 투자 · 실투자 ════════════════════════════════════════════════════════════ -->
 <div id="page-invest-real" class="page">
-  <div class="subtab-bar">
-    <button class="subtab active" onclick="switchSub('invest-real',this)">💼 실투자</button>
-    <button class="subtab" onclick="switchSub('invest-sim',this)">🔮 시뮬레이션</button>
-    <button class="subtab" onclick="switchSub('invest-principle',this)">📜 투자원칙</button>
-  </div>
   <div class="top-bar"><div style="display:flex;align-items:center;gap:8px"><span class="page-title">💼 실투자</span><span class="tab-month-badge" id="inv-month-badge" onclick="openDatePicker()"></span></div></div>
 
   <!-- 실제 보유 투자자산 -->
@@ -986,14 +995,15 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
 
 <!-- ══ 투자 · 시뮬레이션 ══════════════════════════════════════════════════════════ -->
 <div id="page-invest-sim" class="page">
-  <div class="subtab-bar">
-    <button class="subtab" onclick="switchSub('invest-real',this)">💼 실투자</button>
-    <button class="subtab active" onclick="switchSub('invest-sim',this)">🔮 시뮬레이션</button>
-    <button class="subtab" onclick="switchSub('invest-principle',this)">📜 투자원칙</button>
+  <div class="top-bar"><div style="display:flex;align-items:center;gap:8px"><span class="page-title">🔮 투자(시뮬레이션)</span></div></div>
+  <div class="subtab-bar ivchip-bar">
+    <button class="ivchip active" onclick="showInvSec('invest-sim','compound',this)">📈 적립·복리</button>
+    <button class="ivchip" onclick="showInvSec('invest-sim','retire',this)">🏖️ 은퇴인출</button>
+    <button class="ivchip" onclick="showInvSec('invest-sim','isa',this)">🏦 ISA</button>
+    <button class="ivchip" onclick="showInvSec('invest-sim','irp',this)">🏛️ IRP</button>
   </div>
-  <div class="top-bar"><div style="display:flex;align-items:center;gap:8px"><span class="page-title">🔮 시뮬레이션</span></div></div>
-
-  <div style="margin:0 16px 12px">
+  <div class="inv-sec" data-sec="compound" style="display:block">
+  <div style="margin:14px 16px 12px">
     <span style="font-size:13px;font-weight:700;color:#3E3E3E">📈 적립식 복리 시뮬레이션</span>
   </div>
 
@@ -1125,8 +1135,10 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div id="iv-table"></div>
   </div>
 
+  </div><!-- /compound -->
+  <div class="inv-sec" data-sec="retire" style="display:none">
   <!-- ═══════════════ 이론 기반 시뮬레이터 ═══════════════ -->
-  <div style="margin:22px 16px 12px;border-top:1px solid var(--border);padding-top:18px">
+  <div style="margin:14px 16px 12px">
     <span style="font-size:15px;font-weight:800;color:#3E3E3E">🧮 은퇴 이론 시뮬레이터</span>
     <div style="font-size:11.5px;color:#9a9a95;margin-top:5px;line-height:1.6">은퇴 준비가 처음이어도 괜찮아요. 아래 설정을 채우면, 각 이론이 <b>내 숫자</b>로 바뀌어 나와요. 각 계산기엔 <b style="color:#9b85f6">💡 쉽게 이해하기</b> 설명과 <b style="color:#5B8CFF">📚 객관적 근거</b>가 있어요.</div>
   </div>
@@ -1456,19 +1468,172 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       </div>
     </details>
   </div>
+  </div><!-- /retire -->
+  <div class="inv-sec" data-sec="isa" style="display:none">
+  <div style="margin:14px 16px 12px"><span style="font-size:13px;font-weight:700;color:#3E3E3E">🏦 ISA 절세 시뮬레이션</span></div>
+  <div style="margin:0 16px 12px;background:rgba(155,133,246,.08);border-radius:12px;padding:12px 13px">
+    <div style="font-size:11px;font-weight:800;color:#9b85f6;margin-bottom:4px">💡 쉽게 이해하기</div>
+    <div style="font-size:11px;color:#8a8a85;line-height:1.7">ISA는 ‘세금 우대 바구니’예요. 이 안에서 번 이자·배당 수익은 <b>일반형 200만원, 서민형 400만원까지 세금 0원</b>, 초과분도 <b>9.9%</b>만 떼요(일반계좌는 15.4%). 아래에서 내 절세액을 계산해봐요.</div>
+  </div>
+  <div id="isa-type-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 16px 12px">
+    <div class="isa-tbtn" data-t="general" onclick="isaSetType('general')" style="border:1.5px solid #9b85f6;background:rgba(155,133,246,.14);border-radius:12px;padding:12px;cursor:pointer;text-align:center"><div style="font-size:13px;font-weight:800;color:#9b85f6">일반형</div><div style="font-size:10px;color:#9a9a95;margin-top:2px">비과세 200만원</div></div>
+    <div class="isa-tbtn" data-t="low" onclick="isaSetType('low')" style="border:1px solid var(--border);background:var(--card2);border-radius:12px;padding:12px;cursor:pointer;text-align:center"><div style="font-size:13px;font-weight:800;color:var(--text3)">서민형</div><div style="font-size:10px;color:#9a9a95;margin-top:2px">비과세 400만원</div></div>
+  </div>
+  <div id="isa-limit-info" style="margin:0 16px 12px"></div>
+  <div style="margin:0 16px">
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:8px">
+      <div style="font-size:10px;color:#9a9a95;margin-bottom:6px;font-weight:600">💵 월 납입액 <span style="font-size:8.5px;color:#9b85f6">· 연 2,000만원 한도</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="isa-monthly" min="10" max="165" value="50" step="5" oninput="isaCalc()" style="flex:1;accent-color:#9b85f6"/><span style="font-size:14px;font-weight:700;color:#9b85f6;min-width:55px;text-align:right" id="isa-sv-monthly">50만원</span></div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:8px">
+      <div style="font-size:10px;color:#9a9a95;margin-bottom:6px;font-weight:600">📅 투자 기간</div>
+      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="isa-years" min="1" max="20" value="10" step="1" oninput="isaCalc()" style="flex:1;accent-color:#5B8CFF"/><span style="font-size:14px;font-weight:700;color:#5B8CFF;min-width:55px;text-align:right" id="isa-sv-years">10년</span></div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:10px">
+      <div style="font-size:10px;color:#9a9a95;margin-bottom:6px;font-weight:600">📊 예상 연수익률</div>
+      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="isa-rate" min="1" max="12" value="5" step="0.5" oninput="isaCalc()" style="flex:1;accent-color:#22c55e"/><span style="font-size:14px;font-weight:700;color:#22c55e;min-width:55px;text-align:right" id="isa-sv-rate">5.0%</span></div>
+    </div>
+  </div>
+  <div id="isa-result" style="margin:0 16px"></div>
+  <div style="margin:0 16px 10px;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:13px 14px">
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+      <span style="flex:1"><span style="font-size:12.5px;font-weight:800;color:#3E3E3E">🌁 만기 후 연금계좌로 전환</span><br><span style="font-size:10px;color:#9a9a95">전환액의 10%(최대 300만원) 추가 세액공제</span></span>
+      <span id="isa-conv-toggle" onclick="isaToggleConvert()" style="flex-shrink:0;width:42px;height:24px;border-radius:99px;background:var(--border2);position:relative;transition:background .2s"><span id="isa-conv-thumb" style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s"></span></span>
+    </label>
+    <div id="isa-conv-result" style="display:none;margin-top:11px"></div>
+  </div>
+  <div style="margin:0 16px 18px">
+    <details><summary style="font-size:10.5px;color:#5B8CFF;cursor:pointer;font-weight:700">📚 객관적 근거 보기 (2026 기준)</summary>
+    <div style="font-size:10.5px;color:#8a8a85;line-height:1.7;margin-top:7px;padding:10px 12px;background:var(--card2);border-radius:8px">
+      • <b>가입자격</b>: 만 19세 이상 거주자(15~19세 근로소득자 포함), 1인 1계좌, <b>의무가입 3년</b>.<br>
+      • <b>납입한도</b>: 연 2,000만원, 누적 최대 1억원(미납분 이월 가능).<br>
+      • <b>비과세 한도</b>: 일반형 200만원 / 서민형 400만원. 서민형은 총급여 5,000만원 이하(또는 종합소득 3,800만원 이하).<br>
+      • <b>초과 수익</b>: 9.9% 분리과세(일반계좌 15.4% 대비 저율, 금융소득종합과세 제외).<br>
+      • <b>손익통산</b>: 계좌 내 이익·손실 상계 후 순이익만 과세.<br>
+      • <b>연금 전환</b>: 만기자금을 연금저축·IRP로 이전 시 이전액 10%(최대 300만원) 추가 세액공제.<br>
+      ※ 비과세 한도·세율은 세법 개정에 따라 달라질 수 있어요.
+    </div></details>
+  </div>
+  </div><!-- /isa -->
+  <div class="inv-sec" data-sec="irp" style="display:none">
+  <div style="margin:14px 16px 12px"><span style="font-size:13px;font-weight:700;color:#3E3E3E">🏛️ IRP·연금저축 세액공제 시뮬레이션</span></div>
+  <div style="margin:0 16px 12px;background:rgba(34,197,94,.08);border-radius:12px;padding:12px 13px">
+    <div style="font-size:11px;font-weight:800;color:#22c55e;margin-bottom:4px">💡 쉽게 이해하기</div>
+    <div style="font-size:11px;color:#8a8a85;line-height:1.7">연금저축+IRP에 넣으면 <b>연 최대 900만원</b>까지 납입액의 <b>13.2~16.5%</b>를 연말정산 때 <b>세금에서 바로 깎아</b>줘요. 900만원을 다 넣으면 최대 <b>148.5만원</b>을 돌려받아요.</div>
+  </div>
+  <div id="irp-inc-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 16px 12px">
+    <div class="isa-tbtn" data-t="low" onclick="irpSetInc('low')" style="border:1.5px solid #22c55e;background:rgba(34,197,94,.14);border-radius:12px;padding:11px;cursor:pointer;text-align:center"><div style="font-size:12.5px;font-weight:800;color:#22c55e">총급여 5,500만 이하</div><div style="font-size:10px;color:#9a9a95;margin-top:2px">공제율 16.5%</div></div>
+    <div class="isa-tbtn" data-t="high" onclick="irpSetInc('high')" style="border:1px solid var(--border);background:var(--card2);border-radius:12px;padding:11px;cursor:pointer;text-align:center"><div style="font-size:12.5px;font-weight:800;color:var(--text3)">5,500만 초과</div><div style="font-size:10px;color:#9a9a95;margin-top:2px">공제율 13.2%</div></div>
+  </div>
+  <div style="margin:0 16px">
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:10px">
+      <div style="font-size:10px;color:#9a9a95;margin-bottom:6px;font-weight:600">💰 연 납입액 (연금저축+IRP 합산) <span style="font-size:8.5px;color:#22c55e">· 최대 1,800만 / 공제는 900만까지</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="irp-pay" min="0" max="1800" value="900" step="10" oninput="irpCalc()" style="flex:1;accent-color:#22c55e"/><span style="font-size:14px;font-weight:700;color:#22c55e;min-width:60px;text-align:right" id="irp-sv-pay">900만원</span></div>
+    </div>
+  </div>
+  <div id="irp-result" style="margin:0 16px"></div>
+
+  <!-- 적립·복리 시뮬 연동 -->
+  <div style="margin:0 16px 10px;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:13px 14px">
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+      <span style="flex:1"><span style="font-size:12.5px;font-weight:800;color:#3E3E3E">🔗 적립·복리 시뮬 연동하기</span><br><span style="font-size:10px;color:#9a9a95">시뮬의 월 투자금·기간·수익률을 IRP에 적용</span></span>
+      <span id="irp-link-toggle" onclick="irpToggleLink()" style="flex-shrink:0;width:42px;height:24px;border-radius:99px;background:var(--border2);position:relative;transition:background .2s"><span id="irp-link-thumb" style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s"></span></span>
+    </label>
+    <div id="irp-link-body" style="display:none;margin-top:12px">
+      <div id="irp-mirror"></div>
+      <div id="irp-link-summary"></div>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-top:11px;padding-top:11px;border-top:1px dashed var(--border)">
+        <span style="flex:1"><span style="font-size:12.5px;font-weight:800;color:#3E3E3E">💞 세액공제 환급금 재투자</span><br><span style="font-size:10px;color:#9a9a95">매년 돌려받은 환급금을 같은 수익률로 재투자</span></span>
+        <span id="irp-reinvest-toggle" onclick="irpToggleReinvest()" style="flex-shrink:0;width:42px;height:24px;border-radius:99px;background:var(--border2);position:relative;transition:background .2s"><span id="irp-reinvest-thumb" style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s"></span></span>
+      </label>
+      <div id="irp-reinvest-result" style="display:none;margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- 연금 수령 세금 계산 -->
+  <div style="margin:0 16px 10px;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:13px 14px">
+    <div style="font-size:12.5px;font-weight:800;color:#3E3E3E;margin-bottom:4px">🏖️ 연금 수령 시 세금 계산</div>
+    <div style="font-size:10px;color:#9a9a95;margin-bottom:11px;line-height:1.6">만 55세 이후 연금으로 받으면 낮은 연금소득세율, 연 1,500만원 초과 시 분리과세(16.5%) 또는 종합과세 선택이에요.</div>
+    <div style="background:var(--card2);border-radius:10px;padding:11px;margin-bottom:8px">
+      <div style="font-size:10px;color:#9a9a95;margin-bottom:6px;font-weight:600">🎂 연금 개시 나이</div>
+      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="irp-age" min="55" max="90" value="65" step="1" oninput="irpPensionCalc()" style="flex:1;accent-color:#9b85f6"/><span style="font-size:14px;font-weight:700;color:#9b85f6;min-width:48px;text-align:right" id="irp-sv-age">65세</span></div>
+    </div>
+    <div style="background:var(--card2);border-radius:10px;padding:11px;margin-bottom:10px">
+      <div style="font-size:10px;color:#9a9a95;margin-bottom:6px;font-weight:600">💸 월 수급액</div>
+      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="irp-recv" min="20" max="500" value="100" step="10" oninput="irpPensionCalc()" style="flex:1;accent-color:#22c55e"/><span style="font-size:14px;font-weight:700;color:#22c55e;min-width:55px;text-align:right" id="irp-sv-recv">100만원</span></div>
+    </div>
+    <div id="irp-pension-result"></div>
+  </div>
+
+  <!-- 총 수익금 기반 연금 설계 (토글) -->
+  <div style="margin:0 16px 10px;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:13px 14px">
+    <div style="font-size:12.5px;font-weight:800;color:#3E3E3E;margin-bottom:4px">🧮 적립·복리 총 수익금으로 연금 설계</div>
+    <div style="font-size:10px;color:#9a9a95;margin-bottom:11px;line-height:1.6">📈 적립·복리 시뮬에서 계산된 <b>총 수익금</b>을 기준으로 수령 방식을 비교해요. 토글은 동시에 켤 수 있어요.</div>
+
+    <div id="irp-basis-badge" style="margin-bottom:11px"></div>
+
+    <!-- 토글1: 개시~종료 균등 수령 -->
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:11px 12px;margin-bottom:8px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <span style="flex:1"><span style="font-size:12px;font-weight:800;color:#3E3E3E">📆 개시~종료 균등 수령</span><br><span style="font-size:9.5px;color:#9a9a95">개시나이부터 예상 수급기한까지 매월·매년 받을 금액</span></span>
+        <span id="irp-tg-split" onclick="irpToggleSplit()" style="flex-shrink:0;width:42px;height:24px;border-radius:99px;background:var(--border2);position:relative;transition:background .2s"><span id="irp-tg-split-thumb" style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s"></span></span>
+      </label>
+      <div id="irp-split-body" style="display:none;margin-top:11px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div style="background:var(--card);border:1px solid var(--border2);border-radius:9px;padding:9px"><div style="font-size:9px;color:#9a9a95;margin-bottom:3px;font-weight:600">🎂 연금 개시 나이</div><div style="display:flex;align-items:baseline;gap:2px"><input type="number" id="irp-split-start" value="65" step="1" oninput="irpBasisCalc()" style="width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:16px;font-weight:800;color:#9b85f6;font-family:inherit;text-align:right;outline:none;min-width:0"/><span style="font-size:10px;color:#9a9a95;font-weight:700">세</span></div></div>
+          <div style="background:var(--card);border:1px solid var(--border2);border-radius:9px;padding:9px"><div style="font-size:9px;color:#9a9a95;margin-bottom:3px;font-weight:600">🕊️ 예상 수급 기한</div><div style="display:flex;align-items:baseline;gap:2px"><input type="number" id="irp-split-end" value="90" step="1" oninput="irpBasisCalc()" style="width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:16px;font-weight:800;color:#5B8CFF;font-family:inherit;text-align:right;outline:none;min-width:0"/><span style="font-size:10px;color:#9a9a95;font-weight:700">세</span></div></div>
+        </div>
+        <div style="background:rgba(34,197,94,.06);border:1px solid var(--border2);border-radius:9px;padding:9px 11px;margin-bottom:10px"><div style="font-size:9px;color:#9a9a95;margin-bottom:3px;font-weight:600">🏦 수령기간 중 안전자산(채권 등) 기대수익률 <span style="font-size:8px;color:#22c55e">· 남은 원금 재투자</span></div><div style="display:flex;align-items:center;gap:8px"><input type="range" id="irp-safe-rate" min="0" max="6" value="3" step="0.5" oninput="irpBasisCalc()" style="flex:1;accent-color:#22c55e"/><span id="irp-sv-safe" style="font-size:14px;font-weight:800;color:#22c55e;min-width:46px;text-align:right">3.0%</span></div></div>
+        <div id="irp-split-result"></div>
+      </div>
+    </div>
+
+    <!-- 토글2: 안전인출률 3.5~4% -->
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:11px 12px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <span style="flex:1"><span style="font-size:12px;font-weight:800;color:#3E3E3E">🪙 안전인출률(3.5~4%) 인출</span><br><span style="font-size:9.5px;color:#9a9a95">원금을 해치지 않는 선에서 매월·매년 꺼내 쓸 금액</span></span>
+        <span id="irp-tg-swr" onclick="irpToggleSwr()" style="flex-shrink:0;width:42px;height:24px;border-radius:99px;background:var(--border2);position:relative;transition:background .2s"><span id="irp-tg-swr-thumb" style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s"></span></span>
+      </label>
+      <div id="irp-swr-body" style="display:none;margin-top:11px">
+        <div id="irp-swr-result"></div>
+      </div>
+    </div>
+
+    <div id="irp-combo-note" style="display:none;margin-top:8px"></div>
+  </div>
+
+  <div style="margin:0 16px 18px">
+    <details><summary style="font-size:10.5px;color:#5B8CFF;cursor:pointer;font-weight:700">📚 객관적 근거 보기 (2026 기준)</summary>
+    <div style="font-size:10.5px;color:#8a8a85;line-height:1.7;margin-top:7px;padding:10px 12px;background:var(--card2);border-radius:8px">
+      • <b>세액공제 한도</b>: 연금저축 600만원 + IRP 합산 <b>총 900만원</b>(IRP 단독 900만원도 가능).<br>
+      • <b>공제율</b>: 총급여 5,500만원 이하(종합소득 4,500만원 이하) <b>16.5%</b>, 초과 <b>13.2%</b>(지방소득세 포함).<br>
+      • <b>최대 환급</b>: 900만×16.5%=148.5만원 / 900만×13.2%=118.8만원.<br>
+      • <b>납입한도</b>: 연금저축+IRP 합산 연 1,800만원(900만원 초과분은 공제는 안 되지만 과세이연 효과).<br>
+      • <b>위험자산</b>: IRP는 위험자산 70% 한도(연금저축펀드는 100%).<br>
+      • <b>ISA 전환 추가</b>: ISA 만기금 이전 시 10%(최대 300만원) 추가공제 → 한 해 최대 1,200만원 공제 가능.<br>
+      • <b>수령·해지</b>: 만 55세 이후 연금수령 시 연금소득세 3.3~5.5% 저율 / 중도해지·연금 외 수령은 기타소득세 16.5%.<br>
+      ※ 공제율·한도는 세법 개정에 따라 달라질 수 있어요.
+    </div></details>
+  </div>
+  </div><!-- /irp -->
 </div>
 <!-- /page-invest-sim 종료 -->
 
 
 <!-- ══ 투자 · 투자원칙 ══════════════════════════════════════════════════════════ -->
 <div id="page-invest-principle" class="page">
-  <div class="subtab-bar">
-    <button class="subtab" onclick="switchSub('invest-real',this)">💼 실투자</button>
-    <button class="subtab" onclick="switchSub('invest-sim',this)">🔮 시뮬레이션</button>
-    <button class="subtab active" onclick="switchSub('invest-principle',this)">📜 투자원칙</button>
+  <div class="top-bar"><div style="display:flex;align-items:center;gap:8px"><span class="page-title">📚 투자(이론설명)</span></div></div>
+  <div class="subtab-bar ivchip-bar">
+    <button class="ivchip active" onclick="showInvSec('invest-principle','krvs',this)">⚖️ 한국vs미국</button>
+    <button class="ivchip" onclick="showInvSec('invest-principle','withdraw',this)">📤 인출전략</button>
+    <button class="ivchip" onclick="showInvSec('invest-principle','alloc',this)">🥧 자산배분</button>
+    <button class="ivchip" onclick="showInvSec('invest-principle','timing',this)">⏳ 시기관리</button>
+    <button class="ivchip" onclick="showInvSec('invest-principle','tax',this)">🧾 세금·계좌</button>
+    <button class="ivchip" onclick="showInvSec('invest-principle','income',this)">🛟 확정소득</button>
+    <button class="ivchip" onclick="showInvSec('invest-principle','isairp',this)">🏦 ISA·IRP</button>
+    <button class="ivchip" onclick="showInvSec('invest-principle','check',this)">✅ 체크리스트</button>
   </div>
-  <div class="top-bar"><div style="display:flex;align-items:center;gap:8px"><span class="page-title">📜 투자원칙</span></div></div>
-
+  <div class="inv-sec" data-sec="krvs" style="display:block">
   <!-- 인트로 -->
   <div style="margin:0 16px 14px;background:linear-gradient(135deg,rgba(126,98,243,.10),rgba(91,140,255,.07));border:1px solid var(--border2);border-radius:16px;padding:16px">
     <div style="font-size:14px;font-weight:800;color:#3E3E3E;margin-bottom:6px">🇰🇷 한국 은퇴자 자산관리 원칙</div>
@@ -1488,6 +1653,8 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     </div>
   </div>
 
+  </div><!-- /krvs -->
+  <div class="inv-sec" data-sec="withdraw" style="display:none">
   <!-- 묶음 1: 유연 인출 전략 -->
   <div class="pr-card" style="margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden">
     <div onclick="prToggle(this)" style="padding:15px 16px;cursor:pointer;display:flex;align-items:center;gap:10px">
@@ -1522,6 +1689,8 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     </div>
   </div>
 
+  </div><!-- /withdraw -->
+  <div class="inv-sec" data-sec="alloc" style="display:none">
   <!-- 묶음 2: 자산 배분 -->
   <div class="pr-card" style="margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden">
     <div onclick="prToggle(this)" style="padding:15px 16px;cursor:pointer;display:flex;align-items:center;gap:10px">
@@ -1552,6 +1721,8 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     </div>
   </div>
 
+  </div><!-- /alloc -->
+  <div class="inv-sec" data-sec="timing" style="display:none">
   <!-- 묶음 3: 시기별 관리 -->
   <div class="pr-card" style="margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden">
     <div onclick="prToggle(this)" style="padding:15px 16px;cursor:pointer;display:flex;align-items:center;gap:10px">
@@ -1585,6 +1756,8 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     </div>
   </div>
 
+  </div><!-- /timing -->
+  <div class="inv-sec" data-sec="tax" style="display:none">
   <!-- 묶음 4: 한국 세금·계좌 -->
   <div class="pr-card" style="margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden">
     <div onclick="prToggle(this)" style="padding:15px 16px;cursor:pointer;display:flex;align-items:center;gap:10px">
@@ -1607,6 +1780,8 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     </div>
   </div>
 
+  </div><!-- /tax -->
+  <div class="inv-sec" data-sec="income" style="display:none">
   <!-- 묶음 5: 확정소득 만들기 -->
   <div class="pr-card" style="margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden">
     <div onclick="prToggle(this)" style="padding:15px 16px;cursor:pointer;display:flex;align-items:center;gap:10px">
@@ -1637,6 +1812,56 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     </div>
   </div>
 
+  </div><!-- /income -->
+  <div class="inv-sec" data-sec="isairp" style="display:none">
+  <div style="margin:0 16px 14px;background:linear-gradient(135deg,rgba(155,133,246,.10),rgba(34,197,94,.06));border:1px solid var(--border2);border-radius:16px;padding:16px">
+    <div style="font-size:14px;font-weight:800;color:#3E3E3E;margin-bottom:6px">🏦 한국 절세계좌 3총사 (2026 기준)</div>
+    <div style="font-size:12.5px;color:#8a8a85;line-height:1.7">은퇴 자산은 <b>어떤 계좌에 담느냐</b>로 세금이 크게 달라져요. ISA·연금저축·IRP의 핵심 사실만 객관적으로 정리했어요.</div>
+  </div>
+
+  <div class="pr-card" style="margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden">
+    <div onclick="prToggle(this)" style="padding:15px 16px;cursor:pointer;display:flex;align-items:center;gap:10px">
+      <div style="font-size:24px">🏦</div>
+      <div style="flex:1"><div style="font-size:14.5px;font-weight:800;color:#3E3E3E">ISA · 개인종합자산관리계좌</div><div style="font-size:11px;color:#9b85f6;font-weight:700;margin-top:3px">비과세 + 9.9% 분리과세 + 손익통산</div></div>
+      <div class="pr-arrow" style="font-size:13px;color:#9a9a95;transition:transform .2s">▾</div>
+    </div>
+    <div class="pr-body" style="display:none;padding:0 16px 16px;font-size:12.5px;color:#8a8a85;line-height:1.85">
+      <div style="display:flex;flex-direction:column;gap:0;margin-bottom:10px">
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">가입자격</span><span>만 19세↑(15~19세 근로자 포함)·1인 1계좌</span></div>
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">의무가입</span><span>3년</span></div>
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">납입한도</span><span>연 2,000만원·누적 최대 1억원(이월 가능)</span></div>
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">비과세</span><span><b style="color:#9b85f6">일반형 200만원</b> / <b style="color:#9b85f6">서민형 400만원</b></span></div>
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">서민형 요건</span><span>총급여 5,000만원↓ 또는 종합소득 3,800만원↓</span></div>
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">초과수익</span><span>9.9% 분리과세(일반 15.4%·종합과세 제외)</span></div>
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0"><span style="font-weight:700;color:#3E3E3E">손익통산</span><span>계좌 내 이익·손실 상계 후 순이익만 과세</span></div>
+      </div>
+      <div style="background:var(--card2);border-radius:8px;padding:10px 12px;font-size:11.5px;color:#8a8a85">💡 만기자금을 연금저축·IRP로 이전하면 <b style="color:#22c55e">이전액의 10%(최대 300만원)</b> 추가 세액공제. 배당·채권 ETF를 ISA에 담으면 절세 효과가 커요.</div>
+    </div>
+  </div>
+
+  <div class="pr-card" style="margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden">
+    <div onclick="prToggle(this)" style="padding:15px 16px;cursor:pointer;display:flex;align-items:center;gap:10px">
+      <div style="font-size:24px">🏛️</div>
+      <div style="flex:1"><div style="font-size:14.5px;font-weight:800;color:#3E3E3E">연금저축 · IRP</div><div style="font-size:11px;color:#22c55e;font-weight:700;margin-top:3px">세액공제 900만원 + 과세이연 + 연금 저율과세</div></div>
+      <div class="pr-arrow" style="font-size:13px;color:#9a9a95;transition:transform .2s">▾</div>
+    </div>
+    <div class="pr-body" style="display:none;padding:0 16px 16px;font-size:12.5px;color:#8a8a85;line-height:1.85">
+      <div style="display:flex;flex-direction:column;gap:0;margin-bottom:10px">
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">세액공제 한도</span><span>연금저축 600만 + IRP 합산 <b style="color:#22c55e">총 900만원</b></span></div>
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">공제율</span><span>5,500만↓ <b style="color:#22c55e">16.5%</b> / 초과 <b>13.2%</b>(지방세 포함)</span></div>
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">최대 환급</span><span>148.5만원(16.5%) / 118.8만원(13.2%)</span></div>
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">납입한도</span><span>합산 연 1,800만원(공제 초과분은 과세이연)</span></div>
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">위험자산</span><span>IRP 70% 한도 / 연금저축펀드 100%</span></div>
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">연금수령</span><span>만 55세↑ 연금소득세 3.3~5.5% 저율</span></div>
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0"><span style="font-weight:700;color:#3E3E3E">중도해지</span><span>세액공제분+수익 기타소득세 16.5%</span></div>
+      </div>
+      <div style="background:var(--card2);border-radius:8px;padding:10px 12px;font-size:11.5px;color:#8a8a85"><b style="color:#FF7BAC">⚠️</b> 사적연금(연금저축·IRP)은 건강보험료 부과 대상이 아니에요. ISA 만기 이전 추가공제를 더하면 한 해 최대 1,200만원까지 공제 가능.</div>
+    </div>
+  </div>
+
+  <div style="margin:0 16px 18px;font-size:9.5px;color:#9a9a95;line-height:1.6;text-align:center">ⓘ 2026년 기준 일반 정보이며 세법 개정으로 달라질 수 있어요. 실제 적용은 홈택스·금융기관에서 확인하세요.</div>
+  </div><!-- /isairp -->
+  <div class="inv-sec" data-sec="check" style="display:none">
   <!-- 현실 적용 체크리스트 -->
   <div style="margin:6px 16px 14px;border-top:1px solid var(--border);padding-top:16px">
     <span style="font-size:14.5px;font-weight:800;color:#3E3E3E">✅ 현실적 적용 체크리스트</span>
@@ -1657,6 +1882,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   <div style="margin:0 16px 24px;font-size:9.5px;color:#9a9a95;line-height:1.6;text-align:center">
     ⓘ 본 내용은 일반 정보이며 투자·세무 자문이 아니에요. 실제 결정은 전문가 상담 후 진행하세요.
   </div>
+  </div><!-- /check -->
 </div>
 <!-- /page-invest-principle 종료 -->
 
@@ -1749,7 +1975,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
 
 <div id="topbar">
   <button id="hamb" onclick="toggleDrawer()" aria-label="메뉴"><span></span><span></span><span></span></button>
-  <span class="tb-title"><span id="tb-name1" style="font-size: 18px; font-family: sans-serif">우리</span> <b style="color: #B3FF3B; font-size: 18px" id="tb-name2">가계부</b><span class="tb-tagline" id="tb-tagline" style="font-size: 24px">cherry-sumer</span></span>
+  <span class="tb-title" onclick="switchGroup('home')" style="cursor:pointer"><span id="tb-name1" style="font-size: 18px; font-family: sans-serif">우리</span> <b style="color: #B3FF3B; font-size: 18px" id="tb-name2">가계부</b><span class="tb-tagline" id="tb-tagline" style="font-size: 19px">cherry-sumer</span></span>
   <button class="tb-action" onclick="shareHomeAsImage()">사진 공유</button>
 </div>
 <div id="drawer-scrim" onclick="closeDrawer()"></div>
@@ -1759,6 +1985,8 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   <button class="nav-btn" onclick="switchGroup('flow',this)"><span class="nav-icon">💸</span><span class="nav-label">수입·지출</span></button>
   <button class="nav-btn" onclick="switchGroup('asset',this)"><span class="nav-icon">💰</span><span class="nav-label">자산</span></button>
   <button class="nav-btn" onclick="switchGroup('invest',this)"><span class="nav-icon">📈</span><span class="nav-label">투자</span></button>
+  <button class="nav-btn" onclick="switchGroup('investsim',this)" style="padding-left:38px"><span class="nav-icon">🔮</span><span class="nav-label">투자(시뮬레이션)</span></button>
+  <button class="nav-btn" onclick="switchGroup('investtheory',this)" style="padding-left:38px"><span class="nav-icon">📚</span><span class="nav-label">투자(이론설명)</span></button>
   <button class="nav-btn" onclick="switchGroup('debt',this)"><span class="nav-icon">🏛️</span><span class="nav-label">대출</span></button>
   <button class="nav-btn" onclick="switchGroup('tax',this)"><span class="nav-icon">🧾</span><span class="nav-label">정산</span></button>
   <button class="nav-btn" onclick="switchGroup('settings',this)"><span class="nav-icon">⚙️</span><span class="nav-label">설정</span></button>
@@ -1965,7 +2193,9 @@ function changeAnnualYear(d){annualYear+=d;renderAnnual();}
 // 홈탭 전체를 사진으로 공유/저장
 function shareHomeAsImage(){
   const run=()=>{
-    const target=document.getElementById(homeView==='monthly'?'view-monthly':'view-annual');
+    const target=curTab==='home'
+      ? document.getElementById(homeView==='monthly'?'view-monthly':'view-annual')
+      : document.querySelector('.page.active');
     if(!target){showToast('캡처할 화면이 없어요');return;}
     showToast('📸 이미지 생성 중...');
     // ▼ 플립 카드 캡처 보정: 앞면이 보이도록 강제 고정 + 3D 변환 제거
@@ -2001,7 +2231,7 @@ function shareHomeAsImage(){
         if(!blob){showToast('이미지 생성 실패');return;}
         const now=new Date();
         const stamp=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
-        const fileName='가계부_'+(homeView==='monthly'?curYear+'년'+curMonth+'월':annualYear+'년_연간')+'_'+stamp+'.png';
+        const fileName='가계부_'+({home:(homeView==='monthly'?curYear+'년'+curMonth+'월':annualYear+'년_연간'),income:'수입',expense:'지출',fixed:'고정지출',savings:'적금',deposit:'예금','invest-real':'실투자','invest-sim':'투자시뮬','invest-principle':'투자원칙',loan:'대출',taxsim:'연말정산',settings:'설정'}[curTab]||curTab)+'_'+stamp+'.png';
         const file=new File([blob],fileName,{type:'image/png'});
         if(navigator.canShare&&navigator.canShare({files:[file]})){
           navigator.share({files:[file],title:'우리 가계부'}).then(()=>showToast('공유 완료! ✓')).catch(()=>{/* 취소 */});
@@ -2036,7 +2266,9 @@ const TAB_GROUPS={
   home:{members:['home'],def:'home'},
   flow:{members:['income','expense','fixed'],def:'income'},
   asset:{members:['savings','deposit'],def:'savings'},
-  invest:{members:['invest-real','invest-sim','invest-principle'],def:'invest-real'},
+  invest:{members:['invest-real'],def:'invest-real'},
+  investsim:{members:['invest-sim'],def:'invest-sim'},
+  investtheory:{members:['invest-principle'],def:'invest-principle'},
   debt:{members:['loan'],def:'loan'},
   tax:{members:['taxsim'],def:'taxsim'},
   settings:{members:['settings'],def:'settings'}
@@ -2082,11 +2314,11 @@ function showPage(id){
   // 하단 네비 active 동기화
   const group=pageToGroup(id);
   const navBtns=document.querySelectorAll('.nav-btn');
-  const groupOrder=['home','flow','asset','invest','debt','tax','settings'];
+  const groupOrder=['home','flow','asset','invest','investsim','investtheory','debt','tax','settings'];
   navBtns.forEach((b,idx)=>b.classList.toggle('active',groupOrder[idx]===group));
-  curTab=id; renderAll();
+  curTab=id; lss('lastPage',id); renderAll();
   if(id==='invest-real'){renderHoldings();}
-  if(id==='invest-sim'){ivCalc();initTheorySims();}
+  if(id==='invest-sim'){initTheorySims();}
   if(id==='invest-principle'){if(typeof renderPrincipleSim==='function')renderPrincipleSim();}
   if(id==='taxsim'){renderTaxSim();}
   closeDrawer();
@@ -2455,7 +2687,7 @@ function renderHome(){
   const detailEl=document.getElementById('h-asset-detail');
   if(detailEl){
     const items=[];
-    if(savTotal>0)items.push({icon:'🏦',label:'적금 누적',val:savTotal,color:'#B3FF3B'});
+    if(savTotal>0)items.push({icon:'🏦',label:'적금 누적',val:savTotal,color:'#FFC95B'});
     if(depTotal>0)items.push({icon:'💎',label:'예금 원금',val:depTotal,color:'#5B8CFF'});
     if(invTotal>0)items.push({icon:'📈',label:'투자 평가액',val:invTotal,color:'#7E62F3'});
     if(items.length===0){
@@ -2532,7 +2764,7 @@ function renderHome(){
     if(months>=6){color='var(--green)';grade='안정적이에요 👍';}
     else if(months>=3){color='#f59e0b';grade='적정 수준이에요';}
     else{color='#ED3847';grade='더 모으면 좋아요';}
-    document.getElementById('h-emergency-ring').innerHTML=svgRing(pct,color,68,months.toFixed(1),'개월');
+    document.getElementById('h-emergency-ring').innerHTML=svgRing(pct,'#ffffff',68,months.toFixed(1),'개월');
     document.getElementById('h-emergency-desc').innerHTML=
       '유동자산 <b style="color:var(--text)">'+fmtShort2(liquidAsset)+'</b>으로<br>'+
       '월 지출 <b style="color:var(--text)">'+fmtShort2(monthlyBurn)+'</b> 기준 <b style="color:'+color+'">'+months.toFixed(1)+'개월</b> 버틸 수 있어요<br>'+
@@ -2676,13 +2908,13 @@ function renderHome(){
     const sumRepaid=Math.max(0,sumPrincipal-sumBalance);
     const repaidPct=sumPrincipal>0?sumRepaid/sumPrincipal*100:0;
     const summaryHTML=sumPrincipal>0?`<div style="display:flex;align-items:center;gap:16px;padding:6px 2px 16px;margin-bottom:10px;border-bottom:1px solid var(--border)">
-      ${svgDonut([{value:sumRepaid,color:'#22c55e'},{value:sumBalance,color:'#1e3a5f'}],110,repaidPct.toFixed(0)+'%','상환완료')}
+      ${svgDonut([{value:sumRepaid,color:'#FF7BAC'},{value:sumBalance,color:'#1e3a5f'}],110,repaidPct.toFixed(0)+'%','상환완료')}
       <div style="flex:1;min-width:0">
         <div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-weight:600">전체 대출 상환 현황</div>
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-          <span style="width:9px;height:9px;border-radius:3px;background:#22c55e;flex-shrink:0"></span>
+          <span style="width:9px;height:9px;border-radius:3px;background:#FF7BAC;flex-shrink:0"></span>
           <span style="font-size:11px;color:var(--text2);flex:1">갚은 원금</span>
-          <span style="font-size:12px;font-weight:700;color:var(--green)">${fmtShort2(sumRepaid)}</span>
+          <span style="font-size:12px;font-weight:700;color:var(--minus)">${fmtShort2(sumRepaid)}</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
           <span style="width:9px;height:9px;border-radius:3px;background:#3b6098;flex-shrink:0"></span>
@@ -2714,9 +2946,9 @@ function renderHome(){
           <span>이자 <b style="color:#ED3847">${fmt(entry.interest)}</b></span>
           <span>${entry.round}차</span>
         </div>
-        <div class="prog-bar" style="height:11px"><div class="prog-fill" style="width:${pct}%;background:var(--green)"></div></div>
+        <div class="prog-bar" style="height:11px"><div class="prog-fill" style="width:${pct}%;background:var(--minus)"></div></div>
         <div style="display:flex;justify-content:space-between;margin-top:4px">
-          <span style="font-size:10px;color:var(--green)">✓ ${pct.toFixed(1)}% 상환</span>
+          <span style="font-size:10px;color:var(--minus)">✓ ${pct.toFixed(1)}% 상환</span>
           <span style="font-size:10px;color:var(--text3)">남은 잔액 <b style="color:#3E3E3E">${fmt(entry.balance)}</b></span>
         </div>
       </div>`);
@@ -4287,7 +4519,7 @@ function renderFixed(){
     ${svgRing(pct,'var(--green)',62,pct+'%','완료')}
     <div style="flex:1">
       <div style="font-size:13px;color:var(--green);font-weight:700;margin-bottom:3px">✅ 이번 달 납부 현황</div>
-      <div style="font-size:12px;color:var(--text2)"><b style="color:var(--green);font-size:16px">${checkedCount}</b> / ${total}건 납부 완료</div>
+      <div style="font-size:12px;color:var(--text2)"><b style="color:var(--purple);font-size:16px">${checkedCount}</b> / ${total}건 납부 완료</div>
       ${pct===100?'<div style="font-size:10px;color:var(--green);margin-top:3px">🎉 이번 달 모두 납부했어요!</div>':`<div style="font-size:10px;color:var(--text3);margin-top:3px">${total-checkedCount}건 남았어요</div>`}
     </div>
   </div>`;}else{progEl.innerHTML='';}
@@ -4362,12 +4594,12 @@ function renderFixed(){
             </div>
             <div style="display:flex;align-items:center;gap:6px">
               <span style="font-size:10px;color:var(--text4);width:78px;flex-shrink:0">▶️ 시작</span>
-              <input type="month" class="inline-input" style="flex:1;min-width:0;border-bottom:1px solid var(--green-border);color:var(--green);font-size:12px;font-weight:600"
+              <input type="month" class="inline-input" style="flex:1;min-width:0;border-bottom:1px solid var(--border2);color:var(--text);font-size:12px;font-weight:600"
                 value="${f.startYM||''}" onchange="updFixed(${i},'startYM',this.value)"/>
             </div>
             <div style="display:flex;align-items:center;gap:6px">
               <span style="font-size:10px;color:var(--text4);width:78px;flex-shrink:0">🏁 종료</span>
-              <input type="month" class="inline-input" style="flex:1;min-width:0;border-bottom:1px solid var(--red-border);color:var(--red);font-size:12px;font-weight:600"
+              <input type="month" class="inline-input fx-end-date" style="flex:1;min-width:0;border-bottom:1px solid var(--purple-border);color:var(--purple);font-size:12px;font-weight:600"
                 value="${f.endYM||''}" onchange="updFixed(${i},'endYM',this.value)" title="비워두면 계속 유지"/>
             </div>
           </div>
@@ -5603,6 +5835,64 @@ function ivCalc(){
       '<span style="text-align:right;color:var(--green)">'+ivFmtS(tv)+'</span>'+
       '<span style="text-align:right;color:'+(rv>100?'#f59e0b':'#9a9a95')+'">+'+rv+'%</span></div>';
   }).join('');
+  ivSaveState();
+  if(typeof irpMirrorSyncFromIv==='function')irpMirrorSyncFromIv();
+  if(typeof irpBasisCalc==='function')irpBasisCalc();
+}
+
+// ── 시뮬레이션 입력 상태 저장/복원 ───────────────────
+function ivSaveState(){
+  if(_ivRestoring)return;
+  lss('iv-sim-state',{
+    monthly:document.getElementById('iv-monthly')?.value,
+    years:document.getElementById('iv-years')?.value,
+    rate:document.getElementById('iv-rate')?.value,
+    inflation:document.getElementById('iv-inflation')?.value,
+    deposit:document.getElementById('iv-deposit-rate')?.value,
+    mode:ivMode,index:ivIndex,inflationOn:ivInflationOn
+  });
+}
+function ivApplyIndexVisual(){
+  const spEl=document.getElementById('iv-btn-sp');
+  const nqEl=document.getElementById('iv-btn-nq');
+  if(spEl){spEl.style.border=ivIndex==='sp'?'1.5px solid #B3FF3B':'1.5px solid var(--border)';spEl.style.background=ivIndex==='sp'?'rgba(179,255,59,.12)':'var(--card2)';}
+  if(nqEl){nqEl.style.border=ivIndex==='nq'?'1.5px solid #7E62F3':'1.5px solid var(--border)';nqEl.style.background=ivIndex==='nq'?'rgba(126,98,243,.16)':'var(--card2)';}
+}
+function ivApplyModeVisual(){
+  ['single','compare','deposit'].forEach(id=>{
+    const btn=document.getElementById('iv-mode-'+id);if(!btn)return;
+    const active=id===ivMode;
+    btn.style.borderColor=active?'transparent':'var(--border)';
+    btn.style.background=active?'#B3FF3B':'var(--card2)';
+    btn.style.color=active?'#0a0a0a':'var(--text3)';
+    btn.style.fontWeight=active?'800':'600';
+  });
+  const dc=document.getElementById('iv-deposit-card');
+  if(dc)dc.style.display=ivMode==='deposit'?'block':'none';
+}
+function ivApplyInflationVisual(){
+  const tog=document.getElementById('iv-inf-toggle');
+  const thumb=document.getElementById('iv-inf-thumb');
+  const slider=document.getElementById('iv-inf-slider');
+  if(tog)tog.style.background=ivInflationOn?'#B3FF3B':'var(--border2)';
+  if(thumb)thumb.style.left=ivInflationOn?'18px':'2px';
+  if(slider)slider.style.display=ivInflationOn?'block':'none';
+}
+let _ivRestoring=false;
+function ivRestoreState(){
+  const s=ls('iv-sim-state');
+  if(s){
+    _ivRestoring=true;
+    const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null&&v!=='')el.value=v;};
+    set('iv-monthly',s.monthly);set('iv-years',s.years);set('iv-rate',s.rate);
+    set('iv-inflation',s.inflation);set('iv-deposit-rate',s.deposit);
+    if(s.index)ivIndex=s.index;
+    if(s.mode)ivMode=s.mode;
+    ivInflationOn=!!s.inflationOn;
+    ivApplyIndexVisual();ivApplyModeVisual();ivApplyInflationVisual();
+    _ivRestoring=false;
+  }
+  ivCalc();
 }
 
 // ══════════ 투자원칙 아코디언 + 이론 시뮬레이터 ══════════
@@ -5615,6 +5905,543 @@ function prToggle(head){
   if(arrow)arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';
 }
 function renderPrincipleSim(){/* 투자원칙 페이지 진입 시 훅(현재는 정적) */}
+
+// ══════ 시뮬·이론 섹션 서브탭 전환 ══════
+function showInvSec(page,key,btn){
+  document.querySelectorAll('#page-'+page+' .inv-sec').forEach(s=>{s.style.display=(s.dataset.sec===key)?'block':'none';});
+  const bar=btn?btn.parentElement:document.querySelector('#page-'+page+' .ivchip-bar');
+  if(bar)bar.querySelectorAll('.ivchip').forEach(c=>c.classList.toggle('active',c===btn));
+  const sc=document.getElementById('screen'); if(sc)sc.scrollTop=0;
+  if(page==='invest-sim'&&key==='irp'&&typeof irpBasisCalc==='function'){irpBasisCalc();if(irpLinkOn&&typeof irpUpdateLinked==='function')irpUpdateLinked();}
+}
+
+// ══════ ISA 절세 시뮬레이션 ══════
+let isaType='general';
+let isaConvertOn=false;
+let isaConvInc='low';
+function _ivv(id,d){const e=document.getElementById(id);return e?(parseFloat(e.value)||d):d;}
+function isaConvSetInc(t){isaConvInc=t;isaCalc();}
+function isaToggleConvert(){
+  isaConvertOn=!isaConvertOn;
+  const tog=document.getElementById('isa-conv-toggle'), thumb=document.getElementById('isa-conv-thumb');
+  if(tog)tog.style.background=isaConvertOn?'#9b85f6':'var(--border2)';
+  if(thumb)thumb.style.left=isaConvertOn?'20px':'2px';
+  const r=document.getElementById('isa-conv-result'); if(r)r.style.display=isaConvertOn?'block':'none';
+  isaCalc();
+}
+function isaSetType(t){
+  isaType=t;
+  document.querySelectorAll('#isa-type-row .isa-tbtn').forEach(b=>{
+    const on=b.dataset.t===t;
+    b.style.borderColor=on?'#9b85f6':'var(--border)';
+    b.style.background=on?'rgba(155,133,246,.14)':'var(--card2)';
+    b.style.color=on?'#9b85f6':'var(--text3)';
+  });
+  isaCalc();
+}
+function isaCalc(){
+  const monthly=_ivv('isa-monthly',50), years=_ivv('isa-years',10), rate=_ivv('isa-rate',5)/100;
+  const ml=document.getElementById('isa-sv-monthly'); if(ml)ml.textContent=monthly+'만원';
+  const yl=document.getElementById('isa-sv-years'); if(yl)yl.textContent=years+'년';
+  const rl=document.getElementById('isa-sv-rate'); if(rl)rl.textContent=(rate*100).toFixed(1)+'%';
+  const f=v=>Math.round(v).toLocaleString()+'만원';
+  // 누적 납입한도: 연 2,000만×가입년수, 누적 상한 1억원
+  const annualLimit=2000, capTotal=10000;
+  const cumLimit=Math.min(annualLimit*years,capTotal);
+  const plannedAnnual=monthly*12;
+  const overAnnual=plannedAnnual>annualLimit;
+  const exempt=isaType==='low'?400:200;
+  // 납입한도 안내 카드
+  const liEl=document.getElementById('isa-limit-info');
+  if(liEl)liEl.innerHTML=
+    '<div style="background:rgba(91,140,255,.07);border:1px solid var(--border2);border-radius:12px;padding:11px 13px">'+
+      '<div style="font-size:10px;color:#9a9a95;font-weight:700;margin-bottom:6px">📐 내 납입한도 ('+(isaType==='low'?'서민형':'일반형')+' · '+years+'년 가입)</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">'+
+        '<div><div style="font-size:9px;color:#9a9a95">연간 한도</div><div style="font-size:13px;font-weight:800;color:#5B8CFF">2,000만원</div></div>'+
+        '<div><div style="font-size:9px;color:#9a9a95">누적 한도 ('+years+'년)</div><div style="font-size:13px;font-weight:800;color:#5B8CFF">'+f(cumLimit)+(cumLimit>=capTotal?' (상한)':'')+'</div></div>'+
+      '</div>'+
+      (overAnnual?'<div style="font-size:10px;color:#FF7BAC;margin-top:7px;font-weight:600">⚠️ 연 납입 '+f(plannedAnnual)+'이 한도(2,000만) 초과 — 초과분은 납입 불가':'<div style="font-size:10px;color:#9a9a95;margin-top:7px">연 납입 '+f(plannedAnnual)+' · 한도 여유 '+f(annualLimit-plannedAnnual))+'</div>'+
+    '</div>';
+  // 복리 적립 (한도 내 납입만 적용)
+  const effMonthly=Math.min(monthly,Math.floor(annualLimit/12));
+  let bal=0; const mr=rate/12; for(let m=0;m<years*12;m++){bal=(bal+effMonthly)*(1+mr);}
+  const principal=effMonthly*12*years, gain=Math.max(0,bal-principal);
+  const taxNormal=gain*0.154;
+  const taxableGain=Math.max(0,gain-exempt);
+  const exemptUsed=Math.min(gain,exempt);
+  const taxISA=taxableGain*0.099, saved=Math.max(0,taxNormal-taxISA);
+  const el=document.getElementById('isa-result'); if(!el)return;
+  el.innerHTML=
+    '<div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:15px;margin-bottom:8px">'+
+      '<div style="font-size:10px;color:#9a9a95;font-weight:600;letter-spacing:.06em;margin-bottom:5px">💎 ISA 절세 효과 ('+(isaType==='low'?'서민형':'일반형')+')</div>'+
+      '<div style="font-size:26px;font-weight:900;color:#9b85f6;line-height:1">+'+f(saved)+' 절세</div>'+
+      '<div style="font-size:10.5px;color:#9a9a95;margin-top:4px">일반계좌 세금 '+f(taxNormal)+' → ISA 세금 <b style="color:#9b85f6">'+f(taxISA)+'</b></div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:11px">'+
+        '<div style="background:var(--card2);border-radius:8px;padding:8px"><div style="font-size:9px;color:#9a9a95;margin-bottom:2px">납입원금</div><div style="font-size:12px;font-weight:700;color:#3E3E3E">'+f(principal)+'</div></div>'+
+        '<div style="background:var(--card2);border-radius:8px;padding:8px"><div style="font-size:9px;color:#9a9a95;margin-bottom:2px">예상수익</div><div style="font-size:12px;font-weight:700;color:var(--green)">+'+f(gain)+'</div></div>'+
+        '<div style="background:var(--card2);border-radius:8px;padding:8px"><div style="font-size:9px;color:#9a9a95;margin-bottom:2px">비과세한도</div><div style="font-size:12px;font-weight:700;color:#5B8CFF">'+exempt+'만원</div></div>'+
+      '</div>'+
+      '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)">'+
+        '<div style="font-size:9.5px;color:#9a9a95;font-weight:700;margin-bottom:5px">🧮 초과수익 과세 계산</div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:11px;color:#8a8a85;padding:2px 0"><span>비과세 적용 수익</span><span style="font-weight:700;color:#5B8CFF">'+f(exemptUsed)+' (세금 0)</span></div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:11px;color:#8a8a85;padding:2px 0"><span>과세대상 초과수익</span><span style="font-weight:700;color:#3E3E3E">'+f(taxableGain)+' × 9.9%</span></div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:11px;color:#8a8a85;padding:2px 0"><span>초과수익 세금</span><span style="font-weight:800;color:#9b85f6">'+f(taxISA)+'</span></div>'+
+      '</div>'+
+    '</div>';
+  // 연금전환 추가공제
+  if(isaConvertOn){
+    const convAmt=bal; // 만기자금 전액 전환 가정
+    const deduction=Math.min(convAmt*0.1,300); // 공제 대상금액(공제액)
+    const capped=convAmt*0.1>300;
+    const cRate=isaConvInc==='low'?0.165:0.132;
+    const refund=deduction*cRate; // 실제 세액환급액
+    const fw=v=>(Math.round(v*10)/10).toLocaleString()+'만원';
+    const ib=(t,lbl,sub)=>'<div onclick="isaConvSetInc(\''+t+'\')" style="flex:1;border:1.5px solid '+(isaConvInc===t?'#9b85f6':'var(--border)')+';background:'+(isaConvInc===t?'rgba(155,133,246,.14)':'var(--card2)')+';border-radius:9px;padding:8px;cursor:pointer;text-align:center"><div style="font-size:10.5px;font-weight:800;color:'+(isaConvInc===t?'#9b85f6':'var(--text3)')+'">'+lbl+'</div><div style="font-size:9px;color:#9a9a95;margin-top:1px">'+sub+'</div></div>';
+    const cr=document.getElementById('isa-conv-result');
+    if(cr)cr.innerHTML=
+      '<div style="background:rgba(155,133,246,.08);border-radius:10px;padding:12px 13px">'+
+        '<div style="font-size:9.5px;color:#9a9a95;font-weight:700;margin-bottom:6px">🧾 내 소득구간 (환급률)</div>'+
+        '<div style="display:flex;gap:6px;margin-bottom:11px">'+ib('low','총급여 5,500만↓','공제율 16.5%')+ib('high','5,500만 초과','공제율 13.2%')+'</div>'+
+        '<div style="display:flex;gap:8px">'+
+          '<div style="flex:1;background:var(--card2);border-radius:9px;padding:10px"><div style="font-size:9px;color:#9a9a95;margin-bottom:3px">① 추가 공제액 <span style="font-size:8px">(공제 대상금액)</span></div><div style="font-size:17px;font-weight:900;color:#5B8CFF;line-height:1">'+f(deduction)+'</div><div style="font-size:8.5px;color:#9a9a95;margin-top:3px">전환액 '+f(convAmt)+'의 10%'+(capped?' · 300만 상한':'')+'</div></div>'+
+          '<div style="flex:1;background:rgba(34,197,94,.1);border-radius:9px;padding:10px"><div style="font-size:9px;color:#9a9a95;margin-bottom:3px">② 세액환급액 <span style="font-size:8px">(실제 환급)</span></div><div style="font-size:17px;font-weight:900;color:#22c55e;line-height:1">+'+fw(refund)+'</div><div style="font-size:8.5px;color:#9a9a95;margin-top:3px">공제액 × '+(cRate*100).toFixed(1)+'%</div></div>'+
+        '</div>'+
+        '<div style="font-size:9px;color:#9a9a95;margin-top:9px;padding-top:9px;border-top:1px dashed var(--border);line-height:1.6">💡 <b>공제액</b>은 연말정산에서 잡아주는 “대상 금액”이고, 실제 통장에 돌아오는 <b>세액환급액</b>은 거기에 내 소득세율('+(cRate*100).toFixed(1)+'%)을 곱한 금액이에요.</div>'+
+      '</div>';
+  }
+  isaSave();
+}
+function isaSave(){lss('isa-sim',{type:isaType,monthly:_ivv('isa-monthly',50),years:_ivv('isa-years',10),rate:_ivv('isa-rate',5),conv:isaConvertOn,convInc:isaConvInc});}
+function isaRestore(){
+  const s=ls('isa-sim');
+  if(s){
+    if(s.monthly&&document.getElementById('isa-monthly'))document.getElementById('isa-monthly').value=s.monthly;
+    if(s.years&&document.getElementById('isa-years'))document.getElementById('isa-years').value=s.years;
+    if(s.rate&&document.getElementById('isa-rate'))document.getElementById('isa-rate').value=s.rate;
+    isaType=s.type||'general';
+    if(s.convInc)isaConvInc=s.convInc;
+    if(s.conv){isaConvertOn=false;isaToggleConvert();}
+  }
+  isaSetType(isaType);
+}
+
+// ══════ IRP / 연금저축 세액공제 시뮬레이션 ══════
+let irpInc='low';
+let irpLinkOn=false, irpReinvestOn=false;
+let irpSplitOn=false, irpSwrOn=false;
+function irpSetInc(t){
+  irpInc=t;
+  document.querySelectorAll('#irp-inc-row .isa-tbtn').forEach(b=>{
+    const on=b.dataset.t===t;
+    b.style.borderColor=on?'#22c55e':'var(--border)';
+    b.style.background=on?'rgba(34,197,94,.14)':'var(--card2)';
+    b.style.color=on?'#22c55e':'var(--text3)';
+  });
+  irpCalc();
+}
+function irpCalc(){
+  const pay=_ivv('irp-pay',900);
+  const pl=document.getElementById('irp-sv-pay'); if(pl)pl.textContent=pay+'만원';
+  const rate=irpInc==='low'?0.165:0.132;
+  const eligible=Math.min(pay,900);
+  const credit=eligible*rate;
+  const ps=Math.min(pay,600), irp=Math.max(0,eligible-600);
+  const f=v=>Math.round(v).toLocaleString()+'만원';
+  const fw=v=>(Math.round(v*10)/10).toLocaleString()+'만원';
+  const el=document.getElementById('irp-result'); if(!el)return;
+  el.innerHTML=
+    '<div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:15px;margin-bottom:8px">'+
+      '<div style="font-size:10px;color:#9a9a95;font-weight:600;letter-spacing:.06em;margin-bottom:5px">🧾 연말정산 환급(세액공제)</div>'+
+      '<div style="font-size:26px;font-weight:900;color:#22c55e;line-height:1">+'+fw(credit)+'</div>'+
+      '<div style="font-size:10.5px;color:#9a9a95;margin-top:4px">공제대상 '+f(eligible)+' × <b style="color:#22c55e">'+(rate*100).toFixed(1)+'%</b> 즉시 환급'+(pay>900?' <span style="color:#FF7BAC">(900만원 초과분은 공제✖)</span>':'')+'</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:11px">'+
+        '<div style="background:var(--card2);border-radius:8px;padding:8px"><div style="font-size:9px;color:#9a9a95;margin-bottom:2px">연금저축 권장</div><div style="font-size:12px;font-weight:700;color:#5B8CFF">'+f(ps)+'</div></div>'+
+        '<div style="background:var(--card2);border-radius:8px;padding:8px"><div style="font-size:9px;color:#9a9a95;margin-bottom:2px">IRP 권장</div><div style="font-size:12px;font-weight:700;color:#9b85f6">'+f(irp)+'</div></div>'+
+        '<div style="background:var(--card2);border-radius:8px;padding:8px"><div style="font-size:9px;color:#9a9a95;margin-bottom:2px">공제율</div><div style="font-size:12px;font-weight:700;color:#22c55e">'+(rate*100).toFixed(1)+'%</div></div>'+
+      '</div>'+
+      (pay>900?'<div style="font-size:10px;color:#8a8a85;margin-top:9px;padding-top:9px;border-top:1px dashed var(--border);line-height:1.6">💡 공제 한도(900만) 초과분 <b style="color:#9b85f6">'+f(pay-900)+'</b>은 세액공제는 없지만 <b>과세이연</b>으로 운용수익에 세금을 늦춰 굴릴 수 있어요. (연 납입한도 1,800만)</div>':'')+
+    '</div>';
+  irpUpdateLinked();
+  irpSave();
+}
+
+// 적립·복리 시뮬 값 읽기
+function irpReadSim(){
+  return {
+    monthly:parseFloat(document.getElementById('iv-monthly')?.value||50),
+    years:parseInt(document.getElementById('iv-years')?.value||20),
+    rate:parseFloat(document.getElementById('iv-rate')?.value||10.5)/100
+  };
+}
+function irpToggleLink(){
+  irpLinkOn=!irpLinkOn;
+  const tog=document.getElementById('irp-link-toggle'), thumb=document.getElementById('irp-link-thumb');
+  if(tog)tog.style.background=irpLinkOn?'#B3FF3B':'var(--border2)';
+  if(thumb)thumb.style.left=irpLinkOn?'20px':'2px';
+  const body=document.getElementById('irp-link-body'); if(body)body.style.display=irpLinkOn?'block':'none';
+  if(irpLinkOn){
+    irpRenderMirror();
+    // 시뮬 월투자금×12 연납입을 IRP 납입액(최대 1800)으로 반영
+    const s=irpReadSim();
+    const pay=Math.min(Math.round(s.monthly*12),1800);
+    const el=document.getElementById('irp-pay'); if(el){el.value=pay;}
+  }
+  irpCalc();
+}
+// 적립·복리 시뮬을 IRP 안에서 그대로 조작 (양방향 연동)
+function irpRenderMirror(){
+  const wrap=document.getElementById('irp-mirror');
+  if(!wrap)return;
+  const g=id=>document.getElementById(id);
+  const monthly=parseFloat(g('iv-monthly')?.value||50);
+  const years=parseInt(g('iv-years')?.value||20);
+  const rate=parseFloat(g('iv-rate')?.value||10.5);
+  const infl=parseFloat(g('iv-inflation')?.value||2.5);
+  const infOn=(typeof ivInflationOn!=='undefined')&&ivInflationOn;
+  const row=(icon,label,col,acc,id,min,max,step,val,unit)=>
+    '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:7px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:9.5px;color:#9a9a95;font-weight:600">'+icon+' '+label+'</span><span id="'+id+'-lbl" style="font-size:13px;font-weight:800;color:'+col+'">'+val+unit+'</span></div>'+
+      '<input type="range" id="'+id+'" min="'+min+'" max="'+max+'" step="'+step+'" value="'+val+'" oninput="irpMirrorInput()" style="width:100%;accent-color:'+acc+'"/>'+
+    '</div>';
+  wrap.innerHTML=
+    '<div style="background:rgba(34,197,94,.06);border:1px solid var(--border2);border-radius:11px;padding:11px;margin-bottom:10px">'+
+      '<div style="font-size:10px;font-weight:800;color:#22c55e;margin-bottom:9px">📈 적립·복리 시뮬레이션 <span style="font-size:8.5px;color:#9a9a95;font-weight:600">· 여기서 바꾸면 적립복리 탭도 같이 바뀌어요</span></div>'+
+      row('💵','월 투자금액','#B3FF3B','#B3FF3B','irp-m-monthly',5,300,5,monthly,'만원')+
+      row('📅','투자 기간','#5B8CFF','#5B8CFF','irp-m-years',1,40,1,years,'년')+
+      row('📊','예상 연수익률','#9b85f6','#9b85f6','irp-m-rate',1,25,0.5,rate,'%')+
+      '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:9px 11px">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:9.5px;color:#9a9a95;font-weight:600">🏦 물가상승률 반영</span>'+
+          '<span id="irp-m-inf-toggle" onclick="irpMirrorInfl()" style="width:34px;height:18px;background:'+(infOn?'#22c55e':'var(--border2)')+';border-radius:9px;position:relative;cursor:pointer;transition:background .2s"><span id="irp-m-inf-thumb" style="width:14px;height:14px;background:#fff;border-radius:50%;position:absolute;top:2px;left:'+(infOn?'18px':'2px')+';transition:left .2s"></span></span>'+
+        '</div>'+
+        '<div id="irp-m-inf-slider" style="display:'+(infOn?'block':'none')+';margin-top:8px">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:9px;color:#9a9a95">물가상승률</span><span id="irp-m-inflation-lbl" style="font-size:13px;font-weight:800;color:#FF7BAC">'+infl+'%</span></div>'+
+          '<input type="range" id="irp-m-inflation" min="0.5" max="6" step="0.5" value="'+infl+'" oninput="irpMirrorInput()" style="width:100%;accent-color:#FF7BAC"/>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+}
+// 미러 슬라이더 → 실제 iv 입력에 반영 → 적립복리 탭 재계산 → IRP 재계산
+function irpMirrorInput(){
+  const g=id=>document.getElementById(id);
+  const map=[['irp-m-monthly','iv-monthly'],['irp-m-years','iv-years'],['irp-m-rate','iv-rate'],['irp-m-inflation','iv-inflation']];
+  map.forEach(([m,iv])=>{const me=g(m),ie=g(iv);if(me&&ie){ie.value=me.value;}});
+  if(typeof ivCalc==='function')ivCalc();
+  irpMirrorLabels();
+  irpUpdateLinked();
+  if(typeof irpBasisCalc==='function')irpBasisCalc();
+}
+function irpMirrorInfl(){
+  if(typeof ivToggleInflation==='function')ivToggleInflation();
+  const infOn=(typeof ivInflationOn!=='undefined')&&ivInflationOn;
+  const t=document.getElementById('irp-m-inf-toggle'),th=document.getElementById('irp-m-inf-thumb'),s=document.getElementById('irp-m-inf-slider');
+  if(t)t.style.background=infOn?'#22c55e':'var(--border2)';
+  if(th)th.style.left=infOn?'18px':'2px';
+  if(s)s.style.display=infOn?'block':'none';
+  irpUpdateLinked();
+  if(typeof irpBasisCalc==='function')irpBasisCalc();
+}
+function irpMirrorLabels(){
+  const g=id=>document.getElementById(id);
+  const set=(id,txt)=>{const e=g(id);if(e)e.textContent=txt;};
+  if(g('irp-m-monthly'))set('irp-m-monthly-lbl',g('irp-m-monthly').value+'만원');
+  if(g('irp-m-years'))set('irp-m-years-lbl',g('irp-m-years').value+'년');
+  if(g('irp-m-rate'))set('irp-m-rate-lbl',g('irp-m-rate').value+'%');
+  if(g('irp-m-inflation'))set('irp-m-inflation-lbl',g('irp-m-inflation').value+'%');
+}
+// 적립복리 탭에서 값이 바뀌면 미러도 갱신 (역방향 연동)
+let irpLinkChart=null;
+function irpRenderLinkChart(monthly,years,rate,infOn,infl){
+  const canvas=document.getElementById('irp-link-chart');
+  if(!canvas||typeof Chart==='undefined')return;
+  const labels=Array.from({length:years},(_,i)=>(i+1)+'년');
+  const data=ivCalcGrowth(monthly,years,rate);
+  const pData=Array.from({length:years},(_,i)=>Math.round(monthly*(i+1)*12*10000));
+  const datasets=[
+    {label:'납입 원금',data:pData,backgroundColor:'rgba(59,130,246,0.2)',borderColor:'#3E3E3E',borderWidth:1.5,fill:true,tension:0.3,pointRadius:0},
+    {label:'평가액',data,backgroundColor:'rgba(34,197,94,0.12)',borderColor:'#22c55e',borderWidth:2,fill:true,tension:0.3,pointRadius:0}
+  ];
+  if(infOn){
+    const rData=data.map((v,i)=>Math.round(v/Math.pow(1+infl/100,i+1)));
+    datasets.push({label:'실질가치',data:rData,borderColor:'#f59e0b',borderWidth:1.5,fill:false,tension:0.3,pointRadius:0,borderDash:[5,3]});
+  }
+  if(irpLinkChart)irpLinkChart.destroy();
+  requestAnimationFrame(()=>{
+    const c=document.getElementById('irp-link-chart');
+    if(!c||typeof Chart==='undefined')return;
+    if(irpLinkChart)irpLinkChart.destroy();
+    irpLinkChart=new Chart(c,{
+      type:'line',data:{labels,datasets},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:true,position:'bottom',labels:{color:'#9a9a95',font:{size:10},boxWidth:10,padding:10}},
+          tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ivFmt(ctx.parsed.y)}}},
+        scales:{
+          x:{ticks:{color:'#475569',font:{size:10},maxTicksLimit:8},grid:{color:'rgba(255,255,255,0.04)'},border:{display:false}},
+          y:{ticks:{color:'#475569',font:{size:10},callback:v=>ivFmtS(v)},grid:{color:'rgba(255,255,255,0.04)'},border:{display:false}}
+        },interaction:{mode:'index',intersect:false}}
+    });
+  });
+}
+function irpMirrorSyncFromIv(){
+  if(!irpLinkOn)return;
+  const g=id=>document.getElementById(id);
+  const cp=(iv,m)=>{const ie=g(iv),me=g(m);if(ie&&me&&me.value!==ie.value)me.value=ie.value;};
+  cp('iv-monthly','irp-m-monthly');cp('iv-years','irp-m-years');cp('iv-rate','irp-m-rate');cp('iv-inflation','irp-m-inflation');
+  const infOn=(typeof ivInflationOn!=='undefined')&&ivInflationOn;
+  const t=g('irp-m-inf-toggle'),th=g('irp-m-inf-thumb'),s=g('irp-m-inf-slider');
+  if(t)t.style.background=infOn?'#22c55e':'var(--border2)';
+  if(th)th.style.left=infOn?'18px':'2px';
+  if(s)s.style.display=infOn?'block':'none';
+  irpMirrorLabels();
+}
+function irpToggleReinvest(){
+  irpReinvestOn=!irpReinvestOn;
+  const tog=document.getElementById('irp-reinvest-toggle'), thumb=document.getElementById('irp-reinvest-thumb');
+  if(tog)tog.style.background=irpReinvestOn?'#9b85f6':'var(--border2)';
+  if(thumb)thumb.style.left=irpReinvestOn?'20px':'2px';
+  const r=document.getElementById('irp-reinvest-result'); if(r)r.style.display=irpReinvestOn?'block':'none';
+  irpUpdateLinked();
+  irpSave();
+}
+function irpUpdateLinked(){
+  const sum=document.getElementById('irp-link-summary');
+  if(!sum||!irpLinkOn)return;
+  const s=irpReadSim();
+  const mr=s.rate/12;
+  let bal=0; for(let m=0;m<s.years*12;m++){bal=(bal+s.monthly)*(1+mr);}
+  const principal=s.monthly*12*s.years, gain=Math.max(0,bal-principal);
+  const profitRatio=principal>0?Math.round(gain/principal*100):0;
+  const infl=parseFloat(document.getElementById('iv-inflation')?.value||2.5);
+  const infOn=(typeof ivInflationOn!=='undefined')&&ivInflationOn;
+  const realBal=infOn?bal/Math.pow(1+infl/100,s.years):bal;
+  const withdraw=bal*10000*0.04/12;
+  const F=v=>ivFmt(v*10000);
+  const card=(lbl,val,col,sub)=>
+    '<div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px">'+
+      '<div style="font-size:10px;color:#9a9a95;margin-bottom:4px">'+lbl+'</div>'+
+      '<div style="font-size:16px;font-weight:800;color:'+col+';line-height:1.1">'+val+'</div>'+
+      '<div style="font-size:10px;color:#9a9a95;margin-top:2px">'+sub+'</div>'+
+    '</div>';
+  sum.innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+      card('납입 원금 합계',F(principal),'#3E3E3E','월 '+s.monthly+'만 × '+s.years+'년')+
+      card('복리 수익','+'+F(gain),'var(--green)','원금 대비 +'+profitRatio+'%')+
+      card('최종 자산',F(bal),'#d97706',infOn?'실질가치 '+F(realBal)+' ('+infl+'%)':'실질가치 미반영')+
+      card('월 인출가능액 (4%룰)',ivFmt(withdraw)+'/월','#9b85f6','연 4% 인출 기준')+
+    '</div>'+
+    '<div style="position:relative;height:200px;margin-top:12px"><canvas id="irp-link-chart" role="img" aria-label="적립 복리 성장 차트"></canvas></div>'+
+    '<div style="font-size:10px;color:#9a9a95;margin-top:9px;line-height:1.6">💡 IRP는 운용수익을 매년 과세(15.4%)하지 않고 <b style="color:#22c55e">과세이연</b> — 인출 전까지 세금 없이 복리로 굴려요. 인출 시 연금소득세 3.3~5.5% 저율이에요.</div>';
+  irpRenderLinkChart(s.monthly,s.years,s.rate*100,infOn,infl);
+  // 세액공제 재투자
+  const rr=document.getElementById('irp-reinvest-result');
+  if(rr&&irpReinvestOn){
+    const f=v=>Math.round(v).toLocaleString()+'만원';
+    const rateCredit=irpInc==='low'?0.165:0.132;
+    const eligible=Math.min(s.monthly*12,900);
+    const annualCredit=eligible*rateCredit;
+    // 매년 환급금을 연말에 받아 이듬해부터 연율 s.rate로 재투자(연 복리)
+    let rbal=0; for(let y=0;y<s.years;y++){rbal=(rbal+annualCredit)*(1+s.rate);}
+    const rprincipal=annualCredit*s.years, rgain=Math.max(0,rbal-rprincipal);
+    rr.innerHTML=
+      '<div style="background:rgba(155,133,246,.08);border-radius:10px;padding:11px 12px">'+
+        '<div style="font-size:18px;font-weight:900;color:#9b85f6;line-height:1">+'+f(rbal)+'</div>'+
+        '<div style="font-size:10px;color:#9a9a95;margin-top:4px;line-height:1.6">매년 환급금 <b style="color:#9b85f6">'+f(annualCredit)+'</b>을 '+s.years+'년간 @ '+(s.rate*100).toFixed(1)+'%로 재투자 → 원금 '+f(rprincipal)+' + 수익 '+f(rgain)+'</div>'+
+      '</div>';
+  }
+}
+
+// ══════ 연금 수령 세금 계산 ══════
+function irpToggleSplit(){
+  irpSplitOn=!irpSplitOn;
+  const t=document.getElementById('irp-tg-split'),th=document.getElementById('irp-tg-split-thumb'),b=document.getElementById('irp-split-body');
+  if(t)t.style.background=irpSplitOn?'#9b85f6':'var(--border2)';
+  if(th)th.style.left=irpSplitOn?'20px':'2px';
+  if(b)b.style.display=irpSplitOn?'block':'none';
+  irpBasisCalc();irpSave();
+}
+function irpToggleSwr(){
+  irpSwrOn=!irpSwrOn;
+  const t=document.getElementById('irp-tg-swr'),th=document.getElementById('irp-tg-swr-thumb'),b=document.getElementById('irp-swr-body');
+  if(t)t.style.background=irpSwrOn?'#22c55e':'var(--border2)';
+  if(th)th.style.left=irpSwrOn?'20px':'2px';
+  if(b)b.style.display=irpSwrOn?'block':'none';
+  irpBasisCalc();irpSave();
+}
+function irpPensionTax(annualMan,age){
+  let lowRate,ageLabel;
+  if(age<70){lowRate=0.055;ageLabel='55~69세';}
+  else if(age<80){lowRate=0.044;ageLabel='70~79세';}
+  else{lowRate=0.033;ageLabel='80세+';}
+  const over=annualMan>1500;
+  return {tax:annualMan*(over?0.165:lowRate),lowRate,ageLabel,over};
+}
+// 적립·복리 시뮬의 총 수익금(평가액)을 기준으로 연금 설계 (만원 단위)
+function irpBasisCalc(){
+  const monthly=parseFloat(document.getElementById('iv-monthly')?.value||50);
+  const years=parseInt(document.getElementById('iv-years')?.value||20);
+  const rate=parseFloat(document.getElementById('iv-rate')?.value||10.5)/100;
+  const inflRate=parseFloat(document.getElementById('iv-inflation')?.value||2.5);
+  const inflOnSim=(typeof ivInflationOn!=='undefined')&&ivInflationOn;
+  const mr=rate/12; let invest=0; for(let m=0;m<years*12;m++){invest=(invest+monthly)*(1+mr);}
+  // 세액공제 환급금 재투자 수익을 총 수익금에 합산
+  let reinvest=0, reinvestPrincipal=0;
+  const reinvestOn=(typeof irpReinvestOn!=='undefined')&&irpReinvestOn;
+  if(reinvestOn){
+    const creditRate=(typeof irpInc!=='undefined'&&irpInc==='high')?0.132:0.165;
+    const annualCredit=Math.min(monthly*12,900)*creditRate;
+    reinvestPrincipal=annualCredit*years;
+    for(let y=0;y<years;y++){reinvest=(reinvest+annualCredit)*(1+rate);}
+  }
+  const nominal=invest+reinvest;
+  const real=nominal/Math.pow(1+inflRate/100,years);
+  const basis=inflOnSim?real:nominal; // 만원
+  const reinvestReal=reinvest/Math.pow(1+inflRate/100,years);
+  const reinvestShown=inflOnSim?reinvestReal:reinvest;
+  const f=v=>manFmt(v);
+  const fw=v=>(Math.round(v*10)/10).toLocaleString()+'만원';
+  const reinvestNote=reinvestOn?'<br>💞 세액공제 환급금 재투자 <b style="color:#9b85f6">'+f(reinvestShown)+'</b> 포함됨':'';
+  const badge=document.getElementById('irp-basis-badge');
+  if(badge){
+    if(inflOnSim){
+      badge.innerHTML=
+        '<div style="background:linear-gradient(135deg,#FF7BAC,#f59e0b);border-radius:11px;padding:13px;color:#fff;box-shadow:0 6px 18px rgba(255,123,172,.28)">'+
+          '<div style="font-size:12px;font-weight:900;letter-spacing:.01em;margin-bottom:4px">📉 물가상승률 '+inflRate.toFixed(1)+'% 반영 · 실질가치 기준</div>'+
+          '<div style="font-size:25px;font-weight:900;line-height:1.05">'+f(basis)+'</div>'+
+          '<div style="font-size:9.5px;opacity:.95;margin-top:4px">명목 평가액 '+f(nominal)+' → 오늘 물가 기준 실질가치로 환산했어요'+reinvestNote+'</div>'+
+        '</div>';
+    } else {
+      badge.innerHTML=
+        '<div style="background:rgba(34,197,94,.1);border:1px solid var(--border2);border-radius:11px;padding:13px">'+
+          '<div style="font-size:10px;color:#9a9a95;font-weight:700;margin-bottom:4px">📈 적립·복리 총 수익금 (명목)</div>'+
+          '<div style="font-size:25px;font-weight:900;color:#22c55e;line-height:1.05">'+f(basis)+'</div>'+
+          '<div style="font-size:9.5px;color:#9a9a95;margin-top:4px">월 '+monthly+'만 × '+years+'년 @ '+(rate*100).toFixed(1)+'% · 물가상승률 미반영'+reinvestNote+'</div>'+
+        '</div>';
+    }
+  }
+  // 토글1: 개시~종료 균등 수령 (남은 원금 안전자산 재투자 고려)
+  if(irpSplitOn){
+    const start=parseInt(document.getElementById('irp-split-start')?.value||65);
+    const end=parseInt(document.getElementById('irp-split-end')?.value||90);
+    const ny=Math.max(1,end-start);
+    const safeNom=parseFloat(document.getElementById('irp-safe-rate')?.value||3);
+    const svl=document.getElementById('irp-sv-safe'); if(svl)svl.textContent=safeNom.toFixed(1)+'%';
+    // 물가 토글 시 basis가 실질가치이므로 실질수익률(명목-물가) 사용
+    const effRate=(inflOnSim?(safeNom-inflRate):safeNom)/100;
+    // 단순 균등(재투자 미고려): 원금/기간
+    const simpleYear=basis/ny, simpleMonth=simpleYear/12;
+    // ① 같은 기간, 더 많은 금액 — 잔액이 effRate로 굴며 ny년에 정확히 소진하는 연 인출액
+    let boostYear;
+    if(Math.abs(effRate)<1e-6) boostYear=simpleYear;
+    else boostYear=basis*effRate/(1-Math.pow(1+effRate,-ny));
+    const boostMonth=boostYear/12;
+    const moreMonth=boostMonth-simpleMonth;
+    // ② 같은 금액 — 잔액이 effRate로 굴 때 단순 인출액이 지속되는 연수(기간 연장)
+    let extYears, forever=false;
+    if(effRate<=1e-6) extYears=ny;
+    else if(simpleYear<=basis*effRate+1e-9){forever=true;}
+    else extYears=-Math.log(1-basis*effRate/simpleYear)/Math.log(1+effRate);
+    const extAge=forever?null:Math.round(start+extYears);
+    const extra=forever?null:Math.max(0,Math.round(extYears-ny));
+    // 세금 — 증액(boost) 기준
+    const tx=irpPensionTax(boostYear,start);
+    const netMonth=(boostYear-tx.tax)/12;
+    const effPct=(effRate*100);
+    const r=document.getElementById('irp-split-result');
+    if(r)r.innerHTML=
+      '<div style="background:rgba(155,133,246,.08);border-radius:9px;padding:11px 12px">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#8a8a85;padding-bottom:7px;margin-bottom:8px;border-bottom:1px dashed var(--border)"><span>단순 균등분할 <span style="font-size:8.5px">(재투자 미고려)</span></span><span style="font-weight:700;color:#3E3E3E">월 '+fw(simpleMonth)+' · '+ny+'년 소진</span></div>'+
+        '<div style="font-size:10px;font-weight:800;color:#22c55e;margin-bottom:7px">🏦 남은 원금 안전자산(채권 등) 재투자 시 @ '+safeNom.toFixed(1)+'%'+(inflOnSim?' <span style="font-size:8px;color:#FF7BAC">(실질 '+effPct.toFixed(1)+'%)</span>':'')+'</div>'+
+        '<div style="display:flex;gap:8px;margin-bottom:9px">'+
+          '<div style="flex:1;background:var(--card);border:1px solid var(--border2);border-radius:9px;padding:10px"><div style="font-size:9px;color:#9a9a95;font-weight:700;margin-bottom:3px">💰 같은 기간, 더 많이</div><div style="font-size:18px;font-weight:900;color:#9b85f6;line-height:1.05">'+fw(boostMonth)+'<span style="font-size:9px;color:#9a9a95;font-weight:600">/월</span></div>'+(moreMonth>0.05?'<div style="font-size:8.5px;color:#22c55e;font-weight:700;margin-top:2px">▲ 월 +'+fw(moreMonth)+'</div>':'')+'<div style="font-size:8.5px;color:#9a9a95;margin-top:3px">'+start+'→'+end+'세 ('+ny+'년)</div></div>'+
+          '<div style="flex:1;background:var(--card);border:1px solid var(--border2);border-radius:9px;padding:10px"><div style="font-size:9px;color:#9a9a95;font-weight:700;margin-bottom:3px">⏳ 같은 금액, 더 길게</div>'+(forever?'<div style="font-size:16px;font-weight:900;color:#22c55e;line-height:1.1">평생 수령<br><span style="font-size:8.5px;color:#9a9a95;font-weight:600">원금 거의 보존</span></div>':'<div style="font-size:18px;font-weight:900;color:#5B8CFF;line-height:1.05">~'+extAge+'세</div><div style="font-size:8.5px;color:#22c55e;font-weight:700;margin-top:2px">▲ +'+extra+'년 연장</div><div style="font-size:8.5px;color:#9a9a95;margin-top:3px">월 '+fw(simpleMonth)+' 유지 시</div>')+'</div>'+
+        '</div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:10.5px;color:#8a8a85;padding:2px 0"><span>세후 월 수령액 (증액 기준)</span><span style="font-weight:800;color:#22c55e">'+fw(netMonth)+' <span style="font-size:9px;color:#9a9a95">('+(tx.over?'16.5%':(tx.lowRate*100).toFixed(1)+'%')+')</span></span></div>'+
+        '<div style="font-size:9px;color:#9a9a95;margin-top:7px;padding-top:7px;border-top:1px dashed var(--border);line-height:1.55">💡 수령하면서 <b>남은 원금을 안전자산에 재투자</b>하면 같은 기간 동안 <b style="color:#9b85f6">더 많이</b> 받거나, 같은 금액으로 <b style="color:#5B8CFF">더 오래</b> 받을 수 있어요.'+(inflOnSim?' <b style="color:#FF7BAC">물가상승률 '+inflRate.toFixed(1)+'% 반영(실질 기준)</b>이라 안전수익률에서 물가를 차감했어요.':'')+'</div>'+
+      '</div>';
+  }
+  // 토글2: 안전인출률 3.5~4%
+  if(irpSwrOn){
+    const card=(pct,col)=>{
+      const yearMan=basis*pct/100, monthMan=yearMan/12;
+      return '<div style="flex:1;background:rgba(34,197,94,.07);border:1px solid var(--border2);border-radius:9px;padding:10px"><div style="font-size:10px;font-weight:800;color:'+col+';margin-bottom:5px">'+pct+'% 룰</div><div style="font-size:9px;color:#9a9a95">매월</div><div style="font-size:17px;font-weight:900;color:'+col+';line-height:1.1">'+fw(monthMan)+'</div><div style="font-size:9px;color:#9a9a95;margin-top:4px">매년 '+fw(yearMan)+'</div></div>';
+    };
+    const r=document.getElementById('irp-swr-result');
+    if(r)r.innerHTML=
+      '<div style="display:flex;gap:8px;margin-bottom:8px">'+card(3.5,'#5B8CFF')+card(4,'#22c55e')+'</div>'+
+      '<div style="font-size:9px;color:#9a9a95;line-height:1.55">✅ 안전인출률은 <b>원금을 거의 해치지 않고</b> 평생 꺼내 쓰는 방식이에요. 한국은 장수 리스크로 <b>3.5%</b>가 더 보수적이에요.</div>';
+  }
+  // 복수 토글 비교
+  const combo=document.getElementById('irp-combo-note');
+  if(combo){
+    if(irpSplitOn&&irpSwrOn){
+      const start=parseInt(document.getElementById('irp-split-start')?.value||65);
+      const end=parseInt(document.getElementById('irp-split-end')?.value||90);
+      const ny=Math.max(1,end-start);
+      const splitMonth=(basis/ny)/12, swrMonth=(basis*0.04)/12;
+      combo.style.display='block';
+      combo.innerHTML=
+        '<div style="background:rgba(91,140,255,.08);border-radius:9px;padding:10px 12px">'+
+          '<div style="font-size:10px;font-weight:800;color:#5B8CFF;margin-bottom:4px">🔀 두 방식 비교 (월 수령액, 세전)</div>'+
+          '<div style="font-size:10.5px;color:#8a8a85;line-height:1.75">• 균등분할('+ny+'년): <b style="color:#9b85f6">'+fw(splitMonth)+'/월</b> — 더 많이 받지만 '+end+'세에 소진<br>• 4% 안전인출: <b style="color:#22c55e">'+fw(swrMonth)+'/월</b> — 적게 받지만 원금 보존·평생 수령</div>'+
+        '</div>';
+    } else combo.style.display='none';
+  }
+}
+function irpPensionCalc(){
+  const age=parseInt(document.getElementById('irp-age')?.value||65);
+  const recv=parseInt(document.getElementById('irp-recv')?.value||100);
+  const al=document.getElementById('irp-sv-age'); if(al)al.textContent=age+'세';
+  const rl=document.getElementById('irp-sv-recv'); if(rl)rl.textContent=recv+'만원';
+  const f=v=>Math.round(v).toLocaleString()+'만원';
+  const fw=v=>(Math.round(v*10)/10).toLocaleString()+'만원';
+  const annual=recv*12;
+  // 나이별 연금소득세율(지방세 포함)
+  let lowRate, ageLabel;
+  if(age<70){lowRate=0.055;ageLabel='55~69세';}
+  else if(age<80){lowRate=0.044;ageLabel='70~79세';}
+  else{lowRate=0.033;ageLabel='80세 이상';}
+  const overLimit=annual>1500;
+  let tax, taxLabel, monthlyNet;
+  if(!overLimit){
+    tax=annual*lowRate;
+    taxLabel='연금소득세 '+(lowRate*100).toFixed(1)+'% 저율 분리과세';
+  }else{
+    tax=annual*0.165;
+    taxLabel='연 1,500만 초과 → 전액 16.5% 분리과세(또는 종합과세 선택)';
+  }
+  monthlyNet=recv-(tax/12);
+  const el=document.getElementById('irp-pension-result'); if(!el)return;
+  el.innerHTML=
+    '<div style="background:var(--card2);border-radius:10px;padding:13px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:9px">'+
+        '<div><div style="font-size:9.5px;color:#9a9a95">세후 월 수령액</div><div style="font-size:22px;font-weight:900;color:#22c55e;line-height:1.1">'+fw(monthlyNet)+'</div></div>'+
+        '<div style="text-align:right"><div style="font-size:9.5px;color:#9a9a95">연간 세금</div><div style="font-size:14px;font-weight:800;color:#FF7BAC">'+f(tax)+'</div></div>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:11px;color:#8a8a85;padding:2px 0"><span>연간 수령액</span><span style="font-weight:700;color:#3E3E3E">'+f(annual)+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:11px;color:#8a8a85;padding:2px 0"><span>적용 구간</span><span style="font-weight:700;color:#9b85f6">'+ageLabel+'</span></div>'+
+      '<div style="font-size:10px;color:#9a9a95;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);line-height:1.6">'+(overLimit?'⚠️ ':'✅ ')+taxLabel+'</div>'+
+    '</div>';
+  if(typeof irpBasisCalc==='function')irpBasisCalc();
+}
+function irpSave(){lss('irp-sim',{inc:irpInc,pay:_ivv('irp-pay',900),link:irpLinkOn,reinvest:irpReinvestOn,age:_ivv('irp-age',65),recv:_ivv('irp-recv',100),split:irpSplitOn,swr:irpSwrOn,sstart:_ivv('irp-split-start',65),send:_ivv('irp-split-end',90),safe:_ivv('irp-safe-rate',3)});}
+function irpRestore(){
+  const s=ls('irp-sim');
+  if(s){
+    if(s.pay&&document.getElementById('irp-pay'))document.getElementById('irp-pay').value=s.pay;
+    if(s.age&&document.getElementById('irp-age'))document.getElementById('irp-age').value=s.age;
+    if(s.recv&&document.getElementById('irp-recv'))document.getElementById('irp-recv').value=s.recv;
+    irpInc=s.inc||'low';
+    irpReinvestOn=!!s.reinvest;
+    if(s.reinvest){const t=document.getElementById('irp-reinvest-toggle'),th=document.getElementById('irp-reinvest-thumb'),r=document.getElementById('irp-reinvest-result');if(t)t.style.background='#9b85f6';if(th)th.style.left='20px';if(r)r.style.display='block';}
+    if(s.link){irpLinkOn=false;irpToggleLink();}
+    if(s.sstart&&document.getElementById('irp-split-start'))document.getElementById('irp-split-start').value=s.sstart;
+    if(s.send&&document.getElementById('irp-split-end'))document.getElementById('irp-split-end').value=s.send;
+    if(s.safe!=null&&document.getElementById('irp-safe-rate'))document.getElementById('irp-safe-rate').value=s.safe;
+    if(s.split){irpSplitOn=false;irpToggleSplit();}
+    if(s.swr){irpSwrOn=false;irpToggleSwr();}
+  }
+  irpSetInc(irpInc);
+  irpPensionCalc();
+}
 
 // 만원 단위 → 읽기 좋은 문자열
 function manFmt(man){
@@ -5895,6 +6722,9 @@ function floorCalc(){
 
 // 시뮬레이터 초기 렌더 + 직접입력 부착
 function initTheorySims(){
+  ivRestoreState();
+  if(typeof isaRestore==='function')isaRestore();
+  if(typeof irpRestore==='function')irpRestore();
   attachDirectEdit('iv-sv-monthly','iv-monthly',{title:'월 투자금액',unit:'만원',step:5});
   attachDirectEdit('bk-annual-lbl','bk-annual',{title:'연 생활비 인출액',unit:'만원',step:25});
   recalcAll();
@@ -5964,11 +6794,21 @@ loadTheme();
 applyBrand();
 renderAll();
 
-// 스플래시 페이드아웃
+// 새로고침 시 마지막 보던 페이지 복원 (홈 제외)
+(function(){
+  try{
+    const last=ls('lastPage');
+    if(last&&last!=='home'&&document.getElementById('page-'+last)){
+      const g=pageToGroup(last);
+      if(g&&TAB_GROUPS[g])lastSub[g]=last;
+      showPage(last);
+    }
+  }catch(e){}
+})();
 window.addEventListener('load',()=>{const sp=document.getElementById('splash');if(sp)setTimeout(()=>sp.classList.add('hide'),650);});
 // 온보딩
 let obStep=0;
-const OB_LAST=5;
+const OB_LAST=6;
 function obApplyBrand(){
   const b=getBrand(),def=brandDefault();
   const custom=b.n2&&b.n2!==def.n2;
