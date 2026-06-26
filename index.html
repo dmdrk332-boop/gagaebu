@@ -411,6 +411,52 @@ body.dark-mode .pr-tbl th{background:#1a1a1a !important}
 .pr-src{font-size:9px;color:#9a9a95;font-style:normal;font-weight:600}
 .pr-callout{background:var(--card2);border-radius:8px;padding:10px 12px;font-size:11.5px;color:#8a8a85;line-height:1.7;margin:9px 0}
 .pr-warn{background:rgba(255,123,172,.08);border:1px solid rgba(255,123,172,.2);border-radius:8px;padding:10px 12px;font-size:11.5px;color:#8a8a85;line-height:1.7;margin:9px 0}
+/* ── 이론별 시뮬레이터 ── */
+.sim-toggle{margin:12px 0 0;width:100%;padding:11px;border-radius:11px;border:1.5px solid var(--accent-border,#9b85f6);background:rgba(155,133,246,.10);color:#9b85f6;font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s}
+.sim-toggle:active{transform:scale(.98)}
+.sim-toggle.on{background:#9b85f6;color:#fff}
+body.dark-mode .sim-toggle{background:rgba(179,255,59,.10);border-color:#B3FF3B;color:#B3FF3B}
+body.dark-mode .sim-toggle.on{background:#B3FF3B;color:#0a0a0a}
+.sim-box{display:none;margin-top:11px;background:var(--card2);border:1px solid var(--border2);border-radius:13px;padding:14px}
+.sim-box.open{display:block;animation:simIn .3s ease}
+@keyframes simIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.sim-row{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.sim-row label{flex:0 0 96px;font-size:11px;color:#8a8a85;font-weight:600}
+.sim-row .sim-in{flex:1;display:flex;align-items:center;gap:5px}
+.sim-in input[type=number],.sim-in input[type=text]{flex:1;min-width:0;padding:8px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--card);color:var(--text,#3E3E3E);font-size:12.5px;font-family:inherit;font-weight:700}
+body.dark-mode .sim-in input{background:#141414;color:#eee;border-color:rgba(255,255,255,.1)}
+.sim-in .unit{font-size:10.5px;color:#9a9a95;font-weight:600;flex-shrink:0}
+.sim-slider{width:100%;accent-color:#9b85f6}
+body.dark-mode .sim-slider{accent-color:#B3FF3B}
+.sim-seg{display:flex;gap:5px;flex:1}
+.sim-seg button{flex:1;padding:7px 4px;border-radius:7px;border:1px solid var(--border2);background:var(--card);color:#8a8a85;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer}
+.sim-seg button.sel{background:#9b85f6;color:#fff;border-color:#9b85f6}
+body.dark-mode .sim-seg button{background:#141414;color:#8a8a8f}
+body.dark-mode .sim-seg button.sel{background:#B3FF3B;color:#0a0a0a;border-color:#B3FF3B}
+.sim-chk{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:11.5px;color:#8a8a85;font-weight:600;user-select:none}
+.sim-chk .box{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.sim-chk.on .box{background:#9b85f6;border-color:#9b85f6;color:#fff}
+body.dark-mode .sim-chk.on .box{background:#B3FF3B;border-color:#B3FF3B;color:#0a0a0a}
+.sim-run{width:100%;padding:10px;margin-top:4px;border-radius:9px;border:none;background:#9b85f6;color:#fff;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer}
+body.dark-mode .sim-run{background:#B3FF3B;color:#0a0a0a}
+.sim-out{margin-top:12px}
+.sim-kpi{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+.sim-kpi .k{background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:10px}
+.sim-kpi .k .l{font-size:9.5px;color:#9a9a95;margin-bottom:3px}
+.sim-kpi .k .v{font-size:15px;font-weight:800;line-height:1.1}
+.sim-kpi .k .s{font-size:9px;color:#9a9a95;margin-top:2px}
+.sim-note{font-size:10px;color:#9a9a95;line-height:1.6;margin-top:9px}
+.sim-steps{background:var(--card);border-radius:9px;padding:10px 12px;margin-top:9px;font-size:10.5px;color:#8a8a85;line-height:1.85;font-family:'SF Mono',ui-monospace,Menlo,monospace}
+.sim-bars{display:flex;align-items:flex-end;gap:3px;height:120px;margin-top:8px;padding:0 2px}
+.sim-bars .bar{flex:1;background:linear-gradient(180deg,#9b85f6,#5B8CFF);border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.sim-bars .bar.neg{background:linear-gradient(180deg,#ef4444,#FF7BAC)}
+.sim-bars .bar.safe{background:linear-gradient(180deg,#22c55e,#B3FF3B)}
+.sim-tbl{width:100%;border-collapse:collapse;font-size:10px;margin-top:9px}
+.sim-tbl th{background:var(--card);color:#9a9a95;padding:6px 5px;font-size:9.5px;font-weight:700;border-bottom:1px solid var(--border)}
+.sim-tbl td{padding:6px 5px;border-bottom:1px solid var(--border);color:#8a8a85;text-align:center}
+.sim-tbl tr:last-child td{border-bottom:none}
+.sim-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:9.5px;color:#9a9a95}
+.sim-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:3px;vertical-align:middle}
 body.dark-mode .ivchip{background:#141414 !important;border:1px solid rgba(255,255,255,.08) !important;color:#8a8a8f !important}
 body.dark-mode .ivchip.active{background:#B3FF3B !important;color:#0a0a0a !important;border-color:#B3FF3B !important;font-weight:800 !important}
 
@@ -1692,6 +1738,14 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
         <tr><td>4.0%</td><td>6.3억</td><td>표준</td><td>미국 기준·주의</td></tr>
         <tr><td>5.2%</td><td>4.8억</td><td>가드레일 최대</td><td>유연조절 전제</td></tr>
       </table>
+      <button class="sim-toggle" onclick="simToggle('swr',this)">🧪 시험해보기 — 내 자산으로 계산</button>
+      <div class="sim-box" id="sim-swr">
+        <div class="sim-row"><label>은퇴 자산</label><div class="sim-in"><input type="number" id="swr-asset" value="70000" oninput="simSWR()"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>월 생활비</label><div class="sim-in"><input type="number" id="swr-spend" value="300" oninput="simSWR()"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>국민연금(월)</label><div class="sim-in"><input type="number" id="swr-np" value="90" oninput="simSWR()"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>인출률</label><div class="sim-in"><div class="sim-seg" id="swr-rate-seg"><button onclick="swrRate(3.0,this)">3.0%</button><button class="sel" onclick="swrRate(3.5,this)">3.5%</button><button onclick="swrRate(4.0,this)">4.0%</button></div></div></div>
+        <div class="sim-out" id="swr-out"></div>
+      </div>
     </div>
   </div>
 
@@ -1723,6 +1777,17 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   (초기 4%보다 20% 하락) → 10% 인상
   최종 인출 = 450만원</div>
       <div class="pr-warn"><b style="color:#FF7BAC">⚠️ 한계점</b> <span class="pr-src">출처: Kitces.com 2024</span><br>실제 은퇴 후 지출은 국민연금 수령 전후로 크게 달라지는데, 이 전략은 균일한 인출을 전제해요. 일부 역사적 위기(글로벌 금융위기·스태그플레이션)에서는 소득이 28~54%까지 삭감되는 극단적 결과가 나올 수 있어, 최근엔 '확률 기반 가드레일'이 대안으로 제시됩니다.</div>
+      <button class="sim-toggle" onclick="simToggle('grail',this)">🧪 시험해보기 — 30년 가드레일 시뮬레이션</button>
+      <div class="sim-box" id="sim-grail">
+        <div class="sim-row"><label>은퇴 자산</label><div class="sim-in"><input type="number" id="gr-asset" value="100000"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>초기 인출률</label><div class="sim-in"><input type="number" id="gr-rate" value="4.0" step="0.1"><span class="unit">%</span></div></div>
+        <div class="sim-row"><label>평균 수익률</label><div class="sim-in"><input type="number" id="gr-ret" value="6.0" step="0.5"><span class="unit">%/년</span></div></div>
+        <div class="sim-row"><label>물가상승률</label><div class="sim-in"><input type="number" id="gr-inf" value="2.5" step="0.1"><span class="unit">%/년</span></div></div>
+        <div class="sim-row"><label>시장 시나리오</label><div class="sim-in"><div class="sim-seg" id="gr-scen"><button class="sel" onclick="grScen('normal',this)">평탄</button><button onclick="grScen('early',this)">초반폭락</button><button onclick="grScen('late',this)">후반폭락</button></div></div></div>
+        <div class="sim-row" style="margin-bottom:6px"><div class="sim-chk on" id="gr-guard-chk" onclick="grToggleChk('gr-guard-chk')"><span class="box">✓</span>가드레일 적용(±20%→±10%)</div></div>
+        <button class="sim-run" onclick="simGrail()">▶ 30년 시뮬레이션 실행</button>
+        <div class="sim-out" id="gr-out"></div>
+      </div>
     </div>
   </div>
 
@@ -1741,6 +1806,16 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       • <b>천장(Ceiling)</b>: 전년 대비 인상은 최대 <b style="color:#22c55e">+5%</b> (과소비 방지)<br>
       • <b>바닥(Floor)</b>: 전년 대비 삭감은 최대 <b style="color:#FF7BAC">−2.5%</b> (최소 생활 보장)<br><br>
       가드레일의 급격한 충격을 부드럽게 완충하는 구조로, 안정적 현금흐름을 원하는 은퇴자에게 적합해요.
+      <button class="sim-toggle" onclick="simToggle('dyn',this)">🧪 시험해보기 — 동적지출 vs 정액인출 비교</button>
+      <div class="sim-box" id="sim-dyn">
+        <div class="sim-row"><label>은퇴 자산</label><div class="sim-in"><input type="number" id="dyn-asset" value="100000"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>초기 인출률</label><div class="sim-in"><input type="number" id="dyn-rate" value="4.0" step="0.1"><span class="unit">%</span></div></div>
+        <div class="sim-row"><label>평균 수익률</label><div class="sim-in"><input type="number" id="dyn-ret" value="6.0" step="0.5"><span class="unit">%/년</span></div></div>
+        <div class="sim-row"><label>물가상승률</label><div class="sim-in"><input type="number" id="dyn-inf" value="2.5" step="0.1"><span class="unit">%/년</span></div></div>
+        <div class="sim-row"><label>시장 변동</label><div class="sim-in"><div class="sim-seg" id="dyn-scen"><button class="sel" onclick="dynScen('normal',this)">완만</button><button onclick="dynScen('volatile',this)">변동성↑</button></div></div></div>
+        <button class="sim-run" onclick="simDyn()">▶ 천장+5%/바닥−2.5% 시뮬레이션</button>
+        <div class="sim-out" id="dyn-out"></div>
+      </div>
     </div>
   </div>
 
@@ -1769,6 +1844,16 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   8년차 −30% 폭락 → 버퍼가 흡수
   → 10년 후: 약 4.1억 (안정)</div>
       <div class="pr-callout"><b style="color:#22c55e">✅ 대응책</b><br>① 버킷 전략으로 현금 1~2년치 별도 보관 → 폭락장에 주식 강제 매도 방지<br>② 가드레일로 하락 시 인출액 자동 삭감<br>③ 배당·국민연금 등 매도가 필요 없는 현금흐름 확보</div>
+      <button class="sim-toggle" onclick="simToggle('seq',this)">🧪 시험해보기 — 초반폭락 vs 후반폭락 비교</button>
+      <div class="sim-box" id="sim-seq">
+        <div class="sim-row"><label>은퇴 자산</label><div class="sim-in"><input type="number" id="seq-asset" value="50000"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>연 인출액</label><div class="sim-in"><input type="number" id="seq-wd" value="2000"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>평균 수익률</label><div class="sim-in"><input type="number" id="seq-ret" value="7.0" step="0.5"><span class="unit">%/년</span></div></div>
+        <div class="sim-row"><label>폭락 강도</label><div class="sim-in"><input type="number" id="seq-crash" value="30" step="5"><span class="unit">% 하락</span></div></div>
+        <div class="sim-row" style="margin-bottom:6px"><div class="sim-chk" id="seq-inf-chk" onclick="grToggleChk('seq-inf-chk')"><span class="box">✓</span>인출액 물가상승 반영(2.5%)</div></div>
+        <button class="sim-run" onclick="simSeq()">▶ 동일 수익률·순서만 다르게 비교</button>
+        <div class="sim-out" id="seq-out"></div>
+      </div>
     </div>
   </div>
 
@@ -1820,6 +1905,15 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       &nbsp;&nbsp;&nbsp;※ 초과 시 16.5% 분리과세 또는 종합소득세 합산 강제<br>
       ③ <b>20년 이상</b> 장기 수령 설계 → 50% 감면 구간 도달
       <div class="pr-warn"><b style="color:#FF7BAC">⚠️ 주의</b><br>퇴직금 1억 이하 + 근속 20년↑이면 퇴직소득세 자체가 적어 절세효과가 미미할 수 있어요. 이 경우 일시금 후 자유 투자도 합리적 선택입니다. 또 IRP 중도해지·일시 인출 시 감면 혜택이 사라집니다.</div>
+      <button class="sim-toggle" onclick="simToggle('rp',this)">🧪 시험해보기 — 일시금 vs 연금 세금 비교</button>
+      <div class="sim-box" id="sim-rp">
+        <div class="sim-row"><label>퇴직금</label><div class="sim-in"><input type="number" id="rp-amt" value="20000"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>근속연수</label><div class="sim-in"><input type="number" id="rp-yrs" value="20"><span class="unit">년</span></div></div>
+        <div class="sim-row"><label>연금 수령기간</label><div class="sim-in"><div class="sim-seg" id="rp-term"><button onclick="rpTerm(10,this)">10년</button><button onclick="rpTerm(15,this)">15년</button><button class="sel" onclick="rpTerm(25,this)">25년</button></div></div></div>
+        <button class="sim-run" onclick="simRP()">▶ 퇴직소득세 비교 계산</button>
+        <div class="sim-out" id="rp-out"></div>
+        <div class="sim-note">※ 퇴직소득세는 근속연수공제·환산급여공제·연분연승을 반영한 약식 추정입니다. 실제 세액은 입·퇴사일에 따라 달라지며 홈택스에서 확인하세요.</div>
+      </div>
     </div>
   </div>
 
@@ -1846,7 +1940,16 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
         </div>
         <div style="font-size:8.5px;color:#9a9a95;margin-top:6px">바닥(Floor)이 튼튼하면 위층(Upside)이 흔들려도 기본 생활은 안전해요.</div>
       </div>
-      <div class="pr-callout">💡 시뮬레이션 탭 ④(연금 연기)·⑤(플로어 설계)에서 직접 숫자로 계산해보세요.</div>
+      <div class="pr-callout">💡 아래 시험해보기로 국민연금 연기 시 손익분기 나이를 직접 계산해보세요.</div>
+      <button class="sim-toggle" onclick="simToggle('np',this)">🧪 시험해보기 — 국민연금 연기 손익분기</button>
+      <div class="sim-box" id="sim-np">
+        <div class="sim-row"><label>정상 수령액(월)</label><div class="sim-in"><input type="number" id="np-base" value="120"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>정상 개시 나이</label><div class="sim-in"><input type="number" id="np-age" value="65"><span class="unit">세</span></div></div>
+        <div class="sim-row"><label>연기 기간</label><div class="sim-in"><div class="sim-seg" id="np-defer"><button onclick="npDefer(1,this)">1년</button><button onclick="npDefer(3,this)">3년</button><button class="sel" onclick="npDefer(5,this)">5년(최대)</button></div></div></div>
+        <button class="sim-run" onclick="simNP()">▶ 연 7.2% 가산 손익분기 계산</button>
+        <div class="sim-out" id="np-out"></div>
+        <div class="sim-note">※ 연기 1년당 7.2% 가산(최대 5년 +36%). 물가상승·세금·건강보험은 단순화를 위해 제외한 명목 기준 비교입니다.</div>
+      </div>
     </div>
   </div>
 
@@ -1896,6 +1999,16 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
           <div style="display:flex;align-items:center;gap:7px"><span style="font-size:9px;color:#8a8a85;width:34px">60대</span><div style="flex:1;display:flex;height:15px;border-radius:5px;overflow:hidden"><div style="width:50%;background:#9b85f6;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:700">50</div><div style="width:50%;background:#5B8CFF;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:700">50</div></div></div>
           <div style="display:flex;align-items:center;gap:7px"><span style="font-size:9px;color:#8a8a85;width:34px">70대+</span><div style="flex:1;display:flex;height:15px;border-radius:5px;overflow:hidden"><div style="width:28%;background:#9b85f6;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:700">28</div><div style="width:72%;background:#5B8CFF;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:700">72</div></div></div>
         </div>
+      </div>
+      <button class="sim-toggle" onclick="simToggle('glide',this)">🧪 시험해보기 — 내 나이 권장배분 & 은퇴자산 예측</button>
+      <div class="sim-box" id="sim-glide">
+        <div class="sim-row"><label>현재 나이</label><div class="sim-in"><input type="number" id="gl-age" value="40" oninput="simGlide()"><span class="unit">세</span></div></div>
+        <div class="sim-row"><label>은퇴 나이</label><div class="sim-in"><input type="number" id="gl-ret" value="60" oninput="simGlide()"><span class="unit">세</span></div></div>
+        <div class="sim-row"><label>현재 자산</label><div class="sim-in"><input type="number" id="gl-asset" value="10000" oninput="simGlide()"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>월 적립액</label><div class="sim-in"><input type="number" id="gl-month" value="100" oninput="simGlide()"><span class="unit">만원</span></div></div>
+        <div class="sim-row" style="margin-bottom:6px"><div class="sim-chk on" id="gl-inf-chk" onclick="grToggleChk('gl-inf-chk');simGlide()"><span class="box">✓</span>물가상승 반영(실질가치 2.5%)</div></div>
+        <div class="sim-out" id="gl-out"></div>
+        <div class="sim-note">※ 주식/안전자산 비중에 따라 혼합 기대수익률(주식 7%·안전 3.5%)을 적용해 은퇴 시점 자산을 추정합니다.</div>
       </div>
     </div>
   </div>
@@ -1964,6 +2077,15 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       <div class="pr-callout">🇰🇷 원화 자산만 보유하면 달러 약세 때 실질 가치가 하락해요. <b>달러 현금성 15%</b> 편입으로 환헤지 효과를 확보하는 게 한국형 핵심 조정입니다.</div>
       <b style="color:#3E3E3E">바벨 전략</b><br>
       중간 위험을 빼고 <b>고성장 주식(공격) + 단기국채·현금(안정)</b> 양 끝에만 배치. 고인플레 방어용 후속 이론으로, 안전자산이 폭락장의 방패가 됩니다.
+      <button class="sim-toggle" onclick="simToggle('aw',this)">🧪 시험해보기 — 올웨더 vs S&P500 낙폭 비교</button>
+      <div class="sim-box" id="sim-aw">
+        <div class="sim-row"><label>투자금</label><div class="sim-in"><input type="number" id="aw-amt" value="10000"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>주식 폭락폭</label><div class="sim-in"><input type="number" id="aw-crash" value="37" step="1"><span class="unit">% 하락</span></div></div>
+        <div class="sim-row"><label>폭락장 채권</label><div class="sim-in"><input type="number" id="aw-bond" value="10" step="1"><span class="unit">% 상승</span></div></div>
+        <button class="sim-run" onclick="simAW()">▶ 위기 시 자산별 낙폭 계산</button>
+        <div class="sim-out" id="aw-out"></div>
+        <div class="sim-note">※ 2008년 금융위기 기준값(S&P −37%, 장기채 +20%, 금 +5%)을 기본 제공. 올웨더는 자산 간 상관관계로 낙폭이 작아집니다.</div>
+      </div>
     </div>
   </div>
 
@@ -2051,6 +2173,17 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       ① <b>저비용</b>: 연 1% 수수료도 평생이면 수억원 차이<br>
       ② <b>꾸준함</b>: "좋을 때나 나쁠 때나, 특히 나쁠 때 계속 매수하라"<br>
       ③ <b>장기보유</b>: 시장 타이밍을 노리지 말고 오래 들고 가기
+      <button class="sim-toggle" onclick="simToggle('bf',this)">🧪 시험해보기 — 90/10 장기 복리 & 수수료 효과</button>
+      <div class="sim-box" id="sim-bf">
+        <div class="sim-row"><label>초기 투자금</label><div class="sim-in"><input type="number" id="bf-init" value="5000"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>월 적립액</label><div class="sim-in"><input type="number" id="bf-month" value="50"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>투자 기간</label><div class="sim-in"><input type="number" id="bf-years" value="25"><span class="unit">년</span></div></div>
+        <div class="sim-row"><label>배분</label><div class="sim-in"><div class="sim-seg" id="bf-mix"><button class="sel" onclick="bfMix(90,this)">90/10</button><button onclick="bfMix(70,this)">70/30</button><button onclick="bfMix(60,this)">60/40</button></div></div></div>
+        <div class="sim-row" style="margin-bottom:6px"><div class="sim-chk on" id="bf-fee-chk" onclick="grToggleChk('bf-fee-chk')"><span class="box">✓</span>고비용 펀드(연 1%) 비교 표시</div></div>
+        <button class="sim-run" onclick="simBF()">▶ S&P500 10% / 국채 3% 기준 계산</button>
+        <div class="sim-out" id="bf-out"></div>
+        <div class="sim-note">※ S&P500 장기평균 10%, 단기국채 3% 가정. 명목 기준이며 실제 수익률은 변동합니다.</div>
+      </div>
     </div>
   </div>
 
@@ -2074,6 +2207,15 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
         <tr><td>70세 이후</td><td colspan="2">채권·현금성 대체</td><td>전환 완료</td></tr>
       </table>
       <div class="pr-warn"><b style="color:#FF7BAC">⚠️ 나스닥 진입 시점 주의</b><br>2000년 닷컴 고점에서 나스닥에 투자했다면, 인플레 조정 후 25년간 실질 복리 수익률은 <b>4.83%</b>에 그쳤어요. 같은 기간 다우는 5.25%. 진입 시점과 변동성이 수익률에 결정적입니다 — 그래서 <b>정액 분할 투자(DCA)</b>가 중요해요.</div>
+      <button class="sim-toggle" onclick="simToggle('idx',this)">🧪 시험해보기 — 3대 지수 장기 수익 비교</button>
+      <div class="sim-box" id="sim-idx">
+        <div class="sim-row"><label>월 투자액</label><div class="sim-in"><input type="number" id="idx-month" value="50"><span class="unit">만원</span></div></div>
+        <div class="sim-row"><label>투자 기간</label><div class="sim-in"><input type="number" id="idx-years" value="20"><span class="unit">년</span></div></div>
+        <div class="sim-row" style="margin-bottom:6px"><div class="sim-chk" id="idx-inf-chk" onclick="grToggleChk('idx-inf-chk')"><span class="box">✓</span>물가 반영(실질가치 2.5%)</div></div>
+        <button class="sim-run" onclick="simIDX()">▶ S&P500·다우·나스닥 비교</button>
+        <div class="sim-out" id="idx-out"></div>
+        <div class="sim-note">※ Fidelity 2025 데이터 기반(S&P500 10.4%·다우 13.1%·나스닥 17.7%, 10년 기준). 과거 수익률이 미래를 보장하지 않으며, 나스닥은 변동성이 큽니다.</div>
+      </div>
     </div>
   </div>
 
@@ -6178,6 +6320,443 @@ function prToggle(head){
   if(arrow)arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';
 }
 function renderPrincipleSim(){/* 투자원칙 페이지 진입 시 훅(현재는 정적) */}
+
+// ══════════════════ 이론별 시뮬레이터 ══════════════════
+// 공통 유틸
+function _siv(id,d){const e=document.getElementById(id);return e?(parseFloat(e.value)||d):d;}
+function _wonFmt(man){ // 만원 단위 입력 → 보기 좋은 한글 금액
+  man=Math.round(man);
+  if(Math.abs(man)>=10000){const eok=man/10000;return (Math.abs(eok)>=10?eok.toFixed(1):eok.toFixed(2)).replace(/\.?0+$/,'')+'억';}
+  return man.toLocaleString()+'만';
+}
+function _pickColor(){return document.body.classList.contains('dark-mode')?'#B3FF3B':'#9b85f6';}
+// 토글 열기/닫기
+function simToggle(key,btn){
+  const box=document.getElementById('sim-'+key);
+  if(!box)return;
+  const open=box.classList.toggle('open');
+  btn.classList.toggle('on',open);
+  if(open){
+    // 첫 오픈 시 기본 계산 실행
+    const init={swr:simSWR,glide:simGlide};
+    if(init[key])init[key]();
+  }
+}
+// 체크박스 공통 토글
+function grToggleChk(id){const el=document.getElementById(id);if(el)el.classList.toggle('on');}
+// KPI 카드 빌더
+function _kpi(items){ // items: [{l,v,s,c}]
+  return '<div class="sim-kpi">'+items.map(i=>
+    '<div class="k"><div class="l">'+i.l+'</div><div class="v" style="color:'+(i.c||'#3E3E3E')+'">'+i.v+'</div>'+(i.s?'<div class="s">'+i.s+'</div>':'')+'</div>'
+  ).join('')+'</div>';
+}
+// 막대 차트 빌더 (values: 숫자배열, opt:{labels, colorFn})
+function _bars(values,opt){
+  opt=opt||{};
+  const max=Math.max(...values.map(v=>Math.abs(v)),1);
+  let h='<div class="sim-bars">';
+  values.forEach((v,i)=>{
+    const pct=Math.max(2,Math.abs(v)/max*100);
+    let cls='bar';
+    if(opt.colorFn){const c=opt.colorFn(v,i);if(c)cls+=' '+c;}
+    h+='<div class="'+cls+'" style="height:'+pct+'%" title="'+(opt.labels?opt.labels[i]+': ':'')+_wonFmt(v)+'"></div>';
+  });
+  h+='</div>';
+  if(opt.axis)h+='<div style="display:flex;justify-content:space-between;font-size:8px;color:#9a9a95;margin-top:3px"><span>'+opt.axis[0]+'</span><span>'+opt.axis[1]+'</span></div>';
+  return h;
+}
+
+// ────── ① 안전 인출률 ──────
+let swrRateVal=3.5;
+function swrRate(r,btn){swrRateVal=r;[...btn.parentElement.children].forEach(b=>b.classList.toggle('sel',b===btn));simSWR();}
+function simSWR(){
+  const asset=_siv('swr-asset',70000), spend=_siv('swr-spend',300), np=_siv('swr-np',90);
+  const rate=swrRateVal;
+  const netMonthly=Math.max(0,spend-np);
+  const netYear=netMonthly*12;
+  const need=netYear/(rate/100); // 만원
+  const canWithdrawYear=asset*(rate/100);
+  const canWithdrawMonth=canWithdrawYear/12;
+  const totalCoverMonth=canWithdrawMonth+np;
+  const gap=need-asset;
+  const ok=asset>=need;
+  const out=document.getElementById('swr-out');
+  out.innerHTML=
+    _kpi([
+      {l:'필요 자산('+rate+'%)',v:_wonFmt(need),c:_pickColor(),s:'연 순필요 '+_wonFmt(netYear)},
+      {l:'현재 자산 충분도',v:ok?'✅ 충분':'⚠ 부족',c:ok?'#22c55e':'#FF7BAC',s:ok?'+'+_wonFmt(-gap)+' 여유':_wonFmt(gap)+' 더 필요'},
+      {l:'이 자산 인출가능(월)',v:_wonFmt(canWithdrawMonth)+'원',c:'#3E3E3E',s:'연 '+_wonFmt(canWithdrawYear)},
+      {l:'국민연금 포함 월소득',v:_wonFmt(totalCoverMonth)+'원',c:'#5B8CFF',s:'목표 '+spend+'만 중'}
+    ])+
+    '<div class="sim-steps">[계산 과정]\n월 순필요액 = '+spend+'만 − '+np+'만(국민연금) = '+netMonthly+'만\n연 순필요액 = '+netMonthly+'만 × 12 = '+_wonFmt(netYear)+'\n필요 자산 = '+_wonFmt(netYear)+' ÷ '+(rate/100)+' = '+_wonFmt(need)+'\n\n[현재 자산 '+_wonFmt(asset)+' 기준]\n연 인출가능 = '+_wonFmt(asset)+' × '+(rate/100)+' = '+_wonFmt(canWithdrawYear)+'\n월 인출 + 국민연금 = '+_wonFmt(canWithdrawMonth)+' + '+np+'만 = '+_wonFmt(totalCoverMonth)+'원/월</div>';
+}
+
+// ────── ② 가드레일 (30년 시계열) ──────
+let grScenVal='normal';
+function grScen(s,btn){grScenVal=s;[...btn.parentElement.children].forEach(b=>b.classList.toggle('sel',b===btn));}
+function _scenReturns(scen,baseRet,years){
+  // baseRet: 평균수익률(%). 시나리오별 연도별 수익률 배열 생성(평균은 baseRet 근처 유지)
+  const r=[];const b=baseRet/100;
+  for(let i=0;i<years;i++){
+    if(scen==='early'){ // 초반 3년 폭락 후 회복
+      if(i===0)r.push(-0.30); else if(i===1)r.push(-0.18); else if(i===2)r.push(-0.10);
+      else r.push(b+0.04);
+    }else if(scen==='late'){ // 후반(20년차 부근) 폭락
+      if(i>=18&&i<=20)r.push(-0.20); else r.push(b+0.015);
+    }else{ // 평탄: 평균 근처에서 소폭 진동
+      r.push(b + (i%2===0?0.03:-0.02));
+    }
+  }
+  return r;
+}
+function simGrail(){
+  const asset0=_siv('gr-asset',100000), rate=_siv('gr-rate',4.0)/100;
+  const ret=_siv('gr-ret',6.0), inf=_siv('gr-inf',2.5)/100;
+  const useGuard=document.getElementById('gr-guard-chk').classList.contains('on');
+  const years=30;
+  const rets=_scenReturns(grScenVal,ret,years);
+  const initWd=asset0*rate; // 초기 인출액
+  let bal=asset0, wd=initWd;
+  const balHist=[],wdHist=[];let depletedYear=0;
+  for(let y=0;y<years;y++){
+    // 인출 (연초)
+    let actualWd=wd;
+    if(useGuard){
+      const curRate=wd/bal;
+      const upper=rate*1.2, lower=rate*0.8;
+      const last15=(y>=years-15);
+      if(curRate>upper && !last15){actualWd=wd*0.9;} // 하락 가드: 삭감
+      else if(curRate<lower){actualWd=wd*1.1;} // 상승 가드: 인상
+      wd=actualWd;
+    }
+    bal-=actualWd;
+    if(bal<0){bal=0;depletedYear=depletedYear||(y+1);}
+    // 운용수익
+    bal=bal*(1+rets[y]);
+    // 다음해 인출액 물가반영
+    wd=wd*(1+inf);
+    balHist.push(Math.max(0,bal));
+    wdHist.push(actualWd);
+  }
+  const survived=balHist[years-1]>0 && !depletedYear;
+  const out=document.getElementById('gr-out');
+  out.innerHTML=
+    _kpi([
+      {l:'초기 인출액',v:_wonFmt(initWd),c:'#3E3E3E',s:'연 '+(rate*100).toFixed(1)+'%'},
+      {l:'30년 후 잔액',v:_wonFmt(balHist[years-1]),c:survived?'#22c55e':'#FF7BAC',s:survived?'생존 ✅':'⚠ '+(depletedYear||'-')+'년차 고갈'},
+      {l:'최저 인출액',v:_wonFmt(Math.min(...wdHist)),c:'#FF7BAC',s:'삭감 시'},
+      {l:'최고 인출액',v:_wonFmt(Math.max(...wdHist)),c:'#22c55e',s:'증액 시'}
+    ])+
+    '<div style="font-size:10px;color:#9a9a95;margin:8px 0 2px;font-weight:700">📈 30년 잔액 추이 ('+(useGuard?'가드레일 ON':'정액 인출')+')</div>'+
+    _bars(balHist,{axis:['1년차','30년차'],colorFn:(v)=>v<=0?'neg':(v>asset0?'safe':'')})+
+    '<div style="font-size:10px;color:#9a9a95;margin:10px 0 2px;font-weight:700">💰 연도별 인출액 변화</div>'+
+    _bars(wdHist,{axis:['1년차','30년차']})+
+    '<div class="sim-note">시나리오: '+(grScenVal==='early'?'은퇴 초반 폭락(−30/−18/−10%)':grScenVal==='late'?'후반(19~21년차) 폭락(−20%)':'평탄장')+' · 평균수익 '+ret+'% · 물가 '+(inf*100)+'%'+(useGuard?' · 인출률이 초기 ±20% 벗어나면 ±10% 자동 조정(마지막 15년 삭감면제)':'')+'</div>';
+}
+
+// ────── ③ 뱅가드 동적지출 ──────
+let dynScenVal='normal';
+function dynScen(s,btn){dynScenVal=s;[...btn.parentElement.children].forEach(b=>b.classList.toggle('sel',b===btn));}
+function simDyn(){
+  const asset0=_siv('dyn-asset',100000), rate=_siv('dyn-rate',4.0)/100;
+  const ret=_siv('dyn-ret',6.0), inf=_siv('dyn-inf',2.5)/100;
+  const years=30;
+  const rets=_scenReturns(dynScenVal==='volatile'?'early':'normal',ret,years).map((r,i)=>
+    dynScenVal==='volatile'?(i%3===0?r-0.12:r+0.05):r);
+  // 두 방식 비교: 정액(물가반영) vs 동적지출(천장+5/바닥-2.5)
+  function run(dynamic){
+    let bal=asset0, wd=asset0*rate; const wH=[],bH=[];let dep=0;
+    for(let y=0;y<years;y++){
+      let target=wd;
+      if(dynamic){
+        // 동적: 전년 인출 × (1+min(max(포트수익률, -2.5%),+5%))
+        const r=rets[y]||0;
+        const adj=Math.min(0.05,Math.max(-0.025,r));
+        target=wd*(1+adj);
+      }
+      bal-=target;
+      if(bal<0){bal=0;dep=dep||(y+1);}
+      bal=bal*(1+rets[y]);
+      wH.push(target);bH.push(Math.max(0,bal));
+      wd=dynamic?target:wd*(1+inf); // 정액은 물가반영, 동적은 직전 실제값 기준
+    }
+    return {wH,bH,dep,end:bH[years-1]};
+  }
+  const fixed=run(false), dyn=run(true);
+  const wdVarFixed=Math.max(...fixed.wH)-Math.min(...fixed.wH);
+  const wdVarDyn=Math.max(...dyn.wH)-Math.min(...dyn.wH);
+  const out=document.getElementById('dyn-out');
+  out.innerHTML=
+    _kpi([
+      {l:'동적지출 30년 잔액',v:_wonFmt(dyn.end),c:dyn.dep?'#FF7BAC':'#22c55e',s:dyn.dep?dyn.dep+'년차 고갈':'생존 ✅'},
+      {l:'정액인출 30년 잔액',v:_wonFmt(fixed.end),c:fixed.dep?'#FF7BAC':'#3E3E3E',s:fixed.dep?fixed.dep+'년차 고갈':'생존'},
+      {l:'동적 인출액 변동폭',v:_wonFmt(wdVarDyn),c:'#22c55e',s:'천장+5/바닥−2.5 완충'},
+      {l:'정액 인출액 변동폭',v:_wonFmt(wdVarFixed),c:'#9a9a95',s:'물가 단순반영'}
+    ])+
+    '<div style="font-size:10px;color:#9a9a95;margin:8px 0 2px;font-weight:700">💰 동적지출 연도별 인출액(완만한 변화)</div>'+
+    _bars(dyn.wH,{axis:['1년차','30년차']})+
+    '<div style="font-size:10px;color:#9a9a95;margin:10px 0 2px;font-weight:700">📈 동적지출 잔액 추이</div>'+
+    _bars(dyn.bH,{axis:['1년차','30년차'],colorFn:(v)=>v<=0?'neg':(v>asset0?'safe':'')})+
+    '<div class="sim-note">동적지출은 매년 인상 +5%·삭감 −2.5%로 제한해 생활비 급변을 막아요. 시장 '+(dynScenVal==='volatile'?'변동성↑':'완만')+' 가정 · 평균 '+ret+'%.</div>';
+}
+
+// ────── ④ 수익률 순서 위험 ──────
+function simSeq(){
+  const asset0=_siv('seq-asset',50000), wd0=_siv('seq-wd',2000);
+  const ret=_siv('seq-ret',7.0)/100, crash=_siv('seq-crash',30)/100;
+  const useInf=document.getElementById('seq-inf-chk').classList.contains('on');
+  const inf=0.025, years=10;
+  // 동일한 수익률 집합을 '순서만' 다르게: A=초반폭락, B=후반폭락
+  // 평균은 동일하게 유지되도록 같은 값들을 역순 배치
+  const seqA=[-crash,-(crash*0.6),0.25]; // 초반 3년
+  const tail=[]; for(let i=0;i<years-3;i++)tail.push(ret+0.01);
+  const retA=seqA.concat(tail);
+  const retB=tail.concat(seqA); // 동일 값, 순서 반대(후반 폭락)
+  function run(rets){
+    let bal=asset0, wd=wd0; const bH=[];let dep=0;
+    for(let y=0;y<years;y++){
+      bal-=wd;
+      if(bal<0){bal=0;dep=dep||(y+1);}
+      bal=bal*(1+rets[y]);
+      bH.push(Math.max(0,bal));
+      if(useInf)wd=wd*(1+inf);
+    }
+    return {bH,dep,end:bH[years-1]};
+  }
+  const A=run(retA), B=run(retB);
+  const avgRet=((retA.reduce((a,b)=>a+b,0)/years)*100).toFixed(1);
+  const out=document.getElementById('seq-out');
+  out.innerHTML=
+    _kpi([
+      {l:'A:초반폭락 10년후',v:_wonFmt(A.end),c:A.end<asset0*0.5?'#FF7BAC':'#3E3E3E',s:A.dep?A.dep+'년차 고갈':'잔존'},
+      {l:'B:후반폭락 10년후',v:_wonFmt(B.end),c:'#22c55e',s:B.dep?B.dep+'년차 고갈':'안정'},
+      {l:'평균 수익률',v:avgRet+'%',c:'#5B8CFF',s:'A·B 동일!'},
+      {l:'10년후 격차',v:_wonFmt(B.end-A.end),c:'#9b85f6',s:'순서 차이만으로'}
+    ])+
+    '<div style="font-size:10px;color:#9a9a95;margin:8px 0 2px;font-weight:700">📉 A: 초반 폭락 시나리오</div>'+
+    _bars(A.bH,{axis:['1년차','10년차'],colorFn:(v)=>v<=0?'neg':(v<asset0*0.5?'neg':'')})+
+    '<div style="font-size:10px;color:#9a9a95;margin:10px 0 2px;font-weight:700">📈 B: 후반 폭락 시나리오</div>'+
+    _bars(B.bH,{axis:['1년차','10년차'],colorFn:(v)=>v>asset0?'safe':''})+
+    '<div class="sim-note">⚡ 똑같은 수익률·똑같은 인출인데 <b>순서</b>만 다릅니다. 초반 폭락(A)은 줄어든 자산에서 계속 빼 써 회복력이 무너져요. '+(useInf?'인출액 물가 2.5% 반영.':'인출액 고정.')+'</div>';
+}
+
+// ────── ⑥ 퇴직금 일시금 vs 연금 ──────
+let rpTermVal=25;
+function rpTerm(t,btn){rpTermVal=t;[...btn.parentElement.children].forEach(b=>b.classList.toggle('sel',b===btn));}
+function _retireTax(amount,years){ // 퇴직소득세 약식 추정(만원)
+  // 1)근속연수공제
+  let sgong;
+  if(years<=5)sgong=100*years;
+  else if(years<=10)sgong=500+200*(years-5);
+  else if(years<=20)sgong=1500+250*(years-10);
+  else sgong=4000+300*(years-20);
+  // 2)환산급여 = (퇴직금 - 근속공제) / 근속 × 12
+  const base=Math.max(0,amount-sgong);
+  const hwan=base/years*12;
+  // 3)환산급여공제
+  let hgong;
+  if(hwan<=800)hgong=hwan;
+  else if(hwan<=7000)hgong=800+(hwan-800)*0.6;
+  else if(hwan<=10000)hgong=4520+(hwan-7000)*0.55;
+  else if(hwan<=30000)hgong=6170+(hwan-10000)*0.45;
+  else hgong=15170+(hwan-30000)*0.35;
+  const taxBase=Math.max(0,hwan-hgong);
+  // 4)누진세율(과세표준, 만원)
+  const tax=_incomeTaxBracket(taxBase);
+  // 5)연분연승: ×근속/12
+  const retireTax=tax*years/12;
+  return Math.max(0,Math.round(retireTax));
+}
+function _incomeTaxBracket(base){ // base 만원 → 산출세액 만원
+  const b=[ [1400,0.06,0],[5000,0.15,126],[8800,0.24,576],[15000,0.35,1544],[30000,0.38,1994],[50000,0.40,2594],[100000,0.42,3594],[Infinity,0.45,6594] ];
+  for(const[lim,r,d]of b){ if(base<=lim)return base*r-d; }
+  return 0;
+}
+function simRP(){
+  const amt=_siv('rp-amt',20000), yrs=_siv('rp-yrs',20), term=rpTermVal;
+  const fullTax=_retireTax(amt,yrs); // 일시금 = 100%
+  // 연금: 수령연차별 감면 (1~10년 30%, 11~20년 40%, 20년초과 50%)
+  // 평균 감면율 가중 (term년 분할 가정)
+  let red;
+  if(term<=10)red=0.30;
+  else if(term<=20){const a=10*0.30+(term-10)*0.40;red=a/term;}
+  else {const a=10*0.30+10*0.40+(term-20)*0.50;red=a/term;}
+  const pensionTax=Math.round(fullTax*(1-red));
+  const save=fullTax-pensionTax;
+  const lumpNet=amt-fullTax, pensionNet=amt-pensionTax;
+  const out=document.getElementById('rp-out');
+  out.innerHTML=
+    _kpi([
+      {l:'일시금 퇴직소득세',v:_wonFmt(fullTax),c:'#FF7BAC',s:'실수령 '+_wonFmt(lumpNet)},
+      {l:term+'년 연금 수령세',v:_wonFmt(pensionTax),c:'#22c55e',s:'실수령 '+_wonFmt(pensionNet)},
+      {l:'평균 감면율',v:(red*100).toFixed(0)+'%',c:'#9b85f6',s:term+'년 분할 기준'},
+      {l:'절세액',v:_wonFmt(save),c:'#5B8CFF',s:'연금이 유리'}
+    ])+
+    '<div style="font-size:10px;color:#9a9a95;margin:8px 0 2px;font-weight:700">💸 실수령액 비교</div>'+
+    '<div style="display:flex;gap:8px;align-items:flex-end;height:80px;margin-top:6px">'+
+      '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end"><div style="width:100%;background:linear-gradient(180deg,#ef4444,#FF7BAC);border-radius:5px 5px 0 0;height:'+(lumpNet/amt*100)+'%"></div><span style="font-size:9px;color:#8a8a85;margin-top:4px;font-weight:700">일시금</span><span style="font-size:8px;color:#9a9a95">'+_wonFmt(lumpNet)+'</span></div>'+
+      '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end"><div style="width:100%;background:linear-gradient(180deg,#22c55e,#B3FF3B);border-radius:5px 5px 0 0;height:'+(pensionNet/amt*100)+'%"></div><span style="font-size:9px;color:#8a8a85;margin-top:4px;font-weight:700">연금'+term+'년</span><span style="font-size:8px;color:#9a9a95">'+_wonFmt(pensionNet)+'</span></div>'+
+    '</div>'+
+    '<div class="sim-steps">[계산 과정]\n퇴직금 '+_wonFmt(amt)+' · 근속 '+yrs+'년\n일시금 퇴직소득세 ≈ '+_wonFmt(fullTax)+' (감면 0%)\n'+term+'년 연금 → 감면 '+(red*100).toFixed(0)+'% 적용\n연금 수령세 ≈ '+_wonFmt(fullTax)+' × '+(1-red).toFixed(2)+' = '+_wonFmt(pensionTax)+'\n절세 = '+_wonFmt(save)+'</div>';
+}
+
+// ────── ⑦ 국민연금 연기 ──────
+let npDeferVal=5;
+function npDefer(d,btn){npDeferVal=d;[...btn.parentElement.children].forEach(b=>b.classList.toggle('sel',b===btn));}
+function simNP(){
+  const base=_siv('np-base',120), startAge=_siv('np-age',65), defer=npDeferVal;
+  const boost=0.072*defer; // 연 7.2%
+  const deferred=base*(1+boost);
+  const newStart=startAge+defer;
+  // 손익분기: 정상수령이 (defer년 × 12 × base) 만큼 앞서 받음. 매월 차액(deferred-base)로 따라잡음
+  const headStart=defer*12*base; // 정상수령이 먼저 받은 누적액
+  const monthlyDiff=deferred-base;
+  const catchUpMonths=Math.ceil(headStart/monthlyDiff);
+  const breakEvenAge=newStart+Math.floor(catchUpMonths/12);
+  const breakEvenM=catchUpMonths%12;
+  // 85세까지 누적 비교
+  function cumTo(age,start,monthly){const m=Math.max(0,(age-start)*12);return m*monthly;}
+  const cum85base=cumTo(85,startAge,base);
+  const cum85defer=cumTo(85,newStart,deferred);
+  const out=document.getElementById('np-out');
+  out.innerHTML=
+    _kpi([
+      {l:'정상 수령액(월)',v:base+'만원',c:'#3E3E3E',s:startAge+'세 개시'},
+      {l:defer+'년 연기 수령액',v:Math.round(deferred)+'만원',c:_pickColor(),s:'+'+(boost*100).toFixed(1)+'% ('+newStart+'세)'},
+      {l:'손익분기 나이',v:breakEvenAge+'세'+(breakEvenM?' '+breakEvenM+'개월':''),c:'#5B8CFF',s:'이후 연기가 유리'},
+      {l:'85세까지 누적',v:cum85defer>cum85base?'연기 유리':'정상 유리',c:cum85defer>cum85base?'#22c55e':'#FF7BAC',s:'+'+_wonFmt(Math.abs(cum85defer-cum85base))}
+    ])+
+    '<div class="sim-steps">[계산 과정]\n연기 가산 = 7.2% × '+defer+'년 = +'+(boost*100).toFixed(1)+'%\n연기 수령액 = '+base+'만 × '+(1+boost).toFixed(3)+' = '+Math.round(deferred)+'만원\n\n정상수령이 먼저 받은 누적 = '+defer+'년×12×'+base+'만 = '+_wonFmt(headStart)+'\n월 차액 = '+Math.round(deferred)+'−'+base+' = '+Math.round(monthlyDiff)+'만\n따라잡는 기간 = '+_wonFmt(headStart)+' ÷ '+Math.round(monthlyDiff)+'만 ≈ '+catchUpMonths+'개월\n→ 손익분기 약 '+breakEvenAge+'세\n\n[85세 누적] 정상 '+_wonFmt(cum85base)+' vs 연기 '+_wonFmt(cum85defer)+'</div>'+
+    '<div class="sim-note">💡 '+breakEvenAge+'세보다 오래 살 것 같으면 연기가, 그 전이면 정상 수령이 누적상 유리해요. 건강·현금필요·건강보험을 함께 고려하세요.</div>';
+}
+
+// ────── 자산배분 ① 글라이드 패스 ──────
+function _glideAlloc(age){ // 나이→주식%
+  if(age<=35)return 90; if(age<=45)return 80; if(age<=55)return 68;
+  if(age<=60)return 57; if(age<=65)return 47; if(age<=72)return 37; return 28;
+}
+function simGlide(){
+  const age=_siv('gl-age',40), retAge=_siv('gl-ret',60);
+  const asset=_siv('gl-asset',10000), month=_siv('gl-month',100);
+  const useInf=document.getElementById('gl-inf-chk').classList.contains('on');
+  const yrs=Math.max(0,retAge-age);
+  const stockNow=_glideAlloc(age), stockRet=_glideAlloc(retAge);
+  // 혼합 기대수익률(주식7%/안전3.5%) — 평균 비중으로 근사
+  const avgStock=(stockNow+stockRet)/2/100;
+  const blendRet=avgStock*0.07+(1-avgStock)*0.035;
+  const inf=0.025;
+  // 적립 복리: 미래가치
+  let bal=asset; const hist=[bal];
+  for(let y=0;y<yrs;y++){ bal=(bal+month*12)*(1+blendRet); hist.push(bal); }
+  const real=useInf?bal/Math.pow(1+inf,yrs):bal;
+  const principal=asset+month*12*yrs;
+  const gain=bal-principal;
+  const out=document.getElementById('gl-out');
+  out.innerHTML=
+    _kpi([
+      {l:'현재('+age+'세) 권장 주식',v:stockNow+'%',c:_pickColor(),s:'안전 '+(100-stockNow)+'%'},
+      {l:'은퇴('+retAge+'세) 권장 주식',v:stockRet+'%',c:'#5B8CFF',s:'안전 '+(100-stockRet)+'%'},
+      {l:'은퇴시 예상자산',v:_wonFmt(bal),c:'#22c55e',s:(useInf?'실질 '+_wonFmt(real):'명목')},
+      {l:'복리 수익',v:'+'+_wonFmt(gain),c:'#9b85f6',s:'원금 '+_wonFmt(principal)}
+    ])+
+    '<div style="font-size:10px;color:#9a9a95;margin:8px 0 2px;font-weight:700">📈 '+yrs+'년 자산 성장 (혼합수익 '+(blendRet*100).toFixed(1)+'%)</div>'+
+    _bars(hist,{axis:[age+'세',retAge+'세'],colorFn:()=>'safe'})+
+    '<div style="font-size:10px;color:#9a9a95;margin:10px 0 4px;font-weight:700">🥧 현재 권장 배분</div>'+
+    '<div style="display:flex;height:22px;border-radius:6px;overflow:hidden"><div style="width:'+stockNow+'%;background:#9b85f6;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:800">주식 '+stockNow+'%</div><div style="width:'+(100-stockNow)+'%;background:#5B8CFF;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700">안전 '+(100-stockNow)+'%</div></div>'+
+    '<div class="sim-note">110−나이 법칙 + 뱅가드 글라이드패스 절충. 주식 7%·안전 3.5% 가정. '+(useInf?'실질가치는 물가 2.5% 차감.':'명목 기준.')+'</div>';
+}
+
+// ────── 자산배분 ③ 올웨더 vs S&P500 ──────
+function simAW(){
+  const amt=_siv('aw-amt',10000), crash=_siv('aw-crash',37)/100, bondUp=_siv('aw-bond',10)/100;
+  const goldUp=0.05;
+  // S&P500 100%
+  const sp500=amt*(1-crash);
+  const sp500Loss=amt-sp500;
+  // 올웨더(한국형): 주식30/장기채25/중기채15/금10/원자재5/달러15
+  const w={stock:0.30,longB:0.25,midB:0.15,gold:0.10,comm:0.05,usd:0.15};
+  const awStock=amt*w.stock*(1-crash);
+  const awLongB=amt*w.longB*(1+bondUp);
+  const awMidB=amt*w.midB*(1+bondUp*0.5);
+  const awGold=amt*w.gold*(1+goldUp);
+  const awComm=amt*w.comm*(1-crash*0.3);
+  const awUsd=amt*w.usd*(1+0.08); // 위기 시 달러강세 +8%
+  const awTotal=awStock+awLongB+awMidB+awGold+awComm+awUsd;
+  const awLoss=amt-awTotal;
+  const out=document.getElementById('aw-out');
+  out.innerHTML=
+    _kpi([
+      {l:'S&P500 100% 잔액',v:_wonFmt(sp500),c:'#FF7BAC',s:'−'+(crash*100).toFixed(0)+'% ('+_wonFmt(sp500Loss)+'↓)'},
+      {l:'올웨더 잔액',v:_wonFmt(awTotal),c:'#22c55e',s:(awLoss>=0?'−':'+')+_wonFmt(Math.abs(awLoss))},
+      {l:'S&P500 낙폭(MDD)',v:'−'+(crash*100).toFixed(0)+'%',c:'#FF7BAC',s:'집중 위험'},
+      {l:'올웨더 낙폭(MDD)',v:(awLoss>=0?'−':'+')+(Math.abs(awLoss)/amt*100).toFixed(1)+'%',c:'#22c55e',s:'분산 효과'}
+    ])+
+    '<div style="font-size:10px;color:#9a9a95;margin:8px 0 4px;font-weight:700">📉 위기 시 잔액 비교</div>'+
+    '<div style="display:flex;gap:8px;align-items:flex-end;height:90px">'+
+      '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end"><div style="width:100%;background:linear-gradient(180deg,#ef4444,#FF7BAC);border-radius:5px 5px 0 0;height:'+(sp500/amt*100)+'%"></div><span style="font-size:9px;color:#8a8a85;margin-top:4px;font-weight:700">S&P500</span><span style="font-size:8px;color:#9a9a95">'+_wonFmt(sp500)+'</span></div>'+
+      '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end"><div style="width:100%;background:linear-gradient(180deg,#22c55e,#B3FF3B);border-radius:5px 5px 0 0;height:'+(awTotal/amt*100)+'%"></div><span style="font-size:9px;color:#8a8a85;margin-top:4px;font-weight:700">올웨더</span><span style="font-size:8px;color:#9a9a95">'+_wonFmt(awTotal)+'</span></div>'+
+    '</div>'+
+    '<div class="sim-steps">[올웨더 자산별 위기 시 변화]\n주식30% : '+_wonFmt(awStock)+' (−'+(crash*100).toFixed(0)+'%)\n장기채25%: '+_wonFmt(awLongB)+' (+'+(bondUp*100).toFixed(0)+'%)\n중기채15%: '+_wonFmt(awMidB)+'\n금10%   : '+_wonFmt(awGold)+' (+5%)\n원자재5% : '+_wonFmt(awComm)+'\n달러15% : '+_wonFmt(awUsd)+' (+8% 강세)\n합계    : '+_wonFmt(awTotal)+'</div>'+
+    '<div class="sim-note">위기 때 주식이 빠지는 만큼 채권·금·달러가 방어해 낙폭을 줄여요. 수익 극대화가 아닌 <b>MDD 최소화</b>가 목적입니다.</div>';
+}
+
+// ────── 지수투자 ② 버핏 90/10 ──────
+let bfMixVal=90;
+function bfMix(m,btn){bfMixVal=m;[...btn.parentElement.children].forEach(b=>b.classList.toggle('sel',b===btn));}
+function simBF(){
+  const init=_siv('bf-init',5000), month=_siv('bf-month',50), years=_siv('bf-years',25);
+  const stockW=bfMixVal/100;
+  const showFee=document.getElementById('bf-fee-chk').classList.contains('on');
+  const stockRet=0.10, bondRet=0.03;
+  const blend=stockW*stockRet+(1-stockW)*bondRet;
+  function grow(rate){ let bal=init; const h=[bal]; for(let y=0;y<years;y++){bal=(bal+month*12)*(1+rate);h.push(bal);} return h; }
+  const lowFee=grow(blend);
+  const highFee=grow(blend-0.01); // 연 1% 수수료
+  const principal=init+month*12*years;
+  const endLow=lowFee[years], endHigh=highFee[years];
+  const feeCost=endLow-endHigh;
+  const out=document.getElementById('bf-out');
+  out.innerHTML=
+    _kpi([
+      {l:bfMixVal+'/'+(100-bfMixVal)+' 최종자산',v:_wonFmt(endLow),c:'#22c55e',s:'혼합수익 '+(blend*100).toFixed(1)+'%'},
+      {l:'납입 원금',v:_wonFmt(principal),c:'#3E3E3E',s:'월 '+month+'만×'+years+'년'},
+      {l:'복리 수익',v:'+'+_wonFmt(endLow-principal),c:'#9b85f6',s:'원금대비 +'+Math.round((endLow-principal)/principal*100)+'%'},
+      showFee?{l:'연1% 수수료 손실',v:'−'+_wonFmt(feeCost),c:'#FF7BAC',s:'고비용펀드 시'}:{l:'저비용 효과',v:'ETF 0.1%',c:'#5B8CFF',s:'버핏 추천'}
+    ])+
+    '<div style="font-size:10px;color:#9a9a95;margin:8px 0 2px;font-weight:700">📈 '+years+'년 자산 성장</div>'+
+    _bars(lowFee,{axis:['시작',years+'년후'],colorFn:()=>'safe'})+
+    (showFee?'<div class="sim-steps">[저비용 vs 고비용]\n저비용(ETF) : '+_wonFmt(endLow)+'\n고비용(연1%): '+_wonFmt(endHigh)+'\n수수료 손실 : '+_wonFmt(feeCost)+' ('+years+'년 누적)\n→ "수수료는 복리의 적" — 버핏</div>':'')+
+    '<div class="sim-note">버핏 90/10: S&P500 90% + 단기국채 10%. 주식 10%·국채 3% 가정. 주식 비중↑일수록 기대수익↑·변동성↑.</div>';
+}
+
+// ────── 지수투자 ③ 3대 지수 비교 ──────
+function simIDX(){
+  const month=_siv('idx-month',50), years=_siv('idx-years',20);
+  const useInf=document.getElementById('idx-inf-chk').classList.contains('on');
+  const inf=0.025;
+  const idxs=[ {n:'S&P500',r:0.104,c:'#9b85f6'},{n:'다우',r:0.131,c:'#5B8CFF'},{n:'나스닥',r:0.177,c:'#22c55e'} ];
+  const principal=month*12*years;
+  const res=idxs.map(ix=>{
+    let bal=0; for(let y=0;y<years;y++){bal=(bal+month*12)*(1+ix.r);}
+    const real=useInf?bal/Math.pow(1+inf,years):bal;
+    return {...ix,bal,real};
+  });
+  const maxBal=Math.max(...res.map(r=>r.bal));
+  const out=document.getElementById('idx-out');
+  out.innerHTML=
+    _kpi([
+      {l:'납입 원금',v:_wonFmt(principal),c:'#3E3E3E',s:'월 '+month+'만×'+years+'년'},
+      {l:'S&P500 (10.4%)',v:_wonFmt(useInf?res[0].real:res[0].bal),c:'#9b85f6',s:useInf?'실질':'명목'},
+      {l:'다우 (13.1%)',v:_wonFmt(useInf?res[1].real:res[1].bal),c:'#5B8CFF',s:useInf?'실질':'명목'},
+      {l:'나스닥 (17.7%)',v:_wonFmt(useInf?res[2].real:res[2].bal),c:'#22c55e',s:useInf?'실질':'명목'}
+    ])+
+    '<div style="font-size:10px;color:#9a9a95;margin:8px 0 4px;font-weight:700">📊 '+years+'년 후 자산 비교</div>'+
+    '<div style="display:flex;gap:8px;align-items:flex-end;height:100px">'+
+      res.map(r=>'<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end"><div style="width:100%;background:linear-gradient(180deg,'+r.c+',#5B8CFF);border-radius:5px 5px 0 0;height:'+(r.bal/maxBal*100)+'%"></div><span style="font-size:9px;color:#8a8a85;margin-top:4px;font-weight:700">'+r.n+'</span><span style="font-size:8px;color:#9a9a95">'+_wonFmt(useInf?r.real:r.bal)+'</span></div>').join('')+
+    '</div>'+
+    '<div class="sim-note">⚠️ 나스닥은 수익률이 높지만 변동성·낙폭도 가장 커요(2000·2008·2022 큰 하락). 과거 10년 평균이며 미래는 다를 수 있어요. '+(useInf?'실질가치 물가 2.5% 차감.':'명목 기준.')+'</div>';
+}
+
 
 // ══════ 시뮬·이론 섹션 서브탭 전환 ══════
 function showInvSec(page,key,btn){
