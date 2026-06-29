@@ -1710,6 +1710,32 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
 .explain{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:13px 14px}#pf-root .explain-t{font-size:11.5px;font-weight:800;color:var(--accent2);margin-bottom:4px}#pf-root .explain p{font-size:11px;color:var(--text2);line-height:1.75;margin:0}#pf-root .explain b{color:var(--text)}
 
   #pf-root{--gold:#FFC95B;--schd:#22c55e;--real:#f59e0b;}
+  /* 결과 테이블 이벤트 배지 */
+  #pf-root .tbl-row.has-ev{border-bottom:none}
+  #pf-root .tbl-badges{display:flex;flex-wrap:wrap;gap:4px;padding:0 11px 9px;border-bottom:1px solid var(--border);background:rgba(126,98,243,.03)}
+  #pf-root .tbl-badges .yr-badge{font-size:8px}
+  /* SCHD 분할 입력 */
+  #pf-root .schd-split{display:flex;gap:4px;justify-content:flex-end}
+  #pf-root .schd-split label{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:7px;color:var(--text4);font-weight:600}
+  #pf-root .schd-split .rate-inp{width:38px}
+  /* 종목 추가/편집 */
+  #pf-root .asset-del-btn{font-size:10px;color:var(--minus);background:var(--minus-dim);border:1px solid var(--minus-border);border-radius:8px;padding:6px 10px;cursor:pointer;font-family:inherit;font-weight:700}
+  #pf-root .asset-edit-row{display:flex;align-items:center;gap:8px;margin-top:7px}
+  #pf-root .asset-name-inp{background:var(--card);border:1px solid var(--border2);border-radius:7px;padding:6px 9px;color:var(--text);font-size:12px;font-weight:700;font-family:inherit;outline:none;flex:1;max-width:140px}
+  #pf-root .asset-name-inp:focus{border-color:var(--accent-border)}
+  /* 글라이드패스 글자 확대 */
+  #pf-root .gp-acct{font-size:11.5px}
+  #pf-root .gp-age{font-size:13px}
+  #pf-root .mini-sl .msl-h{font-size:11px}
+  #pf-root .mini-sl{margin-bottom:8px}
+  #pf-root .msl-info{font-size:9.5px}
+  #pf-root .gp-stat .gl{font-size:9.5px}
+  #pf-root .gp-stat .gv{font-size:14px}
+  #pf-root .gp-real{font-size:9px}
+  #pf-root .acct-row{font-size:11px}
+  #pf-root .acct-lbl{font-size:9px}
+  #pf-root .acct-annual{font-size:9px}
+  #pf-root .tdf-lock{width:22px;height:22px}
   #pf-root .yr-acc{margin-top:9px;border-top:1px dashed var(--border2);padding-top:9px}
   #pf-root .yr-acc-head{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:9px 11px;cursor:pointer;font-size:10.5px;font-weight:700;color:var(--text2);user-select:none}
   #pf-root .yr-acc-head:active{background:var(--border)}
@@ -1844,13 +1870,31 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   <script>
 (function(){
 
+// ── 자산 레지스트리 (확장 가능: 채권 등 종목 유형 추가) ──
+let ASSETS=[
+  {key:'sp',  label:'S&P 500',  color:'var(--green)',  builtin:true},
+  {key:'nq',  label:'나스닥 100', color:'var(--accent)', builtin:true},
+  {key:'schd',label:'SCHD',      color:'var(--schd)',   builtin:true, dividend:true},
+  {key:'tdf', label:'TDF',       color:'var(--blue)',   builtin:true},
+];
+const ASSET_PALETTE=['#5B8CFF','#FF7BAC','#FFC95B','#22d3ee','#a78bfa','#f97316','#84cc16'];
+function aKeys(){ return ASSETS.map(a=>a.key); }
+function aDef(k){ return ASSETS.find(a=>a.key===k); }
+function aLabel(k){ const a=aDef(k); return a?a.label:k; }
+function aColor(k){ const a=aDef(k); return a?a.color:'#888'; }
+function emptyAssets(){ const o={}; for(const k of aKeys())o[k]=0; return o; }
+
 const RATE_META={ sp:{label:'S&P 500',color:'var(--green)'}, nq:{label:'나스닥 100',color:'var(--accent)'}, schd:{label:'SCHD',color:'var(--schd)'}, tdf:{label:'TDF',color:'var(--blue)'} };
+// SCHD는 {price:지수수익률, div:배당재배치수익률}로 분리, 계산은 합산
 const RATES = {
-  '보수': { sp:7,  nq:8,  schd:6, tdf:5 },
-  '기본': { sp:9,  nq:11, schd:8, tdf:7 },
-  '낙관': { sp:11, nq:14, schd:9, tdf:8 },
-  '개인화': { sp:9, nq:11, schd:8, tdf:7 },
+  '보수': { sp:7,  nq:8,  schd:{price:3,div:3}, tdf:5 },
+  '기본': { sp:9,  nq:11, schd:{price:4,div:4}, tdf:7 },
+  '낙관': { sp:11, nq:14, schd:{price:5,div:4}, tdf:8 },
+  '개인화': { sp:9, nq:11, schd:{price:4,div:4}, tdf:7 },
 };
+// 자산 총수익률 (price+div 합산 또는 단일 숫자)
+function rateOf(scKey,k){ const v=RATES[scKey]?RATES[scKey][k]:undefined; if(v&&typeof v==='object')return (v.price||0)+(v.div||0); return v||0; }
+function divOf(scKey,k){ const v=RATES[scKey]?RATES[scKey][k]:undefined; if(v&&typeof v==='object')return v.div||0; return 0; }
 const SCEN_LABEL={ '보수':'보수적', '기본':'기본', '낙관':'낙관적', '개인화':'개인화' };
 let scen='기본', inflOn=false; const INFL=2.5;
 let activeCase=0;
@@ -1859,12 +1903,12 @@ let cases=[
     alloc:{irp:50,pen:33,isa:17}, allocLock:{irp:false,pen:false,isa:false}, reinvestRefund:true,
     monthlyChanges:[],
     lumpsums:[{atAge:35,amount:2500,target:'pen'},{atAge:36,amount:1500,target:'pen'},{atAge:37,amount:5500,target:'pen'}],
-    isaTransferMode:'auto', isaTransferAge:42, isaTargetGain:400, npsMonthly:0, npsStartAge:65 }
+    isaTransferMode:'auto', isaTransferAge:42, isaTargetGain:400, isaTransferTarget:'pen', npsMonthly:0, npsStartAge:65 }
 ];
 function wifeCaseTemplate(){
   return { name:'CASE '+(cases.length+1), enabled:false, salary:3500, baseMonthly:50, startAge:37, retireAge:60,
     alloc:{irp:60,pen:40,isa:0}, allocLock:{irp:false,pen:false,isa:false}, reinvestRefund:true, monthlyChanges:[], lumpsums:[],
-    isaTransferMode:'auto', isaTransferAge:45, isaTargetGain:400, npsMonthly:0, npsStartAge:65 };
+    isaTransferMode:'auto', isaTransferAge:45, isaTargetGain:400, isaTransferTarget:'pen', npsMonthly:0, npsStartAge:65 };
 }
 let glide=[
   { fromAge:34, toAge:44, irp:{sp:49,nq:21,schd:0,tdf:30}, pen:{sp:60,nq:40,schd:0}, isa:{sp:70,nq:30,schd:0}, lock:{irp:{},pen:{},isa:{}} },
@@ -1872,6 +1916,17 @@ let glide=[
   { fromAge:50, toAge:54, irp:{sp:45,nq:5,schd:20,tdf:30}, pen:{sp:55,nq:5,schd:40}, isa:{sp:60,nq:0,schd:40}, lock:{irp:{},pen:{},isa:{}} },
   { fromAge:55, toAge:60, irp:{sp:30,nq:0,schd:40,tdf:30}, pen:{sp:35,nq:0,schd:65}, isa:{sp:40,nq:0,schd:60}, lock:{irp:{},pen:{},isa:{}} },
 ];
+// 글라이드패스 모든 계좌가 모든 자산키를 갖도록 정규화 (누락분 0)
+function normalizeGlide(){
+  for(const b of glide){
+    for(const acct of ['irp','pen','isa']){
+      if(!b[acct])b[acct]={};
+      for(const k of aKeys()){ if(!(k in b[acct]))b[acct][k]=0; }
+      if(!b.lock)b.lock={irp:{},pen:{},isa:{}};
+      if(!b.lock[acct])b.lock[acct]={};
+    }
+  }
+}
 let gpRebal=[]; // 특정시기 자산 매도·재배치 시나리오
 let gpCharts={};
 let scenAccordionOpen=false;
@@ -1882,21 +1937,19 @@ function fmtS(w){ if(!w)return'0'; if(w>=1e8){const e=w/1e8;return(e>=10?Math.ro
 function manToWon(m){ return m*10000; }
 
 function glideForAge(age){ for(const b of glide){ if(age>=b.fromAge&&age<=b.toAge)return b; } if(glide.length&&age<glide[0].fromAge)return glide[0]; return glide[glide.length-1]; }
-function blendRate(w,r){ let t=0,s=0; for(const k in w){ t+=w[k]*(r[k]||0); s+=w[k]; } return s>0?t/s/100:0; }
+function blendRate(w,scKey){ scKey=scKey||scen; let t=0,s=0; for(const k in w){ t+=w[k]*rateOf(scKey,k); s+=w[k]; } return s>0?t/s/100:0; }
 function monthlyTotal(c,age){ let t=c.baseMonthly; for(const ch of c.monthlyChanges){ if(age>=ch.fromAge&&age<=ch.toAge)t+=ch.delta; } return Math.max(0,t); }
 function monthlySplit(c,age){ const t=monthlyTotal(c,age); return {irp:t*c.alloc.irp/100, pen:t*c.alloc.pen/100, isa:t*c.alloc.isa/100, total:t}; }
 
 function simulateCase(c){
-  const r=RATES[scen]; const months=(c.retireAge-c.startAge)*12; const refundRate=creditRate(c.salary);
+  const months=(c.retireAge-c.startAge)*12; const refundRate=creditRate(c.salary);
   let irp=0,pen=0,isa=0,isaPrincipal=0,principalTotal=0,refundTotal=0;
   let isaXferDone=false,isaXferAge=null,isaXferAmt=0,isaXferCredit=0;
   const bracketPrincipal=glide.map(()=>0); const rows=[];
 
-  // 자산별 평가액 pot (정확한 비중별 원금·수익 산출용)
-  // irp: sp/nq/schd/tdf, pen: sp/nq/schd, isa: sp/nq/schd
-  const pot={ irp:{sp:0,nq:0,schd:0,tdf:0}, pen:{sp:0,nq:0,schd:0}, isa:{sp:0,nq:0,schd:0} };
-  // 구간별 자산 납입원금 & 구간 시작/종료 평가액 스냅샷
-  const bAssetPrin=glide.map(()=>({ irp:{sp:0,nq:0,schd:0,tdf:0}, pen:{sp:0,nq:0,schd:0}, isa:{sp:0,nq:0,schd:0} }));
+  // 자산별 평가액 pot (모든 계좌가 모든 자산키 보유)
+  const pot={ irp:emptyAssets(), pen:emptyAssets(), isa:emptyAssets() };
+  const bAssetPrin=glide.map(()=>({ irp:emptyAssets(), pen:emptyAssets(), isa:emptyAssets() }));
   const bAssetStart=glide.map(()=>null), bAssetEnd=glide.map(()=>null);
   const snap=()=>JSON.parse(JSON.stringify(pot));
   const wsum=o=>Object.values(o).reduce((a,b)=>a+b,0);
@@ -1908,7 +1961,6 @@ function simulateCase(c){
     if(bi<0)return; const ws=wsum(weights); if(ws<=0||won<=0)return;
     for(const k in bAssetPrin[bi][acct]){ bAssetPrin[bi][acct][k]+= won*(weights[k]||0)/ws; }
   }
-  // 특정시기 자산 매도·재배치: 같은 계좌 내에서 fromAsset의 일정%를 toAsset으로 이동
   function applyRebal(pot, rb){
     const acct=rb.acct; if(!pot[acct])return;
     const from=rb.fromAsset, to=rb.toAsset;
@@ -1923,35 +1975,32 @@ function simulateCase(c){
     const bi=glide.findIndex(b=>age>=b.fromAge&&age<=b.toAge);
     if(bi>=0 && !bAssetStart[bi]) bAssetStart[bi]=snap();
 
-    const rA={sp:r.sp/100/12,nq:r.nq/100/12,schd:r.schd/100/12,tdf:r.tdf/100/12};
-    // 성장 (자산별)
-    for(const k in pot.irp) pot.irp[k]*=(1+rA[k]);
-    for(const k in pot.pen) pot.pen[k]*=(1+rA[k]);
-    for(const k in pot.isa) pot.isa[k]*=(1+rA[k]);
+    // 성장 (자산별 월수익률 = 총수익률/12)
+    const rA={}; for(const k of aKeys()) rA[k]=rateOf(scen,k)/100/12;
+    for(const acct of ['irp','pen','isa']) for(const k in pot[acct]) pot[acct][k]*=(1+(rA[k]||0));
 
     const mm=monthlySplit(c,age);
-    // 납입 (현재 글라이드 비중으로 분배)
     addToPot('irp',manToWon(mm.irp),g.irp); addPrin(bi,'irp',manToWon(mm.irp),g.irp);
     addToPot('pen',manToWon(mm.pen),g.pen); addPrin(bi,'pen',manToWon(mm.pen),g.pen);
     principalTotal+=manToWon(mm.total);
     if(bi>=0)bracketPrincipal[bi]+=manToWon(mm.total);
-    if(!isaXferDone){ addToPot('isa',manToWon(mm.isa),g.isa||{sp:100}); isaPrincipal+=manToWon(mm.isa);
-      addPrin(bi,'isa',manToWon(mm.isa),g.isa||{sp:100}); }
+    if(!isaXferDone){ addToPot('isa',manToWon(mm.isa),g.isa); isaPrincipal+=manToWon(mm.isa);
+      addPrin(bi,'isa',manToWon(mm.isa),g.isa); }
 
     if(mi%12===0){
-      const events=[]; // 그 해 발생 이벤트
+      const events=[];
       const my=monthlySplit(c,age); const yIrp=my.irp*12,yPen=my.pen*12;
       const creditBase=Math.min(yIrp+yPen,900); const refund=creditBase*10000*refundRate;
       refundTotal+=refund;
-      if(c.reinvestRefund){ addToPot('pen',refund,g.pen); if(refund>0)events.push({t:'refund',amt:refund}); } // 환급 재투자(연금저축)
+      if(c.reinvestRefund){ addToPot('pen',refund,g.pen); if(refund>0)events.push({t:'refund',amt:refund}); }
       let yearLump=0;
       for(const l of c.lumpsums){ if(l.atAge===age){ const amt=manToWon(l.amount);
         if(l.target==='irp'){ addToPot('irp',amt,g.irp); addPrin(bi,'irp',amt,g.irp); }
         else if(l.target==='pen'){ addToPot('pen',amt,g.pen); addPrin(bi,'pen',amt,g.pen); }
-        else { addToPot('isa',amt,g.isa||{sp:100}); isaPrincipal+=amt; addPrin(bi,'isa',amt,g.isa||{sp:100}); }
+        else { addToPot('isa',amt,g.isa); isaPrincipal+=amt; addPrin(bi,'isa',amt,g.isa); }
         principalTotal+=amt; if(bi>=0)bracketPrincipal[bi]+=amt; yearLump+=amt;
         events.push({t:'lump',amt,target:l.target}); } }
-      // ── 특정시기 자산 매도·재배치 (리밸런싱) ──
+      // ── 특정시기 자산 매도·재배치 ──
       for(const rb of gpRebal){ if(rb.atAge===age){ const moved=pot[rb.acct]?pot[rb.acct][rb.fromAsset]*(rb.pct/100):0; applyRebal(pot, rb); events.push({t:'rebal',acct:rb.acct,from:rb.fromAsset,to:rb.toAsset,pct:rb.pct,amt:moved}); } }
       isa=wsum(pot.isa);
       if(!isaXferDone&&(isa>0||isaPrincipal>0)){
@@ -1959,14 +2008,14 @@ function simulateCase(c){
         if(c.isaTransferMode==='auto'&&gain>=c.isaTargetGain*10000)doX=true;
         if(c.isaTransferMode==='manual'&&age>=c.isaTransferAge)doX=true;
         if(doX){ isaXferDone=true; isaXferAge=age; isaXferAmt=isa;
+          const tgt=(c.isaTransferTarget==='irp')?'irp':'pen';
           isaXferCredit=Math.min(isa*0.10,300*10000)*refundRate; refundTotal+=isaXferCredit;
-          addToPot('pen',isa+(c.reinvestRefund?isaXferCredit:0),g.pen);
-          events.push({t:'isaxfer',amt:isa,credit:isaXferCredit});
+          addToPot(tgt,isa+(c.reinvestRefund?isaXferCredit:0),g[tgt]);
+          events.push({t:'isaxfer',amt:isa,credit:isaXferCredit,target:tgt});
           for(const k in pot.isa)pot.isa[k]=0; isa=0; } }
       irp=wsum(pot.irp); pen=wsum(pot.pen); isa=wsum(pot.isa);
       if(bi>=0) bAssetEnd[bi]=snap();
       const total=irp+pen+isa; const rf=Math.pow(1+INFL/100,age-c.startAge+1);
-      const yearContrib=manToWon(monthlyTotal(c,age))*1 + 0; // 월납 연간(원금)
       const annualPrincipal=manToWon(monthlyTotal(c,age)*12)+yearLump;
       rows.push({ age:age+1, contribAge:age, irp:Math.round(irp), pen:Math.round(pen), isa:Math.round(isa),
         total:Math.round(total), totalReal:Math.round(total/rf), principalCum:Math.round(principalTotal),
@@ -1986,10 +2035,10 @@ function simulateCase(c){
     const rfEnd=valEnd>0?valEnd/(valEndReal||1):1;
     const principalReal=Math.round(principal/rfEnd);
     const growthReal=Math.round((growth>0?growth:0)/rfEnd);
-    // 자산별 원금/수익 (구간)
+    // 자산별 원금/수익 (구간) — 동적 자산
     const st=bAssetStart[bi], en=bAssetEnd[bi], pr=bAssetPrin[bi];
     const assets=[];
-    const defs=[['irp','sp'],['irp','nq'],['irp','schd'],['irp','tdf'],['pen','sp'],['pen','nq'],['pen','schd'],['isa','sp'],['isa','nq'],['isa','schd']];
+    const defs=[]; for(const acct of ['irp','pen','isa']) for(const k of aKeys()) defs.push([acct,k]);
     if(st&&en){
       for(const[acct,asset] of defs){
         const p=pr[acct][asset]||0;
@@ -1999,7 +2048,6 @@ function simulateCase(c){
         assets.push({acct,asset,principal:p,profit:profit>0?profit:0,valEnd:vEnd});
       }
     }
-    // 계좌별 구간 요약 (IRP / 연금저축 / ISA)
     const sumObj=o=>o?Object.values(o).reduce((a,b)=>a+b,0):0;
     const acctSummary={};
     for(const acct of ['irp','pen','isa']){
@@ -2009,7 +2057,6 @@ function simulateCase(c){
       const profitA=valA-startA-prinA;
       acctSummary[acct]={principal:prinA,valEnd:valA,profit:profitA>0?profitA:0};
     }
-    // 연간 상세 (이벤트 포함) — 이전 해 평가액 대비 발생수익 계산
     let prevTotal=valStart;
     const yearly=inRows.map(rr=>{
       const yprofit=rr.total-prevTotal-(rr.annualPrincipal||0);
@@ -2019,10 +2066,15 @@ function simulateCase(c){
     });
     return { principal,principalReal,valEnd,valEndReal,valStart,growth,growthReal,endAge, assets, acctSummary, yearly,
       series:inRows.map(rr=>({age:rr.contribAge+1,total:rr.total,totalReal:rr.totalReal,principalCum:rr.principalCum})),
-      irpRate:+(blendRate(b.irp,r)*100).toFixed(1), penRate:+(blendRate(b.pen,r)*100).toFixed(1) };
+      irpRate:+(blendRate(b.irp)*100).toFixed(1), penRate:+(blendRate(b.pen)*100).toFixed(1) };
   });
+  // ── 배당자산(SCHD 등) 은퇴시점 보유액 & 월배당 ──
+  let divHold=0, divIncomeAnnual=0;
+  for(const a of ASSETS){ if(a.dividend){ const dy=divOf(scen,a.key)/100;
+    for(const acct of ['irp','pen','isa']){ const v=pot[acct][a.key]||0; divHold+=v; divIncomeAnnual+=v*dy; } } }
   return { rows, principalTotal:Math.round(principalTotal), refundTotal:Math.round(refundTotal),
     isaXferAge, isaXferAmt:Math.round(isaXferAmt), isaXferCredit:Math.round(isaXferCredit),
+    divHold:Math.round(divHold), divMonthly:Math.round(divIncomeAnnual/12),
     bracketSummary, startAge:c.startAge, retireAge:c.retireAge };
 }
 
@@ -2031,71 +2083,91 @@ function simulateMerged(){
   if(sims.length===0)return null;
   const maxLen=Math.max(...sims.map(s=>s.sim.rows.length)); const merged=[];
   for(let i=0;i<maxLen;i++){
-    let irp=0,pen=0,isa=0,total=0,totalReal=0,irpR=0,penR=0,isaR=0,xfer=false,prinCum=0;
+    let irp=0,pen=0,isa=0,total=0,totalReal=0,irpR=0,penR=0,isaR=0,xfer=false,prinCum=0,events=[];
     for(const s of sims){ const row=s.sim.rows[i]||s.sim.rows[s.sim.rows.length-1];
       irp+=row.irp;pen+=row.pen;isa+=row.isa;total+=row.total;totalReal+=row.totalReal;
       irpR+=row.irpReal;penR+=row.penReal;isaR+=row.isaReal;prinCum+=(row.principalCum||0);
-      if(s.sim.rows[i]&&s.sim.rows[i].xfer)xfer=true; }
-    merged.push({yearIdx:i+1,irp,pen,isa,total,totalReal,irpReal:irpR,penReal:penR,isaReal:isaR,principalCum:prinCum,xfer});
+      if(s.sim.rows[i]){ if(s.sim.rows[i].xfer)xfer=true; if(s.sim.rows[i].events&&s.sim.rows[i].events.length)events=events.concat(s.sim.rows[i].events); } }
+    merged.push({yearIdx:i+1,irp,pen,isa,total,totalReal,irpReal:irpR,penReal:penR,isaReal:isaR,principalCum:prinCum,xfer,events});
   }
   const last=merged[merged.length-1];
   const principalTotal=sims.reduce((a,s)=>a+s.sim.principalTotal,0);
   const refundTotal=sims.reduce((a,s)=>a+s.sim.refundTotal,0);
+  const divHold=sims.reduce((a,s)=>a+(s.sim.divHold||0),0);
+  const divMonthly=sims.reduce((a,s)=>a+(s.sim.divMonthly||0),0);
   const names=sims.map(s=>s.c.name).join(' + ');
-  return { merged,last,principalTotal,refundTotal,names,baseCase:sims[0].c,sims };
+  return { merged,last,principalTotal,refundTotal,divHold,divMonthly,names,baseCase:sims[0].c,sims };
 }
 
 let mainChart=null;
 function render(){ renderCaseTabs(); renderBasic(); renderAlloc(); renderScenario(); renderGlide(); renderRebal(); renderRetireSettings(); renderResults(); pfSyncUI(); pfSaveDebounced(); }
 // ── 자동 저장/복원 ──
 function pfSave(){
-  try{ localStorage.setItem('pf-state', JSON.stringify({v:1,cases,glide,gpRebal,scen,inflOn,activeCase,custom:RATES['개인화']})); }catch(e){}
+  try{ localStorage.setItem('pf-state', JSON.stringify({v:2,cases,glide,gpRebal,scen,inflOn,activeCase,assets:ASSETS,rates:RATES})); }catch(e){}
 }
 let _pfSaveT=null;
 function pfSaveDebounced(){ if(_pfSaveT)clearTimeout(_pfSaveT); _pfSaveT=setTimeout(pfSave,400); }
 function pfLoad(){
   try{
-    const raw=localStorage.getItem('pf-state'); if(!raw)return;
-    const st=JSON.parse(raw); if(!st)return;
+    const raw=localStorage.getItem('pf-state'); if(!raw){ normalizeGlide(); return; }
+    const st=JSON.parse(raw); if(!st){ normalizeGlide(); return; }
+    if(Array.isArray(st.assets)&&st.assets.length)ASSETS=st.assets;
+    if(st.rates&&typeof st.rates==='object'){ for(const sc in st.rates){ if(RATES[sc]!==undefined||sc==='개인화')RATES[sc]=st.rates[sc]; } }
+    else if(st.custom)RATES['개인화']=st.custom; // 구버전 호환
     if(Array.isArray(st.cases)&&st.cases.length)cases=st.cases;
     if(Array.isArray(st.glide)&&st.glide.length)glide=st.glide;
     if(Array.isArray(st.gpRebal))gpRebal=st.gpRebal;
     if(typeof st.scen==='string'&&RATES[st.scen])scen=st.scen;
     if(typeof st.inflOn==='boolean')inflOn=st.inflOn;
     if(typeof st.activeCase==='number')activeCase=Math.max(0,Math.min(st.activeCase,cases.length-1));
-    if(st.custom)RATES['개인화']=st.custom;
-  }catch(e){}
+    // 케이스 ISA 이전대상 기본값 보정
+    for(const c of cases){ if(!c.isaTransferTarget)c.isaTransferTarget='pen'; }
+    normalizeGlide();
+  }catch(e){ normalizeGlide(); }
 }
 function pfSyncUI(){ try{ const t=document.getElementById('inflTog'); if(t)t.classList.toggle('on',inflOn); }catch(e){} }
 
 function renderScenario(){
-  const r=RATES[scen];
-  const order=['sp','nq','schd','tdf'];
-  // 현재 시나리오 연간 수익률 표기
-  const rateLine=order.map(k=>`<span style="color:${RATE_META[k].color}">${RATE_META[k].label} ${r[k]}%</span>`).join(' · ');
-  // 아코디언: 시나리오별 수익률 구성 (개인화만 편집 가능)
+  const order=aKeys();
+  // 현재 시나리오 연간 수익률 표기 (SCHD는 분할 표시)
+  const rateLine=order.map(k=>{
+    const def=aDef(k);
+    if(def&&def.dividend){ return `<span style="color:${aColor(k)}">${aLabel(k)} ${rateOf(scen,k)}% <span style="font-size:8.5px;color:var(--text4)">(지수 ${RATES[scen][k].price}+배당 ${RATES[scen][k].div})</span></span>`; }
+    return `<span style="color:${aColor(k)}">${aLabel(k)} ${rateOf(scen,k)}%</span>`;
+  }).join(' · ');
   let accBody='';
   if(scenAccordionOpen){
+    const headCols=order.map(k=>`<th>${aLabel(k)}</th>`).join('');
     const rows=['보수','기본','낙관','개인화'].map(sc=>{
-      const rr=RATES[sc]; const editable=(sc==='개인화');
+      const editable=(sc==='개인화');
       const cells=order.map(k=>{
-        if(editable) return `<td><input type="number" value="${rr[k]}" step="0.1" onchange="PF.updRate('${sc}','${k}',+this.value)" class="rate-inp"></td>`;
-        return `<td style="color:${RATE_META[k].color}">${rr[k]}%</td>`;
+        const def=aDef(k); const v=RATES[sc][k];
+        if(def&&def.dividend){
+          // SCHD: price/div 분할
+          if(editable) return `<td><div class="schd-split"><label>지수<input type="number" value="${v.price}" step="0.1" onchange="PF.updRate('${sc}','${k}.price',+this.value)" class="rate-inp"></label><label>배당<input type="number" value="${v.div}" step="0.1" onchange="PF.updRate('${sc}','${k}.div',+this.value)" class="rate-inp"></label></div></td>`;
+          return `<td style="color:${aColor(k)}">${rateOf(sc,k)}%<span style="display:block;font-size:7.5px;color:var(--text4)">지수${v.price}+배당${v.div}</span></td>`;
+        }
+        if(editable) return `<td><input type="number" value="${v}" step="0.1" onchange="PF.updRate('${sc}','${k}',+this.value)" class="rate-inp"></td>`;
+        return `<td style="color:${aColor(k)}">${v}%</td>`;
       }).join('');
       return `<tr class="${scen===sc?'rate-active':''}"><td style="text-align:left;font-weight:700;color:${scen===sc?'var(--accent2)':'var(--text2)'}">${SCEN_LABEL[sc]}</td>${cells}</tr>`;
     }).join('');
     accBody=`<div class="rate-tbl-wrap">
-      <table class="rate-tbl">
-        <thead><tr><th style="text-align:left">시나리오</th><th>S&P</th><th>나스닥</th><th>SCHD</th><th>TDF</th></tr></thead>
+      <div style="overflow-x:auto"><table class="rate-tbl">
+        <thead><tr><th style="text-align:left">시나리오</th>${headCols}</tr></thead>
         <tbody>${rows}</tbody>
-      </table>
-      <div style="font-size:9px;color:var(--text4);margin-top:7px;line-height:1.5">💡 <b style="color:var(--accent2)">개인화</b> 행의 값을 직접 입력해 나만의 연간 수익률을 설정할 수 있어요. 보수·기본·낙관은 일반적 기준값입니다.</div>
+      </table></div>
+      <div style="font-size:9px;color:var(--text4);margin-top:7px;line-height:1.5">💡 <b style="color:var(--accent2)">개인화</b> 행을 직접 입력. <b style="color:var(--schd)">SCHD</b>는 지수수익률+배당재배치수익률로 나뉘며 합산 계산됩니다.</div>
+      <div style="margin-top:9px;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn-add" onclick="PF.addAsset()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 종목 유형 추가 (채권 등)</button>
+        ${ASSETS.filter(a=>!a.builtin).map(a=>`<button class="asset-del-btn" onclick="PF.delAsset('${a.key}')">🗑 ${a.label} 삭제</button>`).join('')}
+      </div>
+      ${ASSETS.filter(a=>!a.builtin).length?`<div id="assetEditList">${ASSETS.filter(a=>!a.builtin).map(a=>`<div class="asset-edit-row"><span style="color:${a.color};font-weight:800">●</span><input type="text" value="${a.label}" onchange="PF.renameAsset('${a.key}',this.value)" class="asset-name-inp" placeholder="종목명"><span style="font-size:9px;color:var(--text4)">위 표에서 수익률 입력</span></div>`).join('')}</div>`:''}
     </div>`;
   }
-
   document.getElementById('scenarioPanel').innerHTML=`
     <div class="acc-head" onclick="PF.toggleScenAcc()">
-      <span>⚙ 수익률 구성 설정 (연간 종목별 수익률)</span>
+      <span>⚙ 수익률 구성 설정 (연간 종목별 수익률 · 종목 추가)</span>
       <span style="transform:rotate(${scenAccordionOpen?'180':'0'}deg);transition:transform .2s">▾</span>
     </div>
     ${accBody}
@@ -2109,7 +2181,34 @@ function renderScenario(){
     </div>`;
 }
 function toggleScenAcc(){ scenAccordionOpen=!scenAccordionOpen; renderScenario(); }
-function updRate(sc,k,v){ RATES[sc][k]=v; render(); }
+function updRate(sc,k,v){
+  if(k.indexOf('.')>=0){ const[ak,sub]=k.split('.'); if(typeof RATES[sc][ak]!=='object')RATES[sc][ak]={price:0,div:0}; RATES[sc][ak][sub]=v; }
+  else RATES[sc][k]=v;
+  render();
+}
+// ── 종목 유형 추가/삭제/이름변경 ──
+function addAsset(){
+  let n=1; while(aDef('a'+n))n++; const key='a'+n;
+  const color=ASSET_PALETTE[(ASSETS.length-4)%ASSET_PALETTE.length]||'#888';
+  ASSETS.push({key,label:'채권',color,builtin:false});
+  // 모든 시나리오에 기본 수익률 추가 (채권 보수적 기본값)
+  RATES['보수'][key]=3; RATES['기본'][key]=4; RATES['낙관'][key]=5; RATES['개인화'][key]=4;
+  normalizeGlide();
+  if(!scenAccordionOpen)scenAccordionOpen=true;
+  render();
+}
+function delAsset(key){
+  const def=aDef(key); if(!def||def.builtin)return;
+  ASSETS=ASSETS.filter(a=>a.key!==key);
+  for(const sc in RATES){ delete RATES[sc][key]; }
+  // glide에서 제거 + 비중 재정규화
+  for(const b of glide){ for(const acct of ['irp','pen','isa']){ if(b[acct]&&key in b[acct]){ delete b[acct][key]; } if(b.lock&&b.lock[acct])delete b.lock[acct][key]; } }
+  // gpRebal에서 해당 자산 참조 제거
+  gpRebal=gpRebal.filter(rb=>rb.fromAsset!==key&&rb.toAsset!==key);
+  normalizeGlide();
+  render();
+}
+function renameAsset(key,name){ const def=aDef(key); if(def)def.label=name||def.label; render(); }
 
 function renderCaseTabs(){
   document.getElementById('caseTabs').innerHTML=cases.map((c,i)=>`
@@ -2207,7 +2306,7 @@ function renderAlloc(){
 
     <div class="box">
       <div class="box-t">🏦 ISA 이전 설정</div>
-      <div class="box-s">ISA 해지 후 연금저축 이전 시점 (이전액 10%, 최대 300만 추가 세액공제)</div>
+      <div class="box-s">ISA 해지 후 연금계좌 이전 시점 (이전액 10%, 최대 300만 추가 세액공제)</div>
       <div class="seg-toggle">
         <button class="${c.isaTransferMode==='auto'?'on':''}" onclick="PF.upd('isaTransferMode','auto')">자동 (수익 목표)</button>
         <button class="${c.isaTransferMode==='manual'?'on':''}" onclick="PF.upd('isaTransferMode','manual')">수동 (나이 지정)</button>
@@ -2215,6 +2314,12 @@ function renderAlloc(){
       ${c.isaTransferMode==='auto'
         ? sliderRow('isaTargetGain','🎯 목표 수익 (이전 트리거)',c.isaTargetGain,'만원','var(--gold)',100,1000,50)
         : sliderRow('isaTransferAge','📅 이전 나이',c.isaTransferAge,'세','var(--gold)',c.startAge,c.retireAge,1)}
+      <div style="font-size:9.5px;color:var(--text3);font-weight:700;margin:11px 0 6px">📥 이전 대상 계좌</div>
+      <div class="seg-toggle">
+        <button class="${(c.isaTransferTarget||'pen')==='pen'?'on':''}" onclick="PF.upd('isaTransferTarget','pen')">💼 연금저축</button>
+        <button class="${c.isaTransferTarget==='irp'?'on':''}" onclick="PF.upd('isaTransferTarget','irp')">🏛️ IRP</button>
+      </div>
+      <div style="font-size:9px;color:var(--text4);margin-top:6px;line-height:1.5">${(c.isaTransferTarget||'pen')==='pen'?'연금저축은 납입한도 자유롭고 중도인출이 유연해 일반적으로 권장됩니다.':'IRP는 55세 이후 연금수령만 가능(중도인출 제한)하나 과세이연 효과가 큽니다.'}</div>
     </div>`;
 }
 
@@ -2317,16 +2422,20 @@ function activeAccounts(c){
   return has;
 }
 function gpAcctSection(acct,idx,b,bs,r){
-  const meta={irp:{nm:'🏛️ IRP',rateId:'irprate',assets:[['sp','S&P','var(--green)'],['nq','나스닥','var(--accent)'],['schd','SCHD','var(--schd)'],['tdf','TDF','var(--blue)']]},
-              pen:{nm:'💼 연금저축',rateId:'penrate',assets:[['sp','S&P','var(--green)'],['nq','나스닥','var(--accent)'],['schd','SCHD','var(--schd)']]},
-              isa:{nm:'🏦 ISA',rateId:'isarate',assets:[['sp','S&P','var(--green)'],['nq','나스닥','var(--accent)'],['schd','SCHD','var(--schd)']]}};
-  const m=meta[acct]; const grp=b[acct]; if(!grp)return '';
-  const rate=(blendRate(grp,r)*100).toFixed(1);
+  const nm={irp:'🏛️ IRP',pen:'💼 연금저축',isa:'🏦 ISA'}[acct];
+  const rateId={irp:'irprate',pen:'penrate',isa:'isarate'}[acct];
+  const grp=b[acct]; if(!grp)return '';
+  // 표시할 자산: 비중>0 이거나 전체(설정 가능하도록 모든 자산 표시)
+  const assetList=aKeys();
+  const rate=(blendRate(grp)*100).toFixed(1);
   let warn='';
-  if(acct==='irp'){ const risky=grp.sp+grp.nq+grp.schd; warn=`<span id="irpwarn_${idx}">${risky>70?'<span class="gp-warn">⚠ 위험자산 '+risky+'%</span>':''}</span>`; }
-  const bar=m.assets.map(([k,,col])=>`<div class="gp-seg" id="bar_${acct}_${idx}_${k}" style="width:${grp[k]}%;background:${col}"></div>`).join('');
-  const sliders=m.assets.map(([k,lbl,col])=>miniSlide(acct,idx,k,lbl,grp[k],col,bs)).join('');
-  return `<div class="gp-acct" style="margin-top:10px">${m.nm} (수익률 <span id="${m.rateId}_${idx}">${rate}</span>%) ${warn}</div>
+  if(acct==='irp'){ // 위험자산 = TDF 제외 전부
+    let risky=0; for(const k of aKeys()){ if(k!=='tdf')risky+=(grp[k]||0); }
+    warn=`<span id="irpwarn_${idx}">${risky>70?'<span class="gp-warn">⚠ 위험자산 '+risky+'%</span>':''}</span>`;
+  }
+  const bar=assetList.map(k=>`<div class="gp-seg" id="bar_${acct}_${idx}_${k}" style="width:${grp[k]||0}%;background:${aColor(k)}"></div>`).join('');
+  const sliders=assetList.map(k=>miniSlide(acct,idx,k,aLabel(k),grp[k]||0,aColor(k),bs)).join('');
+  return `<div class="gp-acct" style="margin-top:10px">${nm} (수익률 <span id="${rateId}_${idx}">${rate}</span>%) ${warn}</div>
     <div class="gp-bar">${bar}</div>${sliders}`;
 }
 
@@ -2398,15 +2507,13 @@ function buildBracketChart(idx,bs){
 }
 function renderRebal(){
   const c=cases[activeCase]; const act=activeAccounts(c);
-  const acctOpts={irp:['sp','nq','schd','tdf'], pen:['sp','nq','schd'], isa:['sp','nq','schd']};
   const acctNm={irp:'IRP',pen:'연금저축',isa:'ISA'};
-  const assetNm={sp:'S&P',nq:'나스닥',schd:'SCHD',tdf:'TDF'};
+  const assets=aKeys();
   const activeList=['irp','pen','isa'].filter(a=>act[a]);
   document.getElementById('rebalList').innerHTML=gpRebal.map((rb,idx)=>{
-    const assets=acctOpts[rb.acct]||['sp','nq','schd'];
     const acctSel=activeList.map(a=>`<option value="${a}" ${rb.acct===a?'selected':''}>${acctNm[a]}</option>`).join('');
-    const fromSel=assets.map(a=>`<option value="${a}" ${rb.fromAsset===a?'selected':''}>${assetNm[a]}</option>`).join('');
-    const toSel=assets.map(a=>`<option value="${a}" ${rb.toAsset===a?'selected':''}>${assetNm[a]}</option>`).join('');
+    const fromSel=assets.map(a=>`<option value="${a}" ${rb.fromAsset===a?'selected':''}>${aLabel(a)}</option>`).join('');
+    const toSel=assets.map(a=>`<option value="${a}" ${rb.toAsset===a?'selected':''}>${aLabel(a)}</option>`).join('');
     return `<div class="rebal-card">
       <div class="rebal-row1">
         <div class="chg-cell" style="flex:.8"><div class="nl">나이</div><div class="chg-input"><input type="number" value="${rb.atAge}" onchange="PF.updRebal(${idx},'atAge',+this.value)"><span class="chg-unit">세</span></div></div>
@@ -2419,22 +2526,22 @@ function renderRebal(){
         <div class="chg-cell"><div class="nl">매수 종목</div><select onchange="PF.updRebal(${idx},'toAsset',this.value)" class="rebal-sel">${toSel}</select></div>
         <div class="chg-cell" style="flex:.9"><div class="nl">비율</div><div class="chg-input"><input type="number" min="0" max="100" value="${rb.pct}" onchange="PF.updRebal(${idx},'pct',+this.value)"><span class="chg-unit">%</span></div></div>
       </div>
-      <div class="rebal-desc">${rb.atAge}세에 ${acctNm[rb.acct]} 계좌의 <b style="color:var(--minus)">${assetNm[rb.fromAsset]}</b> 보유분 중 <b>${rb.pct}%</b>를 매도 → <b style="color:var(--green)">${assetNm[rb.toAsset]}</b> 매수</div>
+      <div class="rebal-desc">${rb.atAge}세에 ${acctNm[rb.acct]} 계좌의 <b style="color:var(--minus)">${aLabel(rb.fromAsset)}</b> 보유분 중 <b>${rb.pct}%</b>를 매도 → <b style="color:var(--green)">${aLabel(rb.toAsset)}</b> 매수</div>
     </div>`;
   }).join('') || '<div style="font-size:10px;color:var(--text4);text-align:center;padding:8px">등록된 매도·재배치 시나리오가 없습니다</div>';
 }
 function addRebal(){
   const c=cases[activeCase]; const act=activeAccounts(c);
   const firstAcct=['irp','pen','isa'].find(a=>act[a])||'irp';
-  gpRebal.push({atAge:c.startAge+20,acct:firstAcct,fromAsset:'sp',toAsset:'schd',pct:50});
+  const ks=aKeys();
+  gpRebal.push({atAge:c.startAge+20,acct:firstAcct,fromAsset:ks[0],toAsset:ks[2]||ks[1]||ks[0],pct:50});
   render();
 }
 function delRebal(i){ gpRebal.splice(i,1); render(); }
 function updRebal(i,k,v){
   gpRebal[i][k]=v;
-  // 계좌 변경 시 종목 유효성 보정
   if(k==='acct'){
-    const valid={irp:['sp','nq','schd','tdf'],pen:['sp','nq','schd'],isa:['sp','nq','schd']}[v];
+    const valid=aKeys();
     if(!valid.includes(gpRebal[i].fromAsset))gpRebal[i].fromAsset=valid[0];
     if(!valid.includes(gpRebal[i].toAsset))gpRebal[i].toAsset=valid[1]||valid[0];
   }
@@ -2465,14 +2572,15 @@ function renderAcctBreakdown(bs, bi){
   }).filter(Boolean).join('');
   return `<div class="acct-title">📂 계좌별 구간 내역 <span style="font-weight:500;color:var(--text4)">(연 = 연평균 납입원금)</span></div>${rows}`;
 }
-function eventBadges(events){
+function eventBadges(events, compact){
   if(!events||!events.length)return '';
   const acctNm={irp:'IRP',pen:'연금',isa:'ISA'};
-  const assetNm={sp:'S&P',nq:'나스닥',schd:'SCHD',tdf:'TDF'};
+  const seen=new Set();
   return events.map(e=>{
-    if(e.t==='lump')return `<span class="yr-badge yb-lump">💰 목돈 ${fmtS(e.amt)}→${acctNm[e.target]}</span>`;
-    if(e.t==='isaxfer')return `<span class="yr-badge yb-xfer">🔄 ISA이전 ${fmtS(e.amt)}${e.credit>0?' (+공제 '+fmtS(e.credit)+')':''}</span>`;
-    if(e.t==='rebal')return `<span class="yr-badge yb-rebal">↔️ ${acctNm[e.acct]} ${assetNm[e.from]}→${assetNm[e.to]} ${e.pct}%</span>`;
+    if(e.t==='lump')return `<span class="yr-badge yb-lump">💰 ${compact?'':'목돈 '}${fmtS(e.amt)}→${acctNm[e.target]}</span>`;
+    if(e.t==='isaxfer')return `<span class="yr-badge yb-xfer">🔄 ISA이전 ${fmtS(e.amt)}→${acctNm[e.target||'pen']}${e.credit>0&&!compact?' (+공제 '+fmtS(e.credit)+')':''}</span>`;
+    if(e.t==='rebal')return `<span class="yr-badge yb-rebal">↔️ ${acctNm[e.acct]} ${aLabel(e.from)}→${aLabel(e.to)} ${e.pct}%</span>`;
+    if(e.t==='refund'&&!compact)return '';
     return '';
   }).filter(Boolean).join('');
 }
@@ -2585,13 +2693,15 @@ function renderTable(merged,baseCase){
   document.getElementById('tblBody').innerHTML=merged.map((r,i)=>{
     const age=baseCase.startAge+i+1;
     const irpV=inflOn?r.irpReal:r.irp,penV=inflOn?r.penReal:r.pen,isaV=inflOn?r.isaReal:r.isa,totV=inflOn?r.totalReal:r.total;
-    return `<div class="tbl-row ${r.xfer?'xfer':''}">
-      <span>${r.xfer?'🔄 ':''}${age}세</span>
+    const evs=(r.events||[]).filter(e=>e.t==='lump'||e.t==='isaxfer'||e.t==='rebal');
+    const badges=evs.length?`<div class="tbl-badges">${eventBadges(evs,true)}</div>`:'';
+    return `<div class="tbl-row ${r.xfer?'xfer':''} ${evs.length?'has-ev':''}">
+      <span>${age}세</span>
       <span style="color:var(--accent2)">${fmtS(irpV)}</span>
       <span style="color:var(--schd)">${fmtS(penV)}</span>
       <span style="color:var(--gold)">${isaV>0?fmtS(isaV):'—'}</span>
       <span class="tbl-total"><span class="tv">${fmtS(totV)}</span>${inflOn?'<span class="real-sub">명목 '+fmtS(r.total)+'</span>':''}</span>
-    </div>`;
+    </div>${badges}`;
   }).join('');
 }
 
@@ -2602,9 +2712,10 @@ function renderRetirement(m){
   const afterTax60=Math.round(monthlyMan*(1-0.055)), afterTax65=Math.round(monthlyMan*(1-0.044));
   const monthlyManR=Math.round(monthlyMan/rf), afterTax60R=Math.round(afterTax60/rf), afterTax65R=Math.round(afterTax65/rf);
   const npsTotal=sims.reduce((a,s)=>a+s.c.npsMonthly,0);
-  const lastGlide=glide[glide.length-1]; const schdWeight=(lastGlide.pen.schd+lastGlide.irp.schd)/200;
-  const schdDivMan=Math.round(total*schdWeight*0.035/12/10000);
-  const schdDivManR=Math.round(schdDivMan/rf);
+  // 엔진 산출 SCHD(배당자산) 보유액 & 월배당
+  const divHoldWon=m.divHold||0; const divMonthlyWon=m.divMonthly||0;
+  const divHoldMan=Math.round(divHoldWon/10000); const divMan=Math.round(divMonthlyWon/10000);
+  const divManR=Math.round(divMan/rf); const divHoldManR=Math.round(divHoldMan/rf);
   const realT=(v)=>inflOn?` <span style="color:var(--real);font-size:10px;font-weight:700">(실질 ${v.toLocaleString()}만)</span>`:'';
   document.getElementById('retGap').innerHTML=`
     <div class="inc-row"><span class="inc-l">은퇴 시점 총 적립액</span><span class="inc-v" style="color:var(--accent2)">${fmt(total)}${inflOn?'<span style="color:var(--real);font-size:10px"> 실질 '+fmt(totalReal)+'</span>':''}</span></div>
@@ -2614,14 +2725,15 @@ function renderRetirement(m){
   document.getElementById('retPost').innerHTML=`
     <div class="inc-row"><span class="inc-l">국민연금 (부부 합산)</span><span class="inc-v" style="color:var(--blue)">월 ${npsTotal>0?npsTotal.toLocaleString()+'만원':'미입력'}</span></div>
     <div class="inc-row"><span class="inc-l">사적연금 인출 (세후 4.4%)</span><span class="inc-v">월 약 ${afterTax65.toLocaleString()}만원${realT(afterTax65R)}</span></div>
-    ${schdDivMan>0?`<div class="inc-row"><span class="inc-l">SCHD 배당 (연 3.5%)</span><span class="inc-v" style="color:var(--schd)">월 약 ${schdDivMan.toLocaleString()}만원${realT(schdDivManR)}</span></div>`:''}
-    <div class="inc-row"><span class="inc-l">✅ 월 총 수령 추정</span><span class="inc-v" style="color:var(--schd);font-size:16px">약 ${(npsTotal+afterTax65).toLocaleString()}만원${inflOn?'<span style="color:var(--real);font-size:10px;font-weight:700"> (실질 '+(npsTotal+afterTax65R).toLocaleString()+'만)</span>':''}</span></div>`;
+    ${divMan>0?`<div class="inc-row"><span class="inc-l">📈 SCHD 보유액 <span style="font-size:9px;color:var(--text4)">${fmt(divHoldWon)}${inflOn?' · 실질 '+fmt(Math.round(divHoldWon/rf)):''}</span></span><span class="inc-v" style="color:var(--schd)">월 배당 약 ${divMan.toLocaleString()}만원${realT(divManR)}</span></div>`:''}
+    <div class="inc-row"><span class="inc-l">✅ 월 총 수령 추정 <span style="font-size:9px;color:var(--text4)">(연금+배당)</span></span><span class="inc-v" style="color:var(--schd);font-size:16px">약 ${(npsTotal+afterTax65+divMan).toLocaleString()}만원${inflOn?'<span style="color:var(--real);font-size:10px;font-weight:700"> (실질 '+(npsTotal+afterTax65R+divManR).toLocaleString()+'만)</span>':''}</span></div>`;
   document.getElementById('retStrat').innerHTML=`
     <div class="tip-box">
       ① <b style="color:var(--text)">사적연금 연 1,500만 이하 인출</b> → 종합과세 진입 방지<br>
       ② <b style="color:var(--text)">연금저축 과세제외 원금 우선 인출</b> → 비과세분 먼저 소진<br>
       ③ <b style="color:var(--text)">국민연금+사적연금 연 2,000만 이하</b> → 건강보험 피부양자 유지<br>
-      ④ <b style="color:var(--text)">IRP 최대한 늦게·소액 분할</b> → 과세이연 극대화
+      ④ <b style="color:var(--text)">IRP 최대한 늦게·소액 분할</b> → 과세이연 극대화<br>
+      ⑤ <b style="color:var(--schd)">SCHD 배당</b> → 보유분 매도 없이 월 배당 현금흐름 확보 (위 ${divMan>0?'월 약 '+divMan.toLocaleString()+'만원':'배당자산 보유시 발생'})
     </div>`;
 }
 
@@ -2719,7 +2831,7 @@ function refreshGlideStats(i){
 }
 
 
-window.PF={addBracket, addCase, addChange, addLump, addRebal, delBracket, delCase, delChange, delLump, delRebal, liveGlide, onAllocInput, onSlide, render, selectCase, setScen, toggleAssetLock, toggleEnabled, toggleInfl, toggleLock, toggleScenAcc, toggleYearAcc, upd, updBracket, updChange, updLump, updRate, updRebal};
+window.PF={addAsset, addBracket, addCase, addChange, addLump, addRebal, delAsset, delBracket, delCase, delChange, delLump, delRebal, liveGlide, onAllocInput, onSlide, render, renameAsset, selectCase, setScen, toggleAssetLock, toggleEnabled, toggleInfl, toggleLock, toggleScenAcc, toggleYearAcc, upd, updBracket, updChange, updLump, updRate, updRebal};
 try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
 })();
   </script>
