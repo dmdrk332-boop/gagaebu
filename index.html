@@ -1736,6 +1736,40 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   #pf-root .acct-lbl{font-size:9px}
   #pf-root .acct-annual{font-size:9px}
   #pf-root .tdf-lock{width:22px;height:22px}
+  /* 은퇴 분석 상세 */
+  #pf-root .sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+  #pf-root .sum-cell{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:9px 10px}
+  #pf-root .sum-l{font-size:9px;color:var(--text4);font-weight:600}
+  #pf-root .sum-v{font-size:14px;font-weight:800;margin-top:2px}
+  #pf-root .sum-r{font-size:8.5px;color:var(--real);font-weight:600;margin-top:1px}
+  #pf-root .sum-headline{font-size:11px;line-height:1.6;color:var(--text2);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+  #pf-root .life-flow{display:flex;flex-direction:column;gap:3px;margin-top:6px}
+  #pf-root .life-step{display:flex;align-items:center;gap:10px}
+  #pf-root .life-ic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0}
+  #pf-root .life-tx{display:flex;flex-direction:column;line-height:1.35}
+  #pf-root .life-tx b{font-size:12px;color:var(--text)}
+  #pf-root .life-tx span{font-size:9.5px;color:var(--text4)}
+  #pf-root .life-arrow{font-size:8.5px;color:var(--text4);padding-left:38px;font-weight:600}
+  #pf-root .life-note{font-size:9.5px;line-height:1.6;color:var(--text3);margin-top:10px;padding:9px 11px;background:var(--bg2);border-radius:8px}
+  #pf-root .inc-note{font-size:9px;line-height:1.55;color:var(--text4);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+  #pf-root .dep-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:6px}
+  #pf-root .dep-cell{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:9px 6px;text-align:center}
+  #pf-root .dep-cell.dep-mid{border-color:var(--gold-border,rgba(255,201,91,.4));background:rgba(255,201,91,.06)}
+  #pf-root .dep-rate{font-size:11px;font-weight:800}
+  #pf-root .dep-amt{font-size:9px;color:var(--text4);margin-top:2px}
+  #pf-root .dep-last{font-size:10px;font-weight:700;color:var(--text2);margin-top:4px;line-height:1.3}
+  #pf-root .dep-note{font-size:9.5px;line-height:1.6;color:var(--text3);margin-top:10px}
+  #pf-root .dep-warn{font-size:9px;line-height:1.55;color:var(--text3);margin-top:8px;padding:8px 10px;background:rgba(255,123,90,.07);border:1px solid rgba(255,123,90,.18);border-radius:8px}
+  #pf-root .tax-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}
+  #pf-root .tax-tbl th{font-size:9px;color:var(--text4);font-weight:700;padding:6px 4px;border-bottom:1px solid var(--border);text-align:center}
+  #pf-root .tax-tbl td{padding:7px 4px;text-align:center;border-bottom:1px solid rgba(48,48,48,.5);font-weight:700}
+  #pf-root .tax-tbl td:first-child{color:var(--text3)}
+  #pf-root .tax-points{margin-top:9px;display:flex;flex-direction:column;gap:6px}
+  #pf-root .tax-pt{font-size:9.5px;line-height:1.5;color:var(--text3);padding:7px 9px;background:var(--bg2);border-radius:7px}
+  #pf-root .easy-list{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+  #pf-root .easy-item{display:flex;flex-direction:column;gap:3px}
+  #pf-root .easy-q{font-size:11px;font-weight:800;color:var(--blue)}
+  #pf-root .easy-a{font-size:10.5px;line-height:1.6;color:var(--text2)}
   #pf-root .yr-acc{margin-top:9px;border-top:1px dashed var(--border2);padding-top:9px}
   #pf-root .yr-acc-head{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:9px 11px;cursor:pointer;font-size:10.5px;font-weight:700;color:var(--text2);user-select:none}
   #pf-root .yr-acc-head:active{background:var(--border)}
@@ -1846,6 +1880,8 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
 
 <div class="sec">
   <div class="sec-h">🏖️ 은퇴 후 수령 분석</div>
+  <div id="retSummary"></div>
+  <div id="retLifecycle"></div>
   <div class="box">
     <div class="box-t">60~64세 — 국민연금 개시 전 공백기</div>
     <div class="box-s">사적연금 인출만으로 생활 · 연금소득세 5.5% (55~69세)</div>
@@ -1856,10 +1892,13 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div class="box-s">국민연금 + 사적연금 + SCHD 배당</div>
     <div id="retPost"></div>
   </div>
+  <div id="retDepletion"></div>
+  <div id="retTax"></div>
   <div class="box" style="border-color:rgba(34,197,94,.25)">
     <div class="box-t" style="color:var(--schd)">💡 인출·세금 최적화 전략</div>
     <div id="retStrat"></div>
   </div>
+  <div id="retEasy"></div>
 </div>
 
 <div class="note">
@@ -2705,35 +2744,149 @@ function renderTable(merged,baseCase){
   }).join('');
 }
 
+// 자산 고갈 시뮬레이션: 은퇴자산을 매년 (인출 - 운용수익)으로 차감, 물가상승 반영
+function depletionSim(startAsset, annualWithdraw, realReturn, inflRate, npsAnnual, npsStartAgeOffset){
+  // realReturn: 은퇴 후 보수적 운용수익률(명목), inflRate: 물가상승률
+  // npsStartAgeOffset: 은퇴시점부터 국민연금 개시까지 연수
+  let asset=startAsset, year=0, withdraw=annualWithdraw;
+  const path=[];
+  while(asset>0 && year<60){
+    const nps=(year>=npsStartAgeOffset)?npsAnnual:0;
+    const netNeed=Math.max(0,withdraw-nps); // 국민연금으로 충당 후 부족분만 인출
+    asset=asset*(1+realReturn)-netNeed;
+    path.push({year,asset:Math.max(0,Math.round(asset))});
+    withdraw*=(1+inflRate); // 물가상승만큼 인출액 증가
+    year++;
+    if(asset<=0)break;
+  }
+  return {years:year, path, depleted:asset<=0&&year<60};
+}
+
 function renderRetirement(m){
   const {last,sims,merged}=m; const total=last.total; const totalReal=last.totalReal;
   const rf=total>0?total/(totalReal||1):1;
-  const annualMan=Math.round(total*0.035/10000), monthlyMan=Math.round(total*0.035/12/10000);
-  const afterTax60=Math.round(monthlyMan*(1-0.055)), afterTax65=Math.round(monthlyMan*(1-0.044));
+  const baseCase=sims[0].c;
+  const retireAge=baseCase.retireAge, startAge=baseCase.startAge;
+  const principalTotal=m.principalTotal, profit=total-principalTotal, refundTotal=m.refundTotal;
+  const investYears=retireAge-startAge;
+  // 인출 시나리오 (3.5% 안전인출률 기준)
+  const wr=0.035;
+  const annualWon=Math.round(total*wr), monthlyMan=Math.round(total*wr/12/10000);
+  const afterTax60=Math.round(monthlyMan*(1-0.055)), afterTax65=Math.round(monthlyMan*(1-0.044)), afterTax70=Math.round(monthlyMan*(1-0.044)), afterTax80=Math.round(monthlyMan*(1-0.033));
   const monthlyManR=Math.round(monthlyMan/rf), afterTax60R=Math.round(afterTax60/rf), afterTax65R=Math.round(afterTax65/rf);
   const npsTotal=sims.reduce((a,s)=>a+s.c.npsMonthly,0);
-  // 엔진 산출 SCHD(배당자산) 보유액 & 월배당
-  const divHoldWon=m.divHold||0; const divMonthlyWon=m.divMonthly||0;
-  const divHoldMan=Math.round(divHoldWon/10000); const divMan=Math.round(divMonthlyWon/10000);
-  const divManR=Math.round(divMan/rf); const divHoldManR=Math.round(divHoldMan/rf);
+  const npsStartAge=baseCase.npsStartAge||65;
+  const divHoldWon=m.divHold||0, divMonthlyWon=m.divMonthly||0;
+  const divMan=Math.round(divMonthlyWon/10000), divManR=Math.round(divMan/rf);
   const realT=(v)=>inflOn?` <span style="color:var(--real);font-size:10px;font-weight:700">(실질 ${v.toLocaleString()}만)</span>`:'';
+  // 자산 고갈 시뮬: 은퇴 후 보수적 운용 4%(명목), 물가 2.5%, 국민연금 개시 후 부족분만 인출
+  const npsAnnualWon=npsTotal*12*10000;
+  const dep=depletionSim(total, annualWon, 0.04, INFL/100, npsAnnualWon, npsStartAge-retireAge);
+  const dep3=depletionSim(total, Math.round(total*0.03), 0.04, INFL/100, npsAnnualWon, npsStartAge-retireAge);
+  const dep5=depletionSim(total, Math.round(total*0.05), 0.04, INFL/100, npsAnnualWon, npsStartAge-retireAge);
+  const lastsTo=(d)=>d.depleted?`${retireAge+d.years}세 (약 ${d.years}년)`:`${retireAge+60}세+ (평생 지속 가능)`;
+
+  // ── 0) 한눈 요약 ──
+  document.getElementById('retSummary').innerHTML=`
+    <div class="box" style="border-color:rgba(126,98,243,.3);background:linear-gradient(135deg,rgba(126,98,243,.08),rgba(34,197,94,.05))">
+      <div class="box-t">📋 한눈에 보는 내 노후 (요약)</div>
+      <div class="sum-grid">
+        <div class="sum-cell"><div class="sum-l">은퇴 시점 자산</div><div class="sum-v" style="color:var(--accent2)">${fmt(total)}</div>${inflOn?`<div class="sum-r">실질 ${fmt(totalReal)}</div>`:''}</div>
+        <div class="sum-cell"><div class="sum-l">월 수령 추정</div><div class="sum-v" style="color:var(--schd)">약 ${(npsTotal+afterTax65+divMan).toLocaleString()}만원</div>${inflOn?`<div class="sum-r">실질 ${(npsTotal+afterTax65R+divManR).toLocaleString()}만</div>`:''}</div>
+        <div class="sum-cell"><div class="sum-l">자산 유지 기간</div><div class="sum-v" style="color:var(--gold)">${lastsTo(dep)}</div><div class="sum-r">3.5% 인출 기준</div></div>
+        <div class="sum-cell"><div class="sum-l">원금 → 최종</div><div class="sum-v">${fmtS(principalTotal)}→${fmtS(total)}</div><div class="sum-r">수익 +${fmtS(profit)} (${Math.round(profit/principalTotal*100)}%)</div></div>
+      </div>
+      <div class="sum-headline">${investYears}년간 <b>${fmtS(principalTotal)}</b>을 납입해 <b style="color:var(--accent2)">${fmt(total)}</b>을 만들고, 은퇴 후 <b style="color:var(--schd)">월 약 ${(npsTotal+afterTax65+divMan).toLocaleString()}만원</b>을 ${dep.depleted?`<b style="color:var(--gold)">${dep.years}년간</b> 수령`:`<b style="color:var(--gold)">평생</b> 수령`}할 수 있습니다.</div>
+    </div>`;
+
+  // ── 1) 투자 생애주기 (시작→마무리→은퇴) ──
+  const refundShare=principalTotal>0?Math.round(refundTotal/principalTotal*100):0;
+  document.getElementById('retLifecycle').innerHTML=`
+    <div class="box">
+      <div class="box-t">🌱 내 돈의 일생 (투자 시작 → 은퇴까지)</div>
+      <div class="life-flow">
+        <div class="life-step"><div class="life-ic" style="background:var(--blue-dim);color:var(--blue)">①</div><div class="life-tx"><b>${startAge}세 시작</b><span>월 ${baseCase.baseMonthly}만 + 목돈 납입 개시</span></div></div>
+        <div class="life-arrow">↓ ${investYears}년 적립·복리</div>
+        <div class="life-step"><div class="life-ic" style="background:var(--accent-dim);color:var(--accent2)">②</div><div class="life-tx"><b>납입 원금 ${fmt(principalTotal)}</b><span>+ 세액공제 환급 ${fmt(refundTotal)} 재투자 (원금의 ${refundShare}%)</span></div></div>
+        <div class="life-arrow">↓ 복리 수익 +${fmt(profit)}</div>
+        <div class="life-step"><div class="life-ic" style="background:rgba(34,197,94,.15);color:var(--schd)">③</div><div class="life-tx"><b>${retireAge}세 은퇴: ${fmt(total)}</b><span>원금의 ${Math.round(total/principalTotal*100)}% · 수익이 원금의 ${Math.round(profit/principalTotal*100)}%</span></div></div>
+        <div class="life-arrow">↓ 인출 시작 (자산은 계속 운용)</div>
+        <div class="life-step"><div class="life-ic" style="background:rgba(255,201,91,.15);color:var(--gold)">④</div><div class="life-tx"><b>은퇴 후: 매년 일부만 인출</b><span>남은 자산은 계속 굴러 추가 수익 발생 → 오래 유지</span></div></div>
+      </div>
+      <div class="life-note">💡 핵심은 <b>은퇴했다고 한 번에 다 찾는 게 아니라</b>, 매년 3~4%만 꺼내 쓰고 나머지는 계속 투자하는 것. 그래서 ${investYears}년 모은 돈이 은퇴 후에도 수십 년 더 갑니다.</div>
+    </div>`;
+
   document.getElementById('retGap').innerHTML=`
     <div class="inc-row"><span class="inc-l">은퇴 시점 총 적립액</span><span class="inc-v" style="color:var(--accent2)">${fmt(total)}${inflOn?'<span style="color:var(--real);font-size:10px"> 실질 '+fmt(totalReal)+'</span>':''}</span></div>
     <div class="inc-row"><span class="inc-l">안전인출률 3.5% 월 인출</span><span class="inc-v">${monthlyMan.toLocaleString()}만원${realT(monthlyManR)}</span></div>
-    <div class="inc-row"><span class="inc-l">연금소득세 5.5% 차감 후</span><span class="inc-v" style="color:var(--schd)">월 약 ${afterTax60.toLocaleString()}만원${realT(afterTax60R)}</span></div>
-    <div class="inc-row"><span class="inc-l">연금저축 과세제외 원금분</span><span class="inc-v" style="color:var(--schd)">비과세 ✓</span></div>`;
+    <div class="inc-row"><span class="inc-l">연금소득세 5.5% 차감 후 (55~69세)</span><span class="inc-v" style="color:var(--schd)">월 약 ${afterTax60.toLocaleString()}만원${realT(afterTax60R)}</span></div>
+    <div class="inc-row"><span class="inc-l">연금저축 과세제외 원금분</span><span class="inc-v" style="color:var(--schd)">비과세 ✓</span></div>
+    <div class="inc-note">⚠️ ${npsStartAge>retireAge?`${retireAge}~${npsStartAge}세 <b>${npsStartAge-retireAge}년 소득 공백기</b>: 국민연금 개시 전까지 사적연금만으로 생활. 이 기간 인출액을 넉넉히 잡아야 합니다.`:'국민연금이 은퇴와 동시에 개시됩니다.'}</div>`;
+
   document.getElementById('retPost').innerHTML=`
     <div class="inc-row"><span class="inc-l">국민연금 (부부 합산)</span><span class="inc-v" style="color:var(--blue)">월 ${npsTotal>0?npsTotal.toLocaleString()+'만원':'미입력'}</span></div>
-    <div class="inc-row"><span class="inc-l">사적연금 인출 (세후 4.4%)</span><span class="inc-v">월 약 ${afterTax65.toLocaleString()}만원${realT(afterTax65R)}</span></div>
-    ${divMan>0?`<div class="inc-row"><span class="inc-l">📈 SCHD 보유액 <span style="font-size:9px;color:var(--text4)">${fmt(divHoldWon)}${inflOn?' · 실질 '+fmt(Math.round(divHoldWon/rf)):''}</span></span><span class="inc-v" style="color:var(--schd)">월 배당 약 ${divMan.toLocaleString()}만원${realT(divManR)}</span></div>`:''}
-    <div class="inc-row"><span class="inc-l">✅ 월 총 수령 추정 <span style="font-size:9px;color:var(--text4)">(연금+배당)</span></span><span class="inc-v" style="color:var(--schd);font-size:16px">약 ${(npsTotal+afterTax65+divMan).toLocaleString()}만원${inflOn?'<span style="color:var(--real);font-size:10px;font-weight:700"> (실질 '+(npsTotal+afterTax65R+divManR).toLocaleString()+'만)</span>':''}</span></div>`;
+    <div class="inc-row"><span class="inc-l">사적연금 인출 (세후 4.4%, 70세~)</span><span class="inc-v">월 약 ${afterTax65.toLocaleString()}만원${realT(afterTax65R)}</span></div>
+    ${divMan>0?`<div class="inc-row"><span class="inc-l">📈 SCHD 보유액 <span style="font-size:9px;color:var(--text4)">${fmt(divHoldWon)}</span></span><span class="inc-v" style="color:var(--schd)">월 배당 약 ${divMan.toLocaleString()}만원${realT(divManR)}</span></div>`:''}
+    <div class="inc-row"><span class="inc-l">✅ 월 총 수령 추정 <span style="font-size:9px;color:var(--text4)">(연금+배당)</span></span><span class="inc-v" style="color:var(--schd);font-size:16px">약 ${(npsTotal+afterTax65+divMan).toLocaleString()}만원${inflOn?'<span style="color:var(--real);font-size:10px;font-weight:700"> (실질 '+(npsTotal+afterTax65R+divManR).toLocaleString()+'만)</span>':''}</span></div>
+    <div class="inc-note">📌 연령이 올라갈수록 연금소득세가 낮아집니다: <b>55~69세 5.5% → 70~79세 4.4% → 80세~ 3.3%</b>. 그래서 일찍 많이 받기보다 길게 나눠 받을수록 세금이 줄어듭니다.</div>`;
+
+  // ── 2) 자산 고갈 분석 ──
+  document.getElementById('retDepletion').innerHTML=`
+    <div class="box" style="border-color:rgba(255,201,91,.25)">
+      <div class="box-t" style="color:var(--gold)">⏳ 이 돈, 몇 년이나 갈까? (자산 유지 기간)</div>
+      <div class="box-s">은퇴 후에도 연 4% 보수적 운용 가정 · 물가상승률 ${INFL}% 반영 · 국민연금 개시(${npsStartAge}세) 후 부족분만 인출</div>
+      <div class="dep-grid">
+        <div class="dep-cell"><div class="dep-rate" style="color:var(--schd)">3.0%</div><div class="dep-amt">월 ${Math.round(total*0.03/12/10000).toLocaleString()}만</div><div class="dep-last">${lastsTo(dep3)}</div></div>
+        <div class="dep-cell dep-mid"><div class="dep-rate" style="color:var(--gold)">3.5% 권장</div><div class="dep-amt">월 ${monthlyMan.toLocaleString()}만</div><div class="dep-last">${lastsTo(dep)}</div></div>
+        <div class="dep-cell"><div class="dep-rate" style="color:var(--minus)">5.0%</div><div class="dep-amt">월 ${Math.round(total*0.05/12/10000).toLocaleString()}만</div><div class="dep-last">${lastsTo(dep5)}</div></div>
+      </div>
+      <div class="dep-note"><b>인출률이 낮을수록 오래 갑니다.</b> 3.5%는 미국 트리니티 연구에서 <b>30년간 95% 확률로 고갈되지 않은</b> 안전 기준이에요. 한국은 국민연금이 더해져 실제 사적연금 인출 부담이 줄어 더 오래 유지됩니다. ${dep.depleted?`현재 설정(3.5%)으로는 <b style="color:var(--gold)">${retireAge+dep.years}세까지</b> 유지됩니다.`:`현재 설정(3.5%)이면 국민연금 보강으로 <b style="color:var(--schd)">사실상 평생 유지</b>됩니다.`}</div>
+      <div class="dep-warn">⚠️ <b>시퀀스 리스크</b>: 은퇴 직후 몇 년간 시장이 크게 하락하면 같은 평균수익률이어도 자산이 훨씬 빨리 고갈됩니다. 은퇴 초기에는 인출액을 줄이거나 안전자산(현금·채권) 비중을 높이는 게 안전해요.</div>
+    </div>`;
+
+  // ── 3) 세금 상세 ──
+  const annualWithdrawMan=Math.round(total*wr/10000);
+  const over1500=annualWithdrawMan>1500;
+  document.getElementById('retTax').innerHTML=`
+    <div class="box">
+      <div class="box-t">🧾 세금은 얼마나? (인출 시 과세)</div>
+      <table class="tax-tbl">
+        <thead><tr><th>나이</th><th>연금소득세율</th><th>월 세후 수령</th></tr></thead>
+        <tbody>
+          <tr><td>55~69세</td><td style="color:var(--accent2)">5.5%</td><td>${afterTax60.toLocaleString()}만원</td></tr>
+          <tr><td>70~79세</td><td style="color:var(--schd)">4.4%</td><td>${afterTax65.toLocaleString()}만원</td></tr>
+          <tr><td>80세 이상</td><td style="color:var(--schd)">3.3%</td><td>${Math.round(monthlyMan*(1-0.033)).toLocaleString()}만원</td></tr>
+        </tbody>
+      </table>
+      <div class="tax-points">
+        <div class="tax-pt"><b style="color:${over1500?'var(--minus)':'var(--schd)'}">연 ${annualWithdrawMan.toLocaleString()}만원 인출</b> ${over1500?`→ ⚠️ <b>1,500만원 초과</b>: 종합과세 또는 16.5% 분리과세 선택 (다른 소득과 합산 주의)`:`→ ✅ <b>연 1,500만원 이하</b>: 저율 분리과세(3.3~5.5%) 유지, 종합과세 회피`}</div>
+        <div class="tax-pt">💰 <b>세액공제 안 받은 원금</b>은 인출 시 <b>전액 비과세</b> (홈택스 '연금보험료 소득·세액공제확인서' 제출)</div>
+        <div class="tax-pt">📥 <b>ISA→연금 이전분</b>: 이전액의 10%(최대 300만원) 추가 세액공제 + 과세이연 효과</div>
+        <div class="tax-pt">🏥 <b>건강보험</b>: 국민연금+사적연금 연 2,000만원 이하 유지 시 피부양자 자격 유지 가능</div>
+      </div>
+    </div>`;
+
   document.getElementById('retStrat').innerHTML=`
     <div class="tip-box">
-      ① <b style="color:var(--text)">사적연금 연 1,500만 이하 인출</b> → 종합과세 진입 방지<br>
-      ② <b style="color:var(--text)">연금저축 과세제외 원금 우선 인출</b> → 비과세분 먼저 소진<br>
+      ① <b style="color:var(--text)">사적연금 연 1,500만 이하 인출</b> → 종합과세 진입 방지 (초과분은 분리과세 선택)<br>
+      ② <b style="color:var(--text)">인출 순서: 비과세 원금 → 퇴직금 → 세액공제분·수익</b> → 세율 낮은 돈부터 소진<br>
       ③ <b style="color:var(--text)">국민연금+사적연금 연 2,000만 이하</b> → 건강보험 피부양자 유지<br>
-      ④ <b style="color:var(--text)">IRP 최대한 늦게·소액 분할</b> → 과세이연 극대화<br>
-      ⑤ <b style="color:var(--schd)">SCHD 배당</b> → 보유분 매도 없이 월 배당 현금흐름 확보 (위 ${divMan>0?'월 약 '+divMan.toLocaleString()+'만원':'배당자산 보유시 발생'})
+      ④ <b style="color:var(--text)">IRP·연금 길게 나눠 수령 (10년 이상)</b> → 11년차부터 퇴직소득세 감면 40%, 연령 높아질수록 세율↓<br>
+      ⑤ <b style="color:var(--schd)">SCHD 배당</b> → 보유분 매도 없이 월 배당 현금흐름 확보${divMan>0?` (현재 월 약 ${divMan.toLocaleString()}만원)`:''}<br>
+      ⑥ <b style="color:var(--text)">국민연금 연기수령(최대 5년)</b> → 연 7.2%씩 증액, 1년 늦추면 평생 7.2% 더 받음
+    </div>`;
+
+  // ── 4) 쉽게 설명 ──
+  document.getElementById('retEasy').innerHTML=`
+    <div class="box" style="border-color:rgba(91,140,255,.25);background:rgba(91,140,255,.04)">
+      <div class="box-t" style="color:var(--blue)">🧒 쉽게 말하면</div>
+      <div class="easy-list">
+        <div class="easy-item"><span class="easy-q">Q. 은퇴하면 ${fmt(total)}을 한꺼번에 받나요?</span><span class="easy-a">아니요. 한 번에 찾으면 세금 폭탄(16.5%)을 맞아요. 매년 3~4%씩 조금씩 꺼내 쓰고, <b>나머지는 계속 투자</b>해서 돈이 더 불어나게 둡니다.</span></div>
+        <div class="easy-item"><span class="easy-q">Q. 왜 월 ${(npsTotal+afterTax65+divMan).toLocaleString()}만원인가요?</span><span class="easy-a">전체 자산의 3.5%(연 ${annualWithdrawMan.toLocaleString()}만원)를 12개월로 나눠 인출하고, 세금을 뺀 금액${npsTotal>0?'에 국민연금':''}${divMan>0?'과 SCHD 배당':''}을 더한 거예요.</span></div>
+        <div class="easy-item"><span class="easy-q">Q. 이 돈이 떨어지지 않나요?</span><span class="easy-a">은퇴 후에도 남은 돈이 계속 굴러 매년 ~4% 수익이 나기 때문에, 3.5%만 꺼내 쓰면 수익으로 거의 채워져요. 그래서 ${dep.depleted?`약 <b>${dep.years}년</b>`:'<b>평생</b>'} 유지됩니다.</span></div>
+        <div class="easy-item"><span class="easy-q">Q. 나이 들면 세금이 줄어요?</span><span class="easy-a">네! 55세 5.5% → 70세 4.4% → 80세 3.3%로 낮아져요. 그래서 <b>천천히 오래 나눠 받을수록</b> 유리합니다.</span></div>
+        <div class="easy-item"><span class="easy-q">Q. 가장 중요한 건요?</span><span class="easy-a">① 한 번에 안 찾기 ② 연 1,500만원 넘지 않게 인출 ③ 세금 낮은 돈(비과세 원금)부터 쓰기. 이 3가지만 지켜도 세금을 크게 아껴요.</span></div>
+      </div>
     </div>`;
 }
 
@@ -2791,7 +2944,7 @@ function liveGlide(acct,i,asset,v){
     const lab=document.getElementById(`gp_${acct}_${i}_${k}_v`); if(lab)lab.textContent=grp[k]+'%'+(lockedKeys.includes(k)?' 🔒':'');
     if(k!==asset){ const sl=document.getElementById(`gp_${acct}_${i}_${k}`); if(sl && sl!==document.activeElement)sl.value=grp[k]; }
   });
-  const rateEl=document.getElementById(`${acct}rate_${i}`); if(rateEl)rateEl.textContent=(blendRate(grp,r)*100).toFixed(1);
+  const rateEl=document.getElementById(`${acct}rate_${i}`); if(rateEl)rateEl.textContent=(blendRate(grp)*100).toFixed(1);
   if(acct==='irp'){
     const risky=grp.sp+grp.nq+grp.schd; const warnEl=document.getElementById(`irpwarn_${i}`);
     if(warnEl)warnEl.innerHTML=risky>70?`<span class="gp-warn">⚠ 위험자산 ${risky}%</span>`:'';
