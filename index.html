@@ -1710,6 +1710,23 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
 .explain{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:13px 14px}#pf-root .explain-t{font-size:11.5px;font-weight:800;color:var(--accent2);margin-bottom:4px}#pf-root .explain p{font-size:11px;color:var(--text2);line-height:1.75;margin:0}#pf-root .explain b{color:var(--text)}
 
   #pf-root{--gold:#FFC95B;--schd:#22c55e;--real:#f59e0b;}
+  #pf-root .yr-acc{margin-top:9px;border-top:1px dashed var(--border2);padding-top:9px}
+  #pf-root .yr-acc-head{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:9px 11px;cursor:pointer;font-size:10.5px;font-weight:700;color:var(--text2);user-select:none}
+  #pf-root .yr-acc-head:active{background:var(--border)}
+  #pf-root .yr-acc-body{margin-top:7px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:8px 9px}
+  #pf-root .yr-row{display:grid;grid-template-columns:.7fr 1.1fr 1fr 1.2fr;gap:5px;align-items:center;padding:6px 2px;border-top:1px solid rgba(48,48,48,.4)}
+  #pf-root .yr-row.yr-head{border-top:none;font-size:8.5px;color:var(--text4);font-weight:700;padding-bottom:5px}
+  #pf-root .yr-row span{text-align:right;overflow:hidden;text-overflow:ellipsis}
+  #pf-root .yr-row span:first-child{text-align:left}
+  #pf-root .yr-age{font-size:11px;font-weight:800;color:var(--text2)}
+  #pf-root .yr-num{font-size:10.5px;font-weight:700;display:flex;flex-direction:column;align-items:flex-end;line-height:1.25}
+  #pf-root .yr-sub{font-size:8px;color:var(--text4);font-weight:600}
+  #pf-root .yr-events{display:flex;flex-wrap:wrap;gap:4px;padding:2px 2px 6px;margin-top:-2px}
+  #pf-root .yr-badge{font-size:8.5px;font-weight:700;padding:3px 7px;border-radius:6px;white-space:nowrap}
+  #pf-root .yb-lump{background:rgba(91,140,255,.15);color:var(--blue);border:1px solid rgba(91,140,255,.3)}
+  #pf-root .yb-xfer{background:rgba(245,158,11,.13);color:var(--real);border:1px solid rgba(245,158,11,.3)}
+  #pf-root .yb-rebal{background:rgba(155,133,246,.15);color:var(--accent2);border:1px solid rgba(155,133,246,.3)}
+  #pf-root .yr-note{font-size:8.5px;color:var(--text4);line-height:1.5;margin-top:8px;padding-top:7px;border-top:1px solid rgba(48,48,48,.4)}
   </style>
   <div id="pf-root">
 <div class="top-bar">
@@ -1922,17 +1939,20 @@ function simulateCase(c){
       addPrin(bi,'isa',manToWon(mm.isa),g.isa||{sp:100}); }
 
     if(mi%12===0){
+      const events=[]; // 그 해 발생 이벤트
       const my=monthlySplit(c,age); const yIrp=my.irp*12,yPen=my.pen*12;
       const creditBase=Math.min(yIrp+yPen,900); const refund=creditBase*10000*refundRate;
       refundTotal+=refund;
-      if(c.reinvestRefund){ addToPot('pen',refund,g.pen); } // 환급 재투자(연금저축)
+      if(c.reinvestRefund){ addToPot('pen',refund,g.pen); if(refund>0)events.push({t:'refund',amt:refund}); } // 환급 재투자(연금저축)
+      let yearLump=0;
       for(const l of c.lumpsums){ if(l.atAge===age){ const amt=manToWon(l.amount);
         if(l.target==='irp'){ addToPot('irp',amt,g.irp); addPrin(bi,'irp',amt,g.irp); }
         else if(l.target==='pen'){ addToPot('pen',amt,g.pen); addPrin(bi,'pen',amt,g.pen); }
         else { addToPot('isa',amt,g.isa||{sp:100}); isaPrincipal+=amt; addPrin(bi,'isa',amt,g.isa||{sp:100}); }
-        principalTotal+=amt; if(bi>=0)bracketPrincipal[bi]+=amt; } }
+        principalTotal+=amt; if(bi>=0)bracketPrincipal[bi]+=amt; yearLump+=amt;
+        events.push({t:'lump',amt,target:l.target}); } }
       // ── 특정시기 자산 매도·재배치 (리밸런싱) ──
-      for(const rb of gpRebal){ if(rb.atAge===age){ applyRebal(pot, rb); } }
+      for(const rb of gpRebal){ if(rb.atAge===age){ const moved=pot[rb.acct]?pot[rb.acct][rb.fromAsset]*(rb.pct/100):0; applyRebal(pot, rb); events.push({t:'rebal',acct:rb.acct,from:rb.fromAsset,to:rb.toAsset,pct:rb.pct,amt:moved}); } }
       isa=wsum(pot.isa);
       if(!isaXferDone&&(isa>0||isaPrincipal>0)){
         const gain=isa-isaPrincipal; let doX=false;
@@ -1941,12 +1961,16 @@ function simulateCase(c){
         if(doX){ isaXferDone=true; isaXferAge=age; isaXferAmt=isa;
           isaXferCredit=Math.min(isa*0.10,300*10000)*refundRate; refundTotal+=isaXferCredit;
           addToPot('pen',isa+(c.reinvestRefund?isaXferCredit:0),g.pen);
+          events.push({t:'isaxfer',amt:isa,credit:isaXferCredit});
           for(const k in pot.isa)pot.isa[k]=0; isa=0; } }
       irp=wsum(pot.irp); pen=wsum(pot.pen); isa=wsum(pot.isa);
       if(bi>=0) bAssetEnd[bi]=snap();
       const total=irp+pen+isa; const rf=Math.pow(1+INFL/100,age-c.startAge+1);
+      const yearContrib=manToWon(monthlyTotal(c,age))*1 + 0; // 월납 연간(원금)
+      const annualPrincipal=manToWon(monthlyTotal(c,age)*12)+yearLump;
       rows.push({ age:age+1, contribAge:age, irp:Math.round(irp), pen:Math.round(pen), isa:Math.round(isa),
         total:Math.round(total), totalReal:Math.round(total/rf), principalCum:Math.round(principalTotal),
+        annualPrincipal:Math.round(annualPrincipal), annualRefund:Math.round(refund), events,
         irpReal:Math.round(irp/rf), penReal:Math.round(pen/rf), isaReal:Math.round(isa/rf), xfer:(isaXferAge===age) });
     }
   }
@@ -1985,7 +2009,15 @@ function simulateCase(c){
       const profitA=valA-startA-prinA;
       acctSummary[acct]={principal:prinA,valEnd:valA,profit:profitA>0?profitA:0};
     }
-    return { principal,principalReal,valEnd,valEndReal,valStart,growth,growthReal,endAge, assets, acctSummary,
+    // 연간 상세 (이벤트 포함) — 이전 해 평가액 대비 발생수익 계산
+    let prevTotal=valStart;
+    const yearly=inRows.map(rr=>{
+      const yprofit=rr.total-prevTotal-(rr.annualPrincipal||0);
+      const row={age:rr.contribAge, ageEnd:rr.age, principal:rr.annualPrincipal||0, refund:rr.annualRefund||0,
+        profit:yprofit, total:rr.total, totalReal:rr.totalReal, events:rr.events||[]};
+      prevTotal=rr.total; return row;
+    });
+    return { principal,principalReal,valEnd,valEndReal,valStart,growth,growthReal,endAge, assets, acctSummary, yearly,
       series:inRows.map(rr=>({age:rr.contribAge+1,total:rr.total,totalReal:rr.totalReal,principalCum:rr.principalCum})),
       irpRate:+(blendRate(b.irp,r)*100).toFixed(1), penRate:+(blendRate(b.pen,r)*100).toFixed(1) };
   });
@@ -2014,7 +2046,27 @@ function simulateMerged(){
 }
 
 let mainChart=null;
-function render(){ renderCaseTabs(); renderBasic(); renderAlloc(); renderScenario(); renderGlide(); renderRebal(); renderRetireSettings(); renderResults(); }
+function render(){ renderCaseTabs(); renderBasic(); renderAlloc(); renderScenario(); renderGlide(); renderRebal(); renderRetireSettings(); renderResults(); pfSyncUI(); pfSaveDebounced(); }
+// ── 자동 저장/복원 ──
+function pfSave(){
+  try{ localStorage.setItem('pf-state', JSON.stringify({v:1,cases,glide,gpRebal,scen,inflOn,activeCase,custom:RATES['개인화']})); }catch(e){}
+}
+let _pfSaveT=null;
+function pfSaveDebounced(){ if(_pfSaveT)clearTimeout(_pfSaveT); _pfSaveT=setTimeout(pfSave,400); }
+function pfLoad(){
+  try{
+    const raw=localStorage.getItem('pf-state'); if(!raw)return;
+    const st=JSON.parse(raw); if(!st)return;
+    if(Array.isArray(st.cases)&&st.cases.length)cases=st.cases;
+    if(Array.isArray(st.glide)&&st.glide.length)glide=st.glide;
+    if(Array.isArray(st.gpRebal))gpRebal=st.gpRebal;
+    if(typeof st.scen==='string'&&RATES[st.scen])scen=st.scen;
+    if(typeof st.inflOn==='boolean')inflOn=st.inflOn;
+    if(typeof st.activeCase==='number')activeCase=Math.max(0,Math.min(st.activeCase,cases.length-1));
+    if(st.custom)RATES['개인화']=st.custom;
+  }catch(e){}
+}
+function pfSyncUI(){ try{ const t=document.getElementById('inflTog'); if(t)t.classList.toggle('on',inflOn); }catch(e){} }
 
 function renderScenario(){
   const r=RATES[scen];
@@ -2252,7 +2304,7 @@ function onSlide(key,uid,unit,value){
   cases[activeCase][key]=+value;
   // 전체 재렌더 대신 결과만 갱신 (드래그 끊김 방지)
   if(_slideRAF)cancelAnimationFrame(_slideRAF);
-  _slideRAF=requestAnimationFrame(()=>{ renderResults(); });
+  _slideRAF=requestAnimationFrame(()=>{ renderResults(); pfSaveDebounced(); });
 }
 let _slideRAF=null;
 
@@ -2304,6 +2356,13 @@ function renderGlide(){
       <div class="gp-acctbox" id="acctbox_${idx}">${renderAcctBreakdown(bs,idx)}</div>
       <div class="gpc-leg" id="gpcleg_${idx}"></div>
       <div class="gp-minichart"><canvas id="gpc_${idx}"></canvas></div>
+      <div class="yr-acc">
+        <div class="yr-acc-head" onclick="PF.toggleYearAcc(${idx})">
+          <span>📅 연도별 상세 내역 (원금·수익·이벤트)</span>
+          <span id="yracc_arrow_${idx}" style="transition:transform .2s">▾</span>
+        </div>
+        <div class="yr-acc-body" id="yracc_${idx}" style="display:none">${renderYearly(bs)}</div>
+      </div>
     </div>`;
   }).join('');
   glide.forEach((b,idx)=>{
@@ -2405,6 +2464,38 @@ function renderAcctBreakdown(bs, bi){
     </div>`;
   }).filter(Boolean).join('');
   return `<div class="acct-title">📂 계좌별 구간 내역 <span style="font-weight:500;color:var(--text4)">(연 = 연평균 납입원금)</span></div>${rows}`;
+}
+function eventBadges(events){
+  if(!events||!events.length)return '';
+  const acctNm={irp:'IRP',pen:'연금',isa:'ISA'};
+  const assetNm={sp:'S&P',nq:'나스닥',schd:'SCHD',tdf:'TDF'};
+  return events.map(e=>{
+    if(e.t==='lump')return `<span class="yr-badge yb-lump">💰 목돈 ${fmtS(e.amt)}→${acctNm[e.target]}</span>`;
+    if(e.t==='isaxfer')return `<span class="yr-badge yb-xfer">🔄 ISA이전 ${fmtS(e.amt)}${e.credit>0?' (+공제 '+fmtS(e.credit)+')':''}</span>`;
+    if(e.t==='rebal')return `<span class="yr-badge yb-rebal">↔️ ${acctNm[e.acct]} ${assetNm[e.from]}→${assetNm[e.to]} ${e.pct}%</span>`;
+    return '';
+  }).filter(Boolean).join('');
+}
+function renderYearly(bs){
+  if(!bs||!bs.yearly||!bs.yearly.length)return '<div style="font-size:10px;color:var(--text4);padding:8px;text-align:center">데이터 없음</div>';
+  const head=`<div class="yr-row yr-head"><span>나이</span><span>납입원금</span><span>발생수익</span><span>누적평가액</span></div>`;
+  const rows=bs.yearly.map(y=>{
+    const badges=eventBadges(y.events);
+    return `<div class="yr-row">
+      <span class="yr-age">${y.age}세</span>
+      <span class="yr-num" style="color:var(--blue)">${y.principal>0?'+'+fmtS(y.principal):'—'}${y.refund>0?`<span class="yr-sub">환급 +${fmtS(y.refund)}</span>`:''}</span>
+      <span class="yr-num" style="color:var(--green)">${y.profit>=0?'+':''}${fmtS(y.profit)}</span>
+      <span class="yr-num"><b>${fmtS(y.total)}</b>${inflOn?`<span class="yr-sub" style="color:var(--real)">실질 ${fmtS(y.totalReal)}</span>`:''}</span>
+    </div>${badges?`<div class="yr-events">${badges}</div>`:''}`;
+  }).join('');
+  return head+rows+`<div class="yr-note">💡 매년 발생한 납입·수익·이벤트를 추적합니다. 목돈·ISA이전·자산재배치가 일어난 해에 배지로 표시됩니다.</div>`;
+}
+function toggleYearAcc(idx){
+  const body=document.getElementById('yracc_'+idx); const arr=document.getElementById('yracc_arrow_'+idx);
+  if(!body)return;
+  const open=body.style.display!=='none';
+  body.style.display=open?'none':'block';
+  if(arr)arr.style.transform=open?'rotate(0deg)':'rotate(180deg)';
 }
 function miniSlide(acct,idx,asset,label,val,color,bs){
   const uid=`gp_${acct}_${idx}_${asset}`;
@@ -2600,7 +2691,7 @@ function liveGlide(acct,i,asset,v){
 let _glideRAF=null;
 function scheduleGlideRefresh(i){
   if(_glideRAF)cancelAnimationFrame(_glideRAF);
-  _glideRAF=requestAnimationFrame(()=>{ refreshGlideStats(i); renderResults(); });
+  _glideRAF=requestAnimationFrame(()=>{ refreshGlideStats(i); renderResults(); pfSaveDebounced(); });
 }
 function refreshGlideStats(i){
   const sim=simulateCase(cases[activeCase]); const bs=sim.bracketSummary[i]; if(!bs)return;
@@ -2628,8 +2719,8 @@ function refreshGlideStats(i){
 }
 
 
-window.PF={addBracket, addCase, addChange, addLump, addRebal, delBracket, delCase, delChange, delLump, delRebal, liveGlide, onAllocInput, onSlide, render, selectCase, setScen, toggleAssetLock, toggleEnabled, toggleInfl, toggleLock, toggleScenAcc, upd, updBracket, updChange, updLump, updRate, updRebal};
-try{render();}catch(e){console.warn("PF init",e);}
+window.PF={addBracket, addCase, addChange, addLump, addRebal, delBracket, delCase, delChange, delLump, delRebal, liveGlide, onAllocInput, onSlide, render, selectCase, setScen, toggleAssetLock, toggleEnabled, toggleInfl, toggleLock, toggleScenAcc, toggleYearAcc, upd, updBracket, updChange, updLump, updRate, updRebal};
+try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
 })();
   </script>
   </div><!-- /portfolio -->
