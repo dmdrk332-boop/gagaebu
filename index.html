@@ -1855,6 +1855,28 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   #pf-root .preset-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
   #pf-root .preset-chip{font-size:10.5px;font-weight:700;color:var(--text2);background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:6px 13px;cursor:pointer}
   #pf-root .preset-chip:active{background:var(--gold);color:#1a1a1a;border-color:var(--gold)}
+  #pf-root .pf-actbar{display:flex;gap:6px;margin-top:9px}
+  #pf-root .pf-act{flex:1;font-size:10.5px;font-weight:700;color:var(--text2);background:var(--card);border:1px solid var(--border2);border-radius:9px;padding:9px 4px;cursor:pointer;font-family:inherit}
+  #pf-root .pf-act:active{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+  #pf-root .pf-act-save{color:var(--schd);border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.08)}
+  #pf-root .pf-saved-panel{margin-top:9px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 11px}
+  #pf-root .pf-saved-empty{font-size:9.5px;color:var(--text4);line-height:1.5}
+  #pf-root .pf-saved-title{font-size:10px;color:var(--text3);font-weight:700;margin-bottom:8px}
+  #pf-root .pf-saved-row{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;margin-bottom:6px}
+  #pf-root .pf-saved-nm{font-size:11.5px;font-weight:700;color:var(--text2);flex:1}
+  #pf-root .pf-saved-load{font-size:10px;color:var(--accent2);font-weight:700;cursor:pointer;padding:4px 10px;background:rgba(126,98,243,.1);border-radius:7px}
+  #pf-root .pf-saved-del{font-size:13px;cursor:pointer;padding:3px 6px}
+  #pf-root .proj-warn{font-size:10px;line-height:1.6;color:var(--text2);background:rgba(255,123,90,.1);border:1px solid rgba(255,123,90,.3);border-radius:9px;padding:9px 11px;margin:8px 0}
+  #pf-root .proj-ok{font-size:10px;line-height:1.6;color:var(--schd);background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:9px;padding:9px 11px;margin:8px 0}
+  #pf-root .proj-chart-wrap{position:relative;height:180px;margin:10px 0}
+  #pf-root .proj-tbl-scroll{overflow-x:auto;margin-top:8px;-webkit-overflow-scrolling:touch}
+  #pf-root .proj-tbl{width:100%;border-collapse:collapse;font-size:10px;min-width:380px}
+  #pf-root .proj-tbl th{font-size:8.5px;color:var(--text4);font-weight:700;padding:6px 5px;border-bottom:1px solid var(--border2);text-align:right;white-space:nowrap}
+  #pf-root .proj-tbl th:first-child{text-align:left}
+  #pf-root .proj-tbl td{padding:7px 5px;text-align:right;border-bottom:1px solid rgba(48,48,48,.4);white-space:nowrap;font-weight:600}
+  #pf-root .proj-tbl td:first-child{text-align:left;color:var(--text3);font-weight:700}
+  #pf-root .proj-row-danger{background:rgba(255,123,90,.06)}
+  #pf-root .proj-note{font-size:8.5px;color:var(--text4);line-height:1.6;margin-top:9px;padding-top:8px;border-top:1px solid var(--border)}
   #pf-root .sec-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
   #pf-root .sec-chev{font-size:13px;color:var(--text4);transition:transform .2s}
   #pf-root .sec.collapsed .sec-chev{transform:rotate(-90deg)}
@@ -1932,13 +1954,17 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
 <div class="sec">
   <div class="sec-h sec-toggle" onclick="PF.toggleSec(this)"><span>① 기본 설정 (CASE)</span><span class="sec-chev">▾</span></div>
   <div class="preset-bar">
-    <span class="preset-label">⚡ 빠른 시작 — 프리셋 적용:</span>
-    <div class="preset-chips">
-      <span class="preset-chip" onclick="PF.openWizard()" style="background:rgba(126,98,243,.12);border-color:rgba(126,98,243,.3);color:var(--accent2)">🪄 마법사</span>
+    <div class="preset-chips" style="margin-top:0">
       <span class="preset-chip" onclick="PF.applyPreset('young')">🌱 사회초년생</span>
       <span class="preset-chip" onclick="PF.applyPreset('mid')">💼 40대 직장인</span>
       <span class="preset-chip" onclick="PF.applyPreset('near')">🎯 은퇴 임박</span>
     </div>
+    <div class="pf-actbar">
+      <button class="pf-act" onclick="PF.addCase()">➕ 케이스 추가</button>
+      <button class="pf-act pf-act-save" onclick="PF.saveCurrentConfig()">💾 저장</button>
+      <button class="pf-act" onclick="PF.toggleSavedPanel()">📂 불러오기</button>
+    </div>
+    <div class="pf-saved-panel" id="pfSavedPanel" style="display:none"></div>
   </div>
   <div class="case-tabs" id="caseTabs"></div>
   <div id="caseBasic"></div>
@@ -2028,6 +2054,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div id="retPost"></div>
   </div>
   <div id="retDepletion"></div>
+  <div id="retProjection"></div>
   <div id="retMonteCarlo"></div>
   <div id="retSequence"></div>
   <div id="retTarget"></div>
@@ -2050,22 +2077,6 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   <div class="tip-pop" onclick="event.stopPropagation()">
     <div class="tip-pop-h"><span id="tipTitle"></span><span class="tip-close" onclick="PF.hideTip()">✕</span></div>
     <div class="tip-pop-b" id="tipDesc"></div>
-  </div>
-</div>
-<div class="wiz-overlay" id="wizOverlay">
-  <div class="wiz-pop">
-    <div class="wiz-h">⚡ 빠른 시작</div>
-    <div class="wiz-sub">3가지만 입력하면 나머지는 추천값으로 자동 설정해드려요. 나중에 자유롭게 수정할 수 있습니다.</div>
-    <div class="wiz-field"><label>현재 나이</label><div class="wiz-inp"><input type="number" id="wizAge" value="34" min="20" max="64"><span>세</span></div></div>
-    <div class="wiz-field"><label>세전 연봉</label><div class="wiz-inp"><input type="number" id="wizSalary" value="6000" min="1000" step="100"><span>만원</span></div></div>
-    <div class="wiz-field"><label>월 투자 가능액</label><div class="wiz-inp"><input type="number" id="wizMonthly" value="100" min="10" step="10"><span>만원</span></div></div>
-    <div class="wiz-field"><label>희망 은퇴 나이</label><div class="wiz-inp"><input type="number" id="wizRetire" value="60" min="50" max="70"><span>세</span></div></div>
-    <div class="wiz-btns">
-      <button class="wiz-skip" onclick="PF.closeWizard()">건너뛰기</button>
-      <button class="wiz-go" onclick="PF.runWizard()">시작하기 →</button>
-    </div>
-    <button class="wiz-save" onclick="PF.saveCurrentConfig()">💾 현재 포트폴리오 저장</button>
-    <div class="wiz-saved-list" id="wizSavedList"></div>
   </div>
 </div>
   </div>
@@ -2095,36 +2106,10 @@ function showTip(key){ const t=TERMS[key]; if(!t)return;
 }
 function hideTip(){ document.getElementById('tipOverlay').classList.remove('on'); }
 function toggleSec(el){ const sec=el.closest('.sec'); if(sec)sec.classList.toggle('collapsed'); }
-// ── 빠른 시작 마법사 ──
-function runWizard(){
-  const age=Math.max(20,Math.min(64,+document.getElementById('wizAge').value||34));
-  const salary=Math.max(1000,+document.getElementById('wizSalary').value||6000);
-  const monthly=Math.max(10,+document.getElementById('wizMonthly').value||100);
-  const retire=Math.max(age+1,Math.min(70,+document.getElementById('wizRetire').value||60));
-  const c=cases[activeCase];
-  // 나이대별 추천 자산배분
-  let alloc;
-  if(age<35) alloc={irp:30,pen:40,isa:30};
-  else if(age<50) alloc={irp:50,pen:35,isa:15};
-  else alloc={irp:45,pen:35,isa:20};
-  Object.assign(c,{ salary, baseMonthly:monthly, startAge:age, retireAge:retire, alloc,
-    allocLock:{irp:false,pen:false,isa:false}, reinvestRefund:true, monthlyChanges:[], lumpsums:[],
-    isaTransferMode:'auto', isaTargetGain:400, isaTransferTarget:'pen', isaTransferAmount:0, isaRemainMode:'keep',
-    severance:0, targetMonthly:Math.round(salary/12*0.6), npsMonthly:0, npsStartAge:65 });
-  rebuildGlideForAge(age, retire);
-  closeWizard();
-  render();
-}
-function closeWizard(){ const o=document.getElementById('wizOverlay'); if(o)o.classList.remove('on'); try{localStorage.setItem('pf-wiz-seen','1');}catch(e){} }
-function openWizard(){ const o=document.getElementById('wizOverlay'); if(o){
-  document.getElementById('wizAge').value=cases[activeCase].startAge;
-  document.getElementById('wizSalary').value=cases[activeCase].salary;
-  document.getElementById('wizMonthly').value=cases[activeCase].baseMonthly;
-  document.getElementById('wizRetire').value=cases[activeCase].retireAge;
-  renderSavedConfigs();
-  o.classList.add('on'); } }
-function maybeShowWizard(){ try{ if(!localStorage.getItem('pf-wiz-seen')&&!localStorage.getItem('pf-state')){ const o=document.getElementById('wizOverlay'); if(o){renderSavedConfigs();o.classList.add('on');} } }catch(e){} }
-// ── 포트폴리오 저장/불러오기/삭제 ──
+function maybeShowWizard(){ /* 마법사 제거됨 */ }
+// ── 포트폴리오 저장/불러오기/삭제 (인라인 패널) ──
+let savedPanelOpen=false;
+function toggleSavedPanel(){ savedPanelOpen=!savedPanelOpen; const el=document.getElementById('pfSavedPanel'); if(el){ el.style.display=savedPanelOpen?'block':'none'; if(savedPanelOpen)renderSavedConfigs(); } }
 function getSavedConfigs(){ try{ return JSON.parse(localStorage.getItem('pf-saved')||'[]'); }catch(e){ return []; } }
 function setSavedConfigs(arr){ try{ localStorage.setItem('pf-saved',JSON.stringify(arr)); }catch(e){} }
 function saveCurrentConfig(){
@@ -2135,7 +2120,9 @@ function saveCurrentConfig(){
     gpRebal:JSON.parse(JSON.stringify(gpRebal)), assets:JSON.parse(JSON.stringify(ASSETS)),
     rates:JSON.parse(JSON.stringify(RATES)), scen, inflOn, terOn, fxMode, fxDrift, activeCase };
   const arr=getSavedConfigs(); arr.push(snapshot); setSavedConfigs(arr);
+  savedPanelOpen=true; const el=document.getElementById('pfSavedPanel'); if(el)el.style.display='block';
   renderSavedConfigs();
+  alert(`'${name}' 포트폴리오를 저장했습니다.`);
 }
 function loadSavedConfig(idx){
   const arr=getSavedConfigs(); const s=arr[idx]; if(!s)return;
@@ -2151,7 +2138,7 @@ function loadSavedConfig(idx){
   if(typeof s.fxMode==='string')fxMode=s.fxMode;
   if(typeof s.fxDrift==='number')fxDrift=s.fxDrift;
   if(typeof s.activeCase==='number')activeCase=Math.max(0,Math.min(s.activeCase,cases.length-1));
-  normalizeGlide(); closeWizard(); render();
+  normalizeGlide(); savedPanelOpen=false; render();
 }
 function deleteSavedConfig(idx){
   const arr=getSavedConfigs(); if(!arr[idx])return;
@@ -2159,12 +2146,13 @@ function deleteSavedConfig(idx){
   arr.splice(idx,1); setSavedConfigs(arr); renderSavedConfigs();
 }
 function renderSavedConfigs(){
-  const el=document.getElementById('wizSavedList'); if(!el)return;
+  const el=document.getElementById('pfSavedPanel'); if(!el)return;
   const arr=getSavedConfigs();
-  if(!arr.length){ el.innerHTML='<div class="wiz-saved-h">저장된 포트폴리오가 없습니다. 위 \'저장\' 버튼으로 현재 설정을 보관하세요.</div>'; return; }
-  el.innerHTML='<div class="wiz-saved-h">💼 저장된 포트폴리오 ('+arr.length+')</div>'+arr.map((s,i)=>{
+  if(!arr.length){ el.innerHTML='<div class="pf-saved-empty">저장된 포트폴리오가 없습니다. \'💾 저장\' 버튼으로 현재 설정을 보관하세요.</div>'; return; }
+  el.innerHTML='<div class="pf-saved-title">💼 저장된 포트폴리오 ('+arr.length+')</div>'+arr.map((s,i)=>{
     const d=new Date(s.ts); const dt=`${d.getMonth()+1}/${d.getDate()}`;
-    return `<div class="wiz-saved-item"><span class="wiz-saved-name">${s.name} <span style="font-size:9px;color:#666">· ${dt}</span></span><span class="wiz-saved-load" onclick="PF.loadSavedConfig(${i})">불러오기</span><span class="wiz-saved-del" onclick="PF.deleteSavedConfig(${i})">🗑</span></div>`;
+    const nc=Array.isArray(s.cases)?s.cases.length:1;
+    return `<div class="pf-saved-row"><span class="pf-saved-nm">${s.name} <span style="font-size:9px;color:var(--text4)">· ${nc}케이스 · ${dt}</span></span><span class="pf-saved-load" onclick="PF.loadSavedConfig(${i})">불러오기</span><span class="pf-saved-del" onclick="PF.deleteSavedConfig(${i})">🗑</span></div>`;
   }).join('');
 }
 
@@ -2210,13 +2198,13 @@ let cases=[
     monthlyChanges:[],
     lumpsums:[{atAge:35,amount:2500,target:'pen'},{atAge:36,amount:1500,target:'pen'},{atAge:37,amount:5500,target:'pen'}],
     isaTransferMode:'auto', isaTransferAge:42, isaTargetGain:400, isaTransferTarget:'pen', isaTransferAmount:0, isaRemainMode:'keep', npsMonthly:0, npsStartAge:65,
-    severance:0, targetMonthly:300, withdrawMode:'swr', withdrawMonthly:0, postReturn:4.0, pensionStartAge:60 }
+    severance:0, targetMonthly:300, withdrawMode:'swr', withdrawMonthly:0, postReturn:4.0, pensionStartAge:60, emergencyYears:3 }
 ];
 function wifeCaseTemplate(){
   return { name:'CASE '+(cases.length+1), enabled:false, salary:3500, baseMonthly:50, startAge:37, retireAge:60,
     alloc:{irp:60,pen:40,isa:0}, allocLock:{irp:false,pen:false,isa:false}, reinvestRefund:true, monthlyChanges:[], lumpsums:[],
     isaTransferMode:'auto', isaTransferAge:45, isaTargetGain:400, isaTransferTarget:'pen', isaTransferAmount:0, isaRemainMode:'keep', npsMonthly:0, npsStartAge:65,
-    severance:0, targetMonthly:200, withdrawMode:'swr', withdrawMonthly:0, postReturn:4.0, pensionStartAge:60 };
+    severance:0, targetMonthly:200, withdrawMode:'swr', withdrawMonthly:0, postReturn:4.0, pensionStartAge:60, emergencyYears:3 };
 }
 let glide=[
   { fromAge:34, toAge:44, irp:{sp:49,nq:21,schd:0,tdf:30}, pen:{sp:60,nq:40,schd:0}, isa:{sp:70,nq:30,schd:0}, lock:{irp:{},pen:{},isa:{}} },
@@ -2511,7 +2499,7 @@ function pfLoad(){
     if(typeof st.activeCase==='number')activeCase=Math.max(0,Math.min(st.activeCase,cases.length-1));
     // 케이스 ISA 이전대상 기본값 보정
     for(const c of cases){ if(!c.isaTransferTarget)c.isaTransferTarget='pen'; if(c.severance==null)c.severance=0; if(c.targetMonthly==null)c.targetMonthly=300;
-      if(!c.withdrawMode)c.withdrawMode='swr'; if(c.withdrawMonthly==null)c.withdrawMonthly=0; if(c.postReturn==null)c.postReturn=4.0; if(c.pensionStartAge==null)c.pensionStartAge=c.retireAge||60; }
+      if(!c.withdrawMode)c.withdrawMode='swr'; if(c.withdrawMonthly==null)c.withdrawMonthly=0; if(c.postReturn==null)c.postReturn=4.0; if(c.pensionStartAge==null)c.pensionStartAge=c.retireAge||60; if(c.emergencyYears==null)c.emergencyYears=3; }
     if(typeof st.terOn==='boolean')terOn=st.terOn;
     if(typeof st.fxMode==='string')fxMode=st.fxMode;
     if(typeof st.fxDrift==='number')fxDrift=st.fxDrift;
@@ -3161,7 +3149,11 @@ function renderRetireSettings(){
         <div class="num-cell"><div class="nl">은퇴 후 운용수익률 (%)</div><input type="number" step="0.5" value="${c.postReturn||4}" onchange="PF.upd('postReturn',+this.value)"></div>
         <div class="num-cell"><div class="nl">사적연금 개시 나이</div><input type="number" value="${c.pensionStartAge||c.retireAge}" onchange="PF.upd('pensionStartAge',+this.value)"></div>
       </div>
-      <div style="font-size:9px;color:var(--text4);margin-top:6px;line-height:1.5">📌 사적연금(IRP·연금저축)은 만 55세부터 수령 가능. 은퇴 후에도 남은 자산은 설정한 운용수익률로 계속 굴러갑니다(보수적으로 3~4% 권장).</div>
+      <div class="num-row" style="margin-top:7px">
+        <div class="num-cell"><div class="nl">비상금 확보 (생활비 N년치)</div><input type="number" min="0" max="10" value="${c.emergencyYears!=null?c.emergencyYears:3}" onchange="PF.upd('emergencyYears',+this.value)"></div>
+        <div class="num-cell" style="background:transparent;border:none"><div style="font-size:8.5px;color:var(--text4);line-height:1.5;padding-top:2px">비상금은 현금으로 따로 빼두어 <b style="color:var(--gold)">운용수익이 발생하지 않습니다</b>. 나머지 자산만 위 수익률로 굴러갑니다 (시퀀스 리스크 대비).</div></div>
+      </div>
+      <div style="font-size:9px;color:var(--text4);margin-top:6px;line-height:1.5">📌 사적연금(IRP·연금저축)은 만 55세부터 수령 가능. 은퇴 후 남은 자산 중 비상금을 뺀 금액이 설정한 수익률로 운용됩니다.</div>
     </div>`;
 }
 
@@ -3182,6 +3174,7 @@ function renderResults(){
   document.getElementById('rRefund').innerHTML=inflOn?'+'+fmtS(refundTotal)+'원<span class="real-tag">실질 +'+fmtS(refundReal)+'</span>':'+'+fmtS(refundTotal)+'원';
   document.getElementById('rWithdraw').innerHTML=inflOn?wd.toLocaleString()+'만/월<span class="real-tag">실질 '+wdReal.toLocaleString()+'만</span>':wd.toLocaleString()+'만원/월';
   renderChart(merged,baseCase); renderTable(merged,baseCase); renderRetirement(m);
+  try{ renderRetProjection(m); }catch(e){ console.warn('proj',e); }
   renderStickySummary(m);
 }
 let _prevTotal=null;
@@ -3297,6 +3290,131 @@ function monteCarlo(startAsset, annualWithdraw, meanReturn, stdev, inflRate, nps
   }
   endVals.sort((a,b)=>a-b);
   return { successRate:Math.round(success/runs*100), median:Math.round(endVals[Math.floor(runs/2)]), p10:Math.round(endVals[Math.floor(runs*0.1)]), p90:Math.round(endVals[Math.floor(runs*0.9)]) };
+}
+
+// ── 은퇴 후 연도별 상세 프로젝션 ──
+// 비상금(N년치 생활비)은 현금으로 분리(무수익), 나머지 운용자산만 postRet로 성장
+function buildRetirementProjection(m){
+  const baseCase=m.sims[0].c;
+  const total=m.last.total;
+  const retireAge=baseCase.retireAge;
+  const inflR=INFL/100;
+  const postRet=(baseCase.postReturn!=null?baseCase.postReturn:4)/100;
+  const npsStartAge=baseCase.npsStartAge||65;
+  const npsAnnual=m.sims.reduce((a,s)=>a+(s.c.npsMonthly||0),0)*12*10000;
+  const targetMonthly=m.targetMonthly||0;
+  const emergencyYears=baseCase.emergencyYears!=null?baseCase.emergencyYears:3;
+  const withdrawMode=baseCase.withdrawMode||'swr';
+  const withdrawMonthly=baseCase.withdrawMonthly||0;
+  const divAnnual=(m.divMonthly||0)*12; // SCHD 배당 연 (원)
+  // 1년차 필요 생활비(연, 원)
+  let annualNeed0;
+  if(withdrawMode==='manual'&&withdrawMonthly>0) annualNeed0=withdrawMonthly*12*10000;
+  else if(targetMonthly>0) annualNeed0=targetMonthly*12*10000;
+  else annualNeed0=Math.round(total*0.035);
+  // 비상금 = N년치 생활비(현금, 무수익), 과도하면 총자산 50% 제한
+  let emergencyCash=Math.min(annualNeed0*emergencyYears, total*0.5);
+  let working=total-emergencyCash; let emerg=emergencyCash;
+  const rows=[]; let depletedAge=null; const endAge=95;
+  for(let age=retireAge; age<=endAge; age++){
+    const yr=age-retireAge;
+    const need=annualNeed0*Math.pow(1+inflR,yr);
+    const nps=(age>=npsStartAge)?npsAnnual:0;
+    const div=divAnnual; // 단순화: 배당 일정
+    const taxRate=age<70?0.055:age<80?0.044:0.033;
+    // 생활비 부족분(국민연금·배당 차감)
+    let baseShort=Math.max(0, need-nps-div);
+    // 건보료: 연소득(국민연금+배당+인출 추정)이 2000만 초과 시 추정 부과
+    let withdrawGross=baseShort/(1-taxRate);
+    let income=nps+div+withdrawGross;
+    let health=income>2000*10000?income*0.07:0;
+    // 건보료 포함해 재계산
+    withdrawGross=(baseShort+health)/(1-taxRate);
+    const tax=withdrawGross*taxRate;
+    // 인출: 운용자산 먼저, 부족 시 비상금
+    let fromWorking=Math.min(Math.max(0,working), withdrawGross);
+    let fromEmerg=withdrawGross-fromWorking;
+    if(fromEmerg>emerg)fromEmerg=Math.max(0,emerg);
+    working-=fromWorking; emerg-=fromEmerg;
+    // 운용자산 성장(연말)
+    if(working>0)working*=(1+postRet);
+    const balance=Math.max(0,working)+Math.max(0,emerg);
+    const monthlyLiving=need/12; // 월 필요생활비
+    const monthlyAvail=(nps+div+withdrawGross-tax-health)/12; // 세후 월 수령가능
+    if(balance<=0 && depletedAge==null) depletedAge=age;
+    rows.push({ age, balance:Math.round(balance), working:Math.round(Math.max(0,working)), emerg:Math.round(Math.max(0,emerg)),
+      monthlyLiving:Math.round(monthlyLiving/10000), withdrawAnnual:Math.round(withdrawGross/10000),
+      tax:Math.round(tax/10000), health:Math.round(health/10000), nps:Math.round(nps/12/10000),
+      monthlyAvail:Math.round(monthlyAvail/10000) });
+    if(balance<=0)break;
+  }
+  return { rows, depletedAge, emergencyCash:Math.round(emergencyCash), annualNeed0:Math.round(annualNeed0), endAge };
+}
+let retProjChart=null;
+function renderRetProjection(m){
+  const el=document.getElementById('retProjection'); if(!el)return;
+  const pj=buildRetirementProjection(m);
+  const baseCase=m.sims[0].c; const retireAge=baseCase.retireAge;
+  const emgY=baseCase.emergencyYears!=null?baseCase.emergencyYears:3;
+  const depWarn=pj.depletedAge!=null
+    ? `<div class="proj-warn">🚨 <b>자산 소멸 경고</b>: 현재 설정으로는 <b style="color:var(--minus)">${pj.depletedAge}세</b>에 자산이 모두 소진됩니다. 인출액·생활비를 줄이거나, 운용수익률·은퇴자산을 높여야 합니다.</div>`
+    : `<div class="proj-ok">✅ ${pj.endAge}세까지 자산이 유지됩니다. (현재 설정 기준)</div>`;
+  // 표: 5년 단위 + 소멸 직전 (모바일 가독성). 가로 스크롤로 전체 컬럼
+  const showAges=new Set();
+  for(const r of pj.rows){ if((r.age-retireAge)%5===0||r.age===retireAge)showAges.add(r.age); }
+  if(pj.depletedAge!=null)showAges.add(pj.depletedAge);
+  const dispRows=pj.rows.filter(r=>showAges.has(r.age));
+  const tableRows=dispRows.map(r=>{
+    const danger=pj.depletedAge!=null&&r.age>=pj.depletedAge-2;
+    return `<tr class="${danger?'proj-row-danger':''}">
+      <td>${r.age}세</td>
+      <td style="color:${r.balance<=0?'var(--minus)':'var(--accent2)'};font-weight:700">${r.balance<=0?'소멸':fmt(r.balance)}</td>
+      <td>${r.monthlyLiving.toLocaleString()}만</td>
+      <td style="color:var(--gold)">${r.withdrawAnnual.toLocaleString()}만</td>
+      <td style="color:var(--minus)">${(r.tax+r.health).toLocaleString()}만</td>
+      <td style="color:var(--blue)">${r.nps>0?r.nps.toLocaleString()+'만':'-'}</td>
+      <td style="color:var(--schd);font-weight:700">${r.monthlyAvail.toLocaleString()}만</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML=`
+    <div class="box" style="border-color:rgba(126,98,243,.25)">
+      <div class="box-t" style="color:var(--accent2)">📅 은퇴 후 연도별 자산·인출 시뮬레이션</div>
+      <div class="box-s">은퇴 시점 <b>${fmt(m.last.total)}</b> 기준 · 비상금 <b>${fmt(pj.emergencyCash)}</b>(${emgY}년치, 현금) 분리 후 나머지를 연 ${((baseCase.postReturn!=null?baseCase.postReturn:4))}% 운용 · 물가 ${INFL}% 반영</div>
+      ${depWarn}
+      <div class="proj-chart-wrap"><canvas id="retProjCanvas"></canvas></div>
+      <div class="proj-tbl-scroll">
+        <table class="proj-tbl">
+          <thead><tr><th>나이</th><th>자산잔액</th><th>월생활비</th><th>연인출</th><th>세금+건보</th><th>국민연금</th><th>월수령</th></tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+      <div class="proj-note">💡 <b>자산잔액</b>=그 해 말 운용자산+비상금 · <b>연인출</b>=운용자산서 빼는 금액(세전) · <b>세금+건보</b>=연금소득세+건강보험료 · <b>월수령</b>=세후 실제 손에 쥐는 월 금액(국민연금·배당 포함). 표는 5년 단위 요약이며 그래프는 매년 기준입니다.</div>
+    </div>`;
+  // 차트 (매년 자산잔액)
+  if(typeof Chart!=='undefined'){
+    const cv=document.getElementById('retProjCanvas'); if(cv){
+      if(retProjChart)retProjChart.destroy();
+      const labels=pj.rows.map(r=>r.age);
+      const balData=pj.rows.map(r=>Math.round(r.balance/100000000*10)/10); // 억
+      const liveData=pj.rows.map(r=>r.monthlyLiving);
+      const ds=[
+        {label:'자산잔액(억)',data:balData,borderColor:'#9b85f6',backgroundColor:'rgba(155,133,246,.12)',borderWidth:2,fill:true,tension:.25,pointRadius:0,yAxisID:'y'},
+        {label:'월 생활비(만)',data:liveData,borderColor:'#f59e0b',borderWidth:1.4,fill:false,tension:.25,pointRadius:0,yAxisID:'y1',borderDash:[4,3]},
+      ];
+      const annotations=[];
+      retProjChart=new Chart(cv,{type:'line',data:{labels,datasets:ds},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+          plugins:{legend:{labels:{color:'#9a9aa5',font:{size:9},boxWidth:10}},
+            tooltip:{callbacks:{title:(t)=>t[0].label+'세',
+              label:(c)=>c.dataset.label.includes('억')?`자산 ${c.raw}억`:`월생활비 ${c.raw}만`}}},
+          scales:{
+            x:{ticks:{color:'#6a6a72',font:{size:8},maxTicksLimit:10},grid:{display:false}},
+            y:{position:'left',ticks:{color:'#9b85f6',font:{size:8},callback:v=>v+'억'},grid:{color:'rgba(60,60,68,.3)'},beginAtZero:true},
+            y1:{position:'right',ticks:{color:'#f59e0b',font:{size:8},callback:v=>v+'만'},grid:{display:false},beginAtZero:true}
+          }}});
+      // 소멸 지점 세로선 강조: 데이터 0 지점은 이미 fill로 보임
+    }
+  }
 }
 
 function renderRetirement(m){
@@ -3664,8 +3782,8 @@ function refreshGlideStats(i){
 }
 
 
-window.PF={addAsset, addBracket, addCase, addChange, addLump, addRebal, applyPreset, closeWizard, delAsset, delBracket, delCase, delChange, delLump, delRebal, deleteSavedConfig, glStep, hideTip, liveGlide, loadSavedConfig, onAllocInput, onSlide, openWizard, render, renameAsset, runWizard, saveCurrentConfig, selectCase, setFx, setFxDrift, setScen, showTip, slSet, slStep, toggleAssetLock, toggleBracketLock, toggleEnabled, toggleInfl, toggleLock, toggleScenAcc, toggleSec, toggleTer, toggleYearAcc, upd, updBracket, updChange, updLump, updRate, updRebal, updRebalTarget, updTer};
-try{pfLoad();render();pfSyncUI();maybeShowWizard();}catch(e){console.warn("PF init",e);}
+window.PF={addAsset, addBracket, addCase, addChange, addLump, addRebal, applyPreset, delAsset, delBracket, delCase, delChange, delLump, delRebal, deleteSavedConfig, glStep, hideTip, liveGlide, loadSavedConfig, onAllocInput, onSlide, render, renameAsset, saveCurrentConfig, selectCase, setFx, setFxDrift, setScen, showTip, slSet, slStep, toggleAssetLock, toggleBracketLock, toggleEnabled, toggleInfl, toggleLock, toggleSavedPanel, toggleScenAcc, toggleSec, toggleTer, toggleYearAcc, upd, updBracket, updChange, updLump, updRate, updRebal, updRebalTarget, updTer};
+try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
 })();
   </script>
   </div><!-- /portfolio -->
