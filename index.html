@@ -822,6 +822,19 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   </div>
 </div>
 
+<div id="global-confirm-modal" onclick="if(event.target===this)closeGlobalConfirm(false)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:center;justify-content:center;padding:20px;box-sizing:border-box">
+  <div style="background:var(--card);border-radius:22px;padding:28px 22px 22px;width:100%;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.25)">
+    <div id="gc-icon" style="font-size:32px;text-align:center;margin-bottom:10px">❓</div>
+    <div id="gc-title" style="font-size:16px;font-weight:800;text-align:center;color:var(--text);margin-bottom:12px">확인해주세요</div>
+    <div id="gc-msg" style="font-size:13px;text-align:center;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:11px 14px;margin-bottom:18px;line-height:1.7;color:var(--text2);white-space:pre-line"></div>
+    <div id="gc-input-wrap" style="display:none;margin-bottom:16px"><input id="gc-input" type="text" style="width:100%;box-sizing:border-box;background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--text);font-family:'Noto Sans KR',sans-serif"/></div>
+    <div style="display:flex;gap:10px">
+      <button id="gc-cancel" onclick="closeGlobalConfirm(false)" style="flex:1;padding:13px;background:var(--card2);border:1px solid var(--border);color:var(--text2);border-radius:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif">취소</button>
+      <button id="gc-ok" onclick="closeGlobalConfirm(true)" style="flex:1;padding:13px;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);border-radius:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif">확인</button>
+    </div>
+  </div>
+</div>
+
 <!-- 명세서 이미지 뷰어 오버레이 -->
 <div id="slip-viewer-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:400;align-items:center;justify-content:center;flex-direction:column" onclick="closeSlipViewer()">
   <div style="position:relative;max-width:96vw;max-height:88vh">
@@ -3428,7 +3441,7 @@ function copyIncFromPrev(t){
     showToast('지난달 '+(t==='me'?'본인':'배우자')+' 상세입력 내역이 없어요');
     return;
   }
-  if(!confirm(y+'년 '+m+'월의 '+(t==='me'?'본인':'배우자')+' 상세입력(수입항목·공제·체크여부)을 이번 달로 복사할까요?\\n\\n현재 입력값은 덮어씌워집니다.'))return;
+  showConfirm(y+'년 '+m+'월의 '+(t==='me'?'본인':'배우자')+' 상세입력(수입항목·공제·체크여부)을 이번 달로 복사할까요?\n현재 입력값은 덮어씌워집니다.',()=>{
   const inc=ls('inc:'+mk())||{};
   inc[t+'Gross']=prev[t+'Gross']||'';
   inc[t+'Deds']=JSON.parse(JSON.stringify(prev[t+'Deds']||[]));
@@ -3436,6 +3449,7 @@ function copyIncFromPrev(t){
   lss('inc:'+mk(),inc);
   renderIncDetail(t);renderIncome();renderHome();
   showToast('지난달 내용을 복사했어요! ✓');
+  },{icon:'📋',okLabel:'복사'});
 }
 function updIncItem(t,kind,i,k,v){const inc=ls('inc:'+mk())||{};if(!inc[t+kind])inc[t+kind]=[];inc[t+kind][i][k]=v;lss('inc:'+mk(),inc);renderIncDetail(t);renderHome();}
 function delIncItem(t,kind,i){const inc=ls('inc:'+mk())||{};inc[t+kind].splice(i,1);lss('inc:'+mk(),inc);renderIncDetail(t);renderHome();}
@@ -3522,11 +3536,12 @@ function closeSlipViewer(){
   _viewingSlipType=null;
 }
 function deleteSlip(type){
-  if(!confirm('명세서를 삭제할까요?'))return;
-  localStorage.removeItem(slipKey(type));
-  closeSlipViewer();
-  renderSlipThumbs();
-  showToast('삭제됐어요');
+  showConfirm('명세서를 삭제할까요?',()=>{
+    localStorage.removeItem(slipKey(type));
+    closeSlipViewer();
+    renderSlipThumbs();
+    showToast('삭제됐어요');
+  },{danger:true,okLabel:'삭제'});
 }
 
 // ── EXPENSE ───────────────────────────────────────────────────────────────────
@@ -4019,7 +4034,7 @@ function refreshOpenCatPickers(){
 function saveCatEdit(){
   const icon=document.getElementById('catedit-icon').value.trim()||'🏷️';
   const label=document.getElementById('catedit-label').value.trim();
-  if(!label){alert('이름을 입력해주세요');return;}
+  if(!label){showAlert('이름을 입력해주세요');return;}
   const list=getCatList();
   if(catEditId){
     const idx=list.findIndex(x=>x.id===catEditId);
@@ -4029,7 +4044,7 @@ function saveCatEdit(){
     refreshOpenCatPickers();
     showToast('카테고리를 변경했어요! ✓');
   }else{
-    if(list.length>=20){alert('카테고리는 최대 20개까지 만들 수 있어요');return;}
+    if(list.length>=20){showAlert('카테고리는 최대 20개까지 만들 수 있어요');return;}
     const newId='c'+Date.now();
     list.push({id:newId,label,icon,color:CAT_PALETTE[list.length%CAT_PALETTE.length]});
     setCatList(list);
@@ -4059,31 +4074,32 @@ function countCatUsage(id){
   return count;
 }
 function deleteCategoryConfirm(id){
-  if(id==='etc'){alert("'경조사/기타' 카테고리는 기본 보관함이라 삭제할 수 없어요.");return;}
+  if(id==='etc'){showAlert("'경조사/기타' 카테고리는 기본 보관함이라 삭제할 수 없어요.",{icon:'🚫'});return;}
   const count=countCatUsage(id);
   const msg=count>0
     ?`이 카테고리로 기록된 ${count}건이 있어요. 삭제하면 모두 '경조사/기타'로 자동 이동해요. 계속할까요?`
     :'이 카테고리를 삭제할까요?';
-  if(!confirm(msg))return;
-  for(let i=0;i<localStorage.length;i++){
-    const k=localStorage.key(i);
-    if(k&&k.indexOf('exp:')===0){
-      const arr=ls(k);
-      if(Array.isArray(arr)){
-        let changed=false;
-        arr.forEach(e=>{if(e.cat===id){e.cat='etc';changed=true;}});
-        if(changed)lss(k,arr);
+  showConfirm(msg,()=>{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.indexOf('exp:')===0){
+        const arr=ls(k);
+        if(Array.isArray(arr)){
+          let changed=false;
+          arr.forEach(e=>{if(e.cat===id){e.cat='etc';changed=true;}});
+          if(changed)lss(k,arr);
+        }
       }
     }
-  }
-  const fl=ls('budget:fixed')||getDefaultFixed();
-  let fchanged=false;
-  fl.forEach(f=>{if(f.cat===id){f.cat='etc';fchanged=true;}});
-  if(fchanged)lss('budget:fixed',fl);
-  const list=getCatList().filter(c=>c.id!==id);
-  setCatList(list);
-  refreshOpenCatPickers();
-  showToast('카테고리를 삭제하고 기타로 이동했어요');
+    const fl=ls('budget:fixed')||getDefaultFixed();
+    let fchanged=false;
+    fl.forEach(f=>{if(f.cat===id){f.cat='etc';fchanged=true;}});
+    if(fchanged)lss('budget:fixed',fl);
+    const list=getCatList().filter(c=>c.id!==id);
+    setCatList(list);
+    refreshOpenCatPickers();
+    showToast('카테고리를 삭제하고 기타로 이동했어요');
+  },{danger:true,okLabel:'삭제'});
 }
 function closeCatEdit(e){if(e&&e.target!==document.getElementById('catedit-overlay'))return;document.getElementById('catedit-overlay').classList.remove('show');}
 // ── 카테고리 관리 화면 (그리드 자동 추가/삭제) ─────────────────────────────────
@@ -4111,7 +4127,7 @@ function saveExp(){
   const name=document.getElementById('exp-name').value.trim(),amount=document.getElementById('exp-amount').value;
   const date=document.getElementById('exp-date').value,note=document.getElementById('exp-note').value.trim();
   const fixedId=document.getElementById('exp-budget-link')?document.getElementById('exp-budget-link').value:'';
-  if(!name||!amount){alert('항목명과 금액을 입력해주세요');return;}
+  if(!name||!amount){showAlert('항목명과 금액을 입력해주세요');return;}
   let exps=ls('exp:'+mk())||[];
   const fundedBySaving=pendingWithdrawLink?pendingWithdrawLink.savingId:null;
   const fundedBySavingName=pendingWithdrawLink?pendingWithdrawLink.savingName:null;
@@ -4138,7 +4154,7 @@ function saveExp(){
   renderExpense();renderHome();
 }
 function editExp(id){openExpModal(id);}
-function delExp(id){if(!confirm('삭제할까요?'))return;lss('exp:'+mk(),(ls('exp:'+mk())||[]).filter(e=>e.id!==id));renderExpense();renderHome();}
+function delExp(id){showConfirm('삭제할까요?',()=>{lss('exp:'+mk(),(ls('exp:'+mk())||[]).filter(e=>e.id!==id));renderExpense();renderHome();},{danger:true,okLabel:'삭제'});}
 
 // ── SAVINGS ───────────────────────────────────────────────────────────────────
 function getDefaultSavingConfigs(){return[
@@ -4281,7 +4297,7 @@ function renderSavings(){
   }).join('');
 }
 function updSavingConfig(i,k,v){const c=ls('saving-configs')||getDefaultSavingConfigs();c[i][k]=v;lss('saving-configs',c);renderSavings();renderHome();}function addSaving(){const c=ls('saving-configs')||getDefaultSavingConfigs();c.push({id:Date.now().toString(),name:'새 적금',monthlyAmount:'',rate:'',goal:'',startDate:'',endDate:'',extras:[],inMonthly:true});lss('saving-configs',c);renderSavings();}
-function delSavingConfig(i){if(!confirm('삭제할까요?'))return;const c=ls('saving-configs')||getDefaultSavingConfigs();c.splice(i,1);lss('saving-configs',c);renderSavings();renderHome();}
+function delSavingConfig(i){showConfirm('삭제할까요?',()=>{const c=ls('saving-configs')||getDefaultSavingConfigs();c.splice(i,1);lss('saving-configs',c);renderSavings();renderHome();},{danger:true,okLabel:'삭제'});}
 
 // ── 적금 출금 (비상출금) ─────────────────────────────────────────────────────────
 let withdrawSavingIdx=null, withdrawMode='spend', pendingWithdrawLink=null;
@@ -4320,26 +4336,29 @@ function saveWithdraw(){
   const amount=num(document.getElementById('withdraw-amount').value);
   const date=document.getElementById('withdraw-date').value||mk();
   const memo=document.getElementById('withdraw-memo').value.trim();
-  if(amount<=0){alert('출금 금액을 입력해주세요');return;}
+  if(amount<=0){showAlert('출금 금액을 입력해주세요');return;}
   const configs=ls('saving-configs')||getDefaultSavingConfigs();
   const cfg=configs[withdrawSavingIdx]; if(!cfg)return;
   const cumul=getSavingCumulative(cfg,curYear,curMonth);
-  if(amount>cumul){ if(!confirm(`현재 누적 적금(${fmt(cumul)})보다 많은 금액이에요. 계속할까요?`))return; }
-  if(!cfg.withdrawals)cfg.withdrawals=[];
-  const wid=Date.now().toString();
-  cfg.withdrawals.push({id:wid,date,amount:String(amount),mode:withdrawMode,note:memo,resolved:withdrawMode!=='cash'&&withdrawMode!=='spend',linkedExpId:null});
-  lss('saving-configs',configs);
-  document.getElementById('withdraw-overlay').classList.remove('show');
-  if(withdrawMode==='spend'){
-    showToast('출금했어요. 이어서 지출을 등록해주세요 →');
-    convertWithdrawToExpense(withdrawSavingIdx,wid,cfg.name);
-  }else if(withdrawMode==='cash'){
-    showToast('출금해서 보관해뒀어요. 나중에 지출로 전환할 수 있어요');
-    renderSavings();renderHome();
-  }else{
-    showToast('다른 자산으로 이동 처리했어요 ✓');
-    renderSavings();renderHome();
-  }
+  const proceed=()=>{
+    if(!cfg.withdrawals)cfg.withdrawals=[];
+    const wid=Date.now().toString();
+    cfg.withdrawals.push({id:wid,date,amount:String(amount),mode:withdrawMode,note:memo,resolved:withdrawMode!=='cash'&&withdrawMode!=='spend',linkedExpId:null});
+    lss('saving-configs',configs);
+    document.getElementById('withdraw-overlay').classList.remove('show');
+    if(withdrawMode==='spend'){
+      showToast('출금했어요. 이어서 지출을 등록해주세요 →');
+      convertWithdrawToExpense(withdrawSavingIdx,wid,cfg.name);
+    }else if(withdrawMode==='cash'){
+      showToast('출금해서 보관해뒀어요. 나중에 지출로 전환할 수 있어요');
+      renderSavings();renderHome();
+    }else{
+      showToast('다른 자산으로 이동 처리했어요 ✓');
+      renderSavings();renderHome();
+    }
+  };
+  if(amount>cumul){ showConfirm(`현재 누적 적금(${fmt(cumul)})보다 많은 금액이에요. 계속할까요?`,proceed,{icon:'⚠️'}); }
+  else proceed();
 }
 function convertWithdrawToExpense(savingIdx,withdrawalId,savingName){
   const configs=ls('saving-configs')||getDefaultSavingConfigs();
@@ -4351,12 +4370,13 @@ function convertWithdrawToExpense(savingIdx,withdrawalId,savingName){
   document.getElementById('exp-note').value='적금출금 충당 ('+(savingName||cfg.name)+')';
 }
 function delSavWithdraw(i,wi){
-  if(!confirm('출금 기록을 삭제할까요? (연결된 지출·수입은 함께 지워지지 않아요)'))return;
-  const configs=ls('saving-configs')||getDefaultSavingConfigs();
-  const cfg=configs[i]; if(!cfg)return;
-  cfg.withdrawals=(cfg.withdrawals||[]).filter((w,idx)=>idx!==wi);
-  lss('saving-configs',configs);
-  renderSavings();renderHome();
+  showConfirm('출금 기록을 삭제할까요? (연결된 지출·수입은 함께 지워지지 않아요)',()=>{
+    const configs=ls('saving-configs')||getDefaultSavingConfigs();
+    const cfg=configs[i]; if(!cfg)return;
+    cfg.withdrawals=(cfg.withdrawals||[]).filter((w,idx)=>idx!==wi);
+    lss('saving-configs',configs);
+    renderSavings();renderHome();
+  },{danger:true,okLabel:'삭제'});
 }
 // 보관중인 출금(cash 모드 또는 취소된 spend 모드처럼 아직 지출로 연결 안 된 것) 전체 목록
 function getPendingCashWithdrawals(){
@@ -4507,7 +4527,7 @@ function renderDeposits(){
 }
 function addDeposit(){const deps=ls('deposit-configs')||[];deps.push({id:Date.now().toString(),name:'새 예금',principal:'',rate:'',taxRate:15.4,bank:'',startDate:'',endDate:''});lss('deposit-configs',deps);renderDeposits();renderHome();}
 function updDeposit(i,k,v){const deps=ls('deposit-configs')||[];deps[i][k]=v;lss('deposit-configs',deps);renderDeposits();renderHome();}
-function delDeposit(i){if(!confirm('삭제할까요?'))return;const deps=ls('deposit-configs')||[];deps.splice(i,1);lss('deposit-configs',deps);renderDeposits();renderHome();}
+function delDeposit(i){showConfirm('삭제할까요?',()=>{const deps=ls('deposit-configs')||[];deps.splice(i,1);lss('deposit-configs',deps);renderDeposits();renderHome();},{danger:true,okLabel:'삭제'});}
 
 // ── LOANS ─────────────────────────────────────────────────────────────────────
 function getLoans(){return ls('loans')||[];}
@@ -4756,7 +4776,7 @@ function saveLoanModal(){
   const termMonths=document.getElementById('ln-term').value,startYear=document.getElementById('ln-syear').value;
   const startMonth=document.getElementById('ln-smonth').value,manualMonthly=document.getElementById('ln-manual').value;
   const method=document.getElementById('ln-method').value;
-  if(!name||!principal||!termMonths){alert('대출명, 원금, 기간을 입력해주세요');return;}
+  if(!name||!principal||!termMonths){showAlert('대출명, 원금, 기간을 입력해주세요');return;}
   const loans=getLoans();
   const entry={id:Date.now().toString(),name,type,method,principal,rate,termMonths,startYear,startMonth,manualMonthly};
   if(editLoanId!==null){entry.id=loans[editLoanId].id;entry.prepayments=loans[editLoanId].prepayments||[];loans[editLoanId]=entry;}else loans.push(entry);
@@ -4765,7 +4785,7 @@ function saveLoanModal(){
   showToast('저장됐어요! ✓');renderLoans();renderHome();
   if(homeView==='annual')renderAnnual();
 }
-function deleteLoan(idx){if(!confirm('이 대출을 삭제할까요?'))return;const loans=getLoans();loans.splice(idx,1);lss('loans',loans);renderLoans();renderHome();if(homeView==='annual')renderAnnual();}
+function deleteLoan(idx){showConfirm('이 대출을 삭제할까요?',()=>{const loans=getLoans();loans.splice(idx,1);lss('loans',loans);renderLoans();renderHome();if(homeView==='annual')renderAnnual();},{danger:true,okLabel:'삭제'});}
 function toggleLoanExclude(idx){const loans=getLoans();loans[idx].excludeFromExpense=!loans[idx].excludeFromExpense;lss('loans',loans);renderLoans();renderHome();if(homeView==='annual')renderAnnual();}
 
 // ── FIXED ─────────────────────────────────────────────────────────────────────
@@ -4975,7 +4995,7 @@ function renderFixed(){
 function updFixed(i,k,v){const f=ls('budget:fixed')||getDefaultFixed();f[i][k]=v;lss('budget:fixed',f);renderFixed();renderHome();if(typeof renderCatDist==='function')renderCatDist();}
 function toggleFxBudget(i){const f=ls('budget:fixed')||getDefaultFixed();f[i].isBudget=!f[i].isBudget;lss('budget:fixed',f);renderFixed();renderHome();}
 function addFixed(){const f=ls('budget:fixed')||getDefaultFixed();f.push({id:Date.now().toString(),name:'',amount:'',note:'',group:f.length>0?(f[f.length-1].group||'기본'):'기본',autoDay:'',isBudget:false,cat:'etc'});lss('budget:fixed',f);renderFixed();}
-function delFixed(i){if(!confirm('삭제할까요?'))return;const f=ls('budget:fixed')||getDefaultFixed();f.splice(i,1);lss('budget:fixed',f);renderFixed();renderHome();}
+function delFixed(i){showConfirm('삭제할까요?',()=>{const f=ls('budget:fixed')||getDefaultFixed();f.splice(i,1);lss('budget:fixed',f);renderFixed();renderHome();},{danger:true,okLabel:'삭제'});}
 
 // ── SETTINGS ──────────────────────────────────────────────────────────────────
 function renderSettings(){
@@ -5825,7 +5845,17 @@ function exportData(){
 function importData(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(!confirm('현재 데이터가 모두 덮어씌워집니다. 계속할까요?'))return;localStorage.clear();Object.keys(data).forEach(k=>localStorage.setItem(k,JSON.stringify(data[k])));loadTheme();migrateCategoriesV2();refreshCats();renderAll();showToast('데이터를 불러왔어요! ✓');}catch{alert('파일 형식이 올바르지 않아요.');}};
+  reader.onload=ev=>{
+    let data;
+    try{ data=JSON.parse(ev.target.result); }
+    catch{ showAlert('파일 형식이 올바르지 않아요.'); return; }
+    showConfirm('현재 데이터가 모두 덮어씌워집니다. 계속할까요?',()=>{
+      localStorage.clear();
+      Object.keys(data).forEach(k=>localStorage.setItem(k,JSON.stringify(data[k])));
+      loadTheme();migrateCategoriesV2();refreshCats();renderAll();
+      showToast('데이터를 불러왔어요! ✓');
+    },{icon:'⚠️',danger:true,okLabel:'덮어쓰기'});
+  };
   reader.readAsText(file);e.target.value='';
 }
 function generateShareCode(){
@@ -5854,7 +5884,8 @@ function copyShareCode(){
 }
 function importShareCode(){
   const raw=document.getElementById('import-code-input').value.trim();
-  if(!raw){alert('공유 코드를 입력해주세요');return;}
+  if(!raw){showAlert('공유 코드를 입력해주세요');return;}
+  let data;
   try{
     let json;
     if(raw.startsWith('LZ1:')){
@@ -5865,14 +5896,15 @@ function importShareCode(){
       // 구버전 코드 호환
       json=decodeURIComponent(escape(atob(raw)));
     }
-    const data=JSON.parse(json);
-    if(!confirm('현재 데이터가 공유 데이터로 덮어씌워집니다. 계속할까요?'))return;
+    data=JSON.parse(json);
+  }catch{ showAlert('올바르지 않은 공유 코드예요.'); return; }
+  showConfirm('현재 데이터가 공유 데이터로 덮어씌워집니다. 계속할까요?',()=>{
     localStorage.clear();
     Object.keys(data).forEach(k=>localStorage.setItem(k,JSON.stringify(data[k])));
     loadTheme();migrateCategoriesV2();refreshCats();renderAll();
     showToast('공유 데이터를 불러왔어요! ✓');
     document.getElementById('import-code-input').value='';
-  }catch{alert('올바르지 않은 공유 코드예요.');}
+  },{icon:'⚠️',danger:true,okLabel:'덮어쓰기'});
 }
 
 // ── INVEST ────────────────────────────────────────────────────────────────────
@@ -6102,7 +6134,7 @@ function drawHoldingGraph(svgId,hist){
 }
 function addHolding(){const h=ls('invest-holdings')||[];h.push({name:'',history:[{ym:mk(),cost:'',value:''}]});lss('invest-holdings',h);renderHoldings();renderHome();}
 function updHolding(i,k,v){const h=ls('invest-holdings')||[];h[i][k]=v;lss('invest-holdings',h);renderHoldings();renderHome();}
-function delHolding(i){if(!confirm('삭제할까요?'))return;const h=ls('invest-holdings')||[];h.splice(i,1);lss('invest-holdings',h);renderHoldings();renderHome();}
+function delHolding(i){showConfirm('삭제할까요?',()=>{const h=ls('invest-holdings')||[];h.splice(i,1);lss('invest-holdings',h);renderHoldings();renderHome();},{danger:true,okLabel:'삭제'});}
 function addHoldHist(i){const h=ls('invest-holdings')||[];if(!h[i].history)h[i].history=[];h[i].history.push({ym:mk(),cost:'',value:''});lss('invest-holdings',h);renderHoldings();renderHome();}
 function updHoldHist(i,ri,k,v){const h=ls('invest-holdings')||[];if(!h[i].history||!h[i].history[ri])return;h[i].history[ri][k]=v;lss('invest-holdings',h);renderHoldings();renderHome();}
 function delHoldHist(i,ri){const h=ls('invest-holdings')||[];h[i].history.splice(ri,1);lss('invest-holdings',h);renderHoldings();renderHome();}
@@ -6865,16 +6897,17 @@ function attachDirectEdit(labelId, sliderId, cfg){
   lab.dataset.deAttached='1';
   lab.style.cursor='pointer';
   const fire=()=>{
-    const raw=prompt((cfg.title||'금액')+' 직접 입력'+(cfg.unit?' ('+cfg.unit+')':''), sl.value);
-    if(raw===null)return;
-    let n=parseFloat(String(raw).replace(/[^0-9.]/g,''));
-    if(!isFinite(n))return;
-    const step=cfg.step||parseFloat(sl.step)||1;
-    n=Math.round(n/step)*step;
-    if(n>parseFloat(sl.max))sl.max=String(n);
-    if(n<parseFloat(sl.min))sl.min=String(n);
-    sl.value=String(n);
-    sl.dispatchEvent(new Event('input',{bubbles:true}));
+    showPrompt(null,sl.value,raw=>{
+      if(raw===null||raw===undefined)return;
+      let n=parseFloat(String(raw).replace(/[^0-9.]/g,''));
+      if(!isFinite(n))return;
+      const step=cfg.step||parseFloat(sl.step)||1;
+      n=Math.round(n/step)*step;
+      if(n>parseFloat(sl.max))sl.max=String(n);
+      if(n<parseFloat(sl.min))sl.min=String(n);
+      sl.value=String(n);
+      sl.dispatchEvent(new Event('input',{bubbles:true}));
+    },{title:(cfg.title||'금액')+' 직접 입력'+(cfg.unit?' ('+cfg.unit+')':''),icon:'🔢'});
   };
   let t=null;
   const start=()=>{t=setTimeout(fire,500);};
@@ -7123,18 +7156,21 @@ function importImageFile(event){
   if(!file)return;
   const reader=new FileReader();
   reader.onload=e=>{
+    let data;
     try{
       const parsed=JSON.parse(e.target.result);
-      const data=parsed.data||parsed; // 구버전 호환
-      const slipKeys=Object.keys(data).filter(k=>k.startsWith('slip:'));
-      if(slipKeys.length===0){alert('사진 데이터가 없는 파일이에요.');return;}
-      if(!confirm(slipKeys.length+'장의 사진을 가져옵니다. 같은 월 사진은 덮어씌워집니다. 계속할까요?'))return;
+      data=parsed.data||parsed; // 구버전 호환
+    }catch(err){
+      showAlert('올바르지 않은 사진 파일이에요.');
+      return;
+    }
+    const slipKeys=Object.keys(data).filter(k=>k.startsWith('slip:'));
+    if(slipKeys.length===0){showAlert('사진 데이터가 없는 파일이에요.');return;}
+    showConfirm(slipKeys.length+'장의 사진을 가져옵니다. 같은 월 사진은 덮어씌워집니다. 계속할까요?',()=>{
       slipKeys.forEach(k=>localStorage.setItem(k,data[k]));
       renderSlipThumbs();
       showToast(slipKeys.length+'장 사진을 가져왔어요! ✓');
-    }catch(err){
-      alert('올바르지 않은 사진 파일이에요.');
-    }
+    },{icon:'🖼️',okLabel:'가져오기'});
   };
   reader.readAsText(file);
   event.target.value='';
@@ -7142,6 +7178,61 @@ function importImageFile(event){
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+// ── 브라우저 기본 confirm/alert/prompt 대체 (사이트 주소 노출 방지 + 앱 디자인 통일) ──
+let _gcOnAction=null, _gcMode='alert';
+function _gcOkStyle(danger){
+  return "flex:1;padding:13px;border-radius:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;"
+    +(danger?"background:var(--minus-dim);border:1px solid var(--minus-border);color:var(--minus)":"background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent)");
+}
+function showConfirm(msg,onConfirm,opts){
+  opts=opts||{};
+  document.getElementById('gc-icon').textContent=opts.icon||(opts.danger?'🗑️':'❓');
+  document.getElementById('gc-title').textContent=opts.title||'확인해주세요';
+  const msgEl=document.getElementById('gc-msg');msgEl.textContent=msg;msgEl.style.display='block';
+  document.getElementById('gc-input-wrap').style.display='none';
+  document.getElementById('gc-cancel').style.display='block';
+  const ok=document.getElementById('gc-ok');ok.textContent=opts.okLabel||'확인';ok.style.cssText=_gcOkStyle(opts.danger);
+  _gcOnAction=onConfirm;_gcMode='confirm';
+  document.getElementById('global-confirm-modal').style.display='flex';
+}
+function showAlert(msg,opts){
+  opts=opts||{};
+  document.getElementById('gc-icon').textContent=opts.icon||'ℹ️';
+  document.getElementById('gc-title').textContent=opts.title||'알림';
+  const msgEl=document.getElementById('gc-msg');msgEl.textContent=msg;msgEl.style.display='block';
+  document.getElementById('gc-input-wrap').style.display='none';
+  document.getElementById('gc-cancel').style.display='none';
+  const ok=document.getElementById('gc-ok');ok.textContent='확인';ok.style.cssText=_gcOkStyle(false);
+  _gcOnAction=opts.onClose||null;_gcMode='alert';
+  document.getElementById('global-confirm-modal').style.display='flex';
+}
+function showPrompt(msg,defVal,onSubmit,opts){
+  opts=opts||{};
+  document.getElementById('gc-icon').textContent=opts.icon||'✏️';
+  document.getElementById('gc-title').textContent=opts.title||'입력해주세요';
+  const msgEl=document.getElementById('gc-msg');
+  if(msg){msgEl.textContent=msg;msgEl.style.display='block';}else{msgEl.style.display='none';}
+  document.getElementById('gc-input-wrap').style.display='block';
+  document.getElementById('gc-input').value=defVal||'';
+  document.getElementById('gc-input').placeholder=opts.placeholder||'';
+  document.getElementById('gc-cancel').style.display='block';
+  const ok=document.getElementById('gc-ok');ok.textContent=opts.okLabel||'확인';ok.style.cssText=_gcOkStyle(false);
+  _gcOnAction=onSubmit;_gcMode='prompt';
+  document.getElementById('global-confirm-modal').style.display='flex';
+  setTimeout(()=>{const inp=document.getElementById('gc-input');inp.focus();inp.select();},60);
+}
+function closeGlobalConfirm(confirmed){
+  document.getElementById('global-confirm-modal').style.display='none';
+  document.getElementById('gc-cancel').style.display='block';
+  const mode=_gcMode,action=_gcOnAction;_gcOnAction=null;
+  if(mode==='prompt'){
+    if(confirmed&&action)action(document.getElementById('gc-input').value);
+  }else{
+    if(confirmed&&action)action();
+    else if(!confirmed&&mode==='alert'&&action)action();
+  }
+}
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 privacyMode=ls('privacy-mode')===true; // 프라이버시 모드 복원
