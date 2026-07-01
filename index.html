@@ -1863,11 +1863,11 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   #pf-root .sl-hint{font-size:8.5px;color:var(--blue);font-weight:600;margin-top:4px;line-height:1.4}
   #pf-root .tip-ic{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:var(--border);color:var(--text3);font-size:9px;font-weight:800;cursor:pointer;margin-left:3px;vertical-align:middle;font-style:normal}
   #pf-root .tip-ic:active{background:var(--accent2);color:#fff}
-  .tip-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:9999;display:none;align-items:center;justify-content:center;padding:24px}
+  .tip-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:9999;display:none;align-items:center;justify-content:center;padding:24px!important}
   .tip-overlay.on{display:flex}
-  .tip-pop{background:#1c1c24;border:1px solid rgba(126,98,243,.4);border-radius:18px;padding:24px 24px 26px;max-width:380px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5);max-height:80vh;overflow-y:auto}
-  .tip-pop-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;font-size:16px;font-weight:800;color:#fff;margin-bottom:14px;line-height:1.4}
-  .tip-close{font-size:16px;color:#888;cursor:pointer;padding:2px 6px;flex-shrink:0}
+  .tip-pop{background:#1c1c24;border:1px solid rgba(126,98,243,.4);border-radius:18px;padding:24px 24px 26px!important;max-width:380px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5);max-height:80vh;overflow-y:auto}
+  .tip-pop-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;font-size:16px;font-weight:800;color:#fff;margin-bottom:14px!important;line-height:1.4}
+  .tip-close{font-size:16px;color:#888;cursor:pointer;padding:4px 8px!important;margin:-4px -6px 0 4px!important;flex-shrink:0}
   .tip-pop-b{font-size:13.5px;line-height:1.85;color:#d5d5dc}
   #pf-root .glossary-box{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:9px 11px;margin-bottom:12px}
   #pf-root .gloss-label{font-size:9px;color:var(--text4);font-weight:700}
@@ -1978,14 +1978,14 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
 <div class="sec">
   <div class="sec-h sec-toggle" onclick="PF.toggleSec(this)"><span>① 기본 설정 (CASE)</span><span class="sec-chev">▾</span></div>
   <div class="preset-bar">
-    <div class="preset-chips" style="margin-top:0">
+    <div class="preset-chips" style="margin-top:0" id="presetChipsRow">
       <span class="preset-chip" onclick="PF.applyPreset('young')">🌱 사회초년생</span>
       <span class="preset-chip" onclick="PF.applyPreset('mid')">💼 40대 직장인</span>
       <span class="preset-chip" onclick="PF.applyPreset('near')">🎯 은퇴 임박</span>
     </div>
     <div class="pf-actbar">
-      <button class="pf-act" onclick="PF.addCase()">➕ 케이스 추가</button>
-      <button class="pf-act pf-act-save" onclick="PF.saveCurrentConfig()">💾 저장</button>
+      <button class="pf-act" onclick="PF.addCaseAsPreset()">➕ 케이스 추가</button>
+      <button class="pf-act pf-act-save" onclick="PF.saveActiveCaseToPreset()">💾 저장</button>
       <button class="pf-act" onclick="PF.toggleSavedPanel()">📂 불러오기</button>
     </div>
     <div class="pf-saved-panel" id="pfSavedPanel" style="display:none"></div>
@@ -2134,52 +2134,104 @@ function maybeShowWizard(){ /* 마법사 제거됨 */ }
 // ── 포트폴리오 저장/불러오기/삭제 (인라인 패널) ──
 let savedPanelOpen=false;
 function toggleSavedPanel(){ savedPanelOpen=!savedPanelOpen; const el=document.getElementById('pfSavedPanel'); if(el){ el.style.display=savedPanelOpen?'block':'none'; if(savedPanelOpen)renderSavedConfigs(); } }
-function getSavedConfigs(){ try{ return JSON.parse(localStorage.getItem('pf-saved')||'[]'); }catch(e){ return []; } }
-function setSavedConfigs(arr){ try{ localStorage.setItem('pf-saved',JSON.stringify(arr)); }catch(e){} }
-function saveCurrentConfig(){
-  showPrompt(null,'내 포트폴리오 '+(getSavedConfigs().length+1),(name)=>{
+// ── 케이스 프리셋 (기본설정 CASE 박스 전용 저장/불러오기) ──
+// 글라이드패스·재배치·수익률설정 등 시뮬레이션 전역값은 포함하지 않고, CASE 하나(본인/배우자 등)의
+// 재무 정보만 스냅샷으로 저장한다. ➕케이스추가·💾저장은 "빠른 확인용 프리셋 칩"을 만들고,
+// 📂불러오기는 저장된 프리셋을 "새 CASE 탭으로 복사"해서 원본과 비교할 수 있게 한다.
+const CASE_PRESET_FIELDS=['salary','baseMonthly','startAge','retireAge','alloc','allocLock','reinvestRefund',
+  'monthlyChanges','lumpsums','isaTransferMode','isaTransferAge','isaTargetGain','isaTransferTarget',
+  'isaTransferAmount','isaRemainMode','npsMonthly','npsStartAge','severance','targetMonthly',
+  'withdrawMode','withdrawMonthly','postReturn','pensionStartAge','emergencyYears'];
+function getSavedConfigs(){ try{ return JSON.parse(localStorage.getItem('pf-case-presets')||'[]'); }catch(e){ return []; } }
+function setSavedConfigs(arr){ try{ localStorage.setItem('pf-case-presets',JSON.stringify(arr)); }catch(e){} }
+function snapshotCaseFields(c){
+  const out={}; CASE_PRESET_FIELDS.forEach(k=>{ out[k]=JSON.parse(JSON.stringify(c[k])); }); return out;
+}
+function applyCaseFields(c,fields){
+  Object.assign(c,JSON.parse(JSON.stringify(fields)));
+  rebuildGlideForAge(c.startAge,c.retireAge);
+}
+// ➕ 케이스 추가: 현재 활성 CASE의 내용을 이름 붙여 프리셋 칩으로 저장 (박스 안에 추가됨, 언제든 탭해서 빠른 확인)
+function addCaseAsPreset(){
+  const c=cases[activeCase];
+  showPrompt(null,c.name+' 프리셋',(name)=>{
     if(!name)return;
-    const snapshot={ name, ts:Date.now(),
-      cases:JSON.parse(JSON.stringify(cases)), glide:JSON.parse(JSON.stringify(glide)),
-      gpRebal:JSON.parse(JSON.stringify(gpRebal)), assets:JSON.parse(JSON.stringify(ASSETS)),
-      rates:JSON.parse(JSON.stringify(RATES)), scen, inflOn, terOn, fxMode, fxDrift, activeCase };
-    const arr=getSavedConfigs(); arr.push(snapshot); setSavedConfigs(arr);
-    savedPanelOpen=true; const el=document.getElementById('pfSavedPanel'); if(el)el.style.display='block';
-    renderSavedConfigs();
-    showAlert(`'${name}' 포트폴리오를 저장했습니다.`,{icon:'💾'});
-  },{title:'포트폴리오 저장',icon:'💾',placeholder:'포트폴리오 이름'});
+    const arr=getSavedConfigs();
+    const id='cp'+Date.now();
+    arr.push({id,name,ts:Date.now(),fields:snapshotCaseFields(c)});
+    setSavedConfigs(arr);
+    c._presetOrigin=id;
+    renderCasePresetChips();
+    showToast(`'${name}' 프리셋을 추가했어요! ✓`);
+  },{title:'케이스를 프리셋으로 추가',icon:'➕',placeholder:'프리셋 이름'});
 }
-function loadSavedConfig(idx){
-  const arr=getSavedConfigs(); const s=arr[idx]; if(!s)return;
-  showConfirm(`'${s.name}' 설정을 불러올까요? 현재 작업 내용이 대체됩니다.`,()=>{
-    if(Array.isArray(s.cases)&&s.cases.length)cases=s.cases;
-    if(Array.isArray(s.glide)&&s.glide.length)glide=s.glide;
-    if(Array.isArray(s.gpRebal))gpRebal=s.gpRebal;
-    if(Array.isArray(s.assets)&&s.assets.length)ASSETS=s.assets;
-    if(s.rates){ for(const k in s.rates)RATES[k]=s.rates[k]; }
-    if(typeof s.scen==='string')scen=s.scen;
-    if(typeof s.inflOn==='boolean')inflOn=s.inflOn;
-    if(typeof s.terOn==='boolean')terOn=s.terOn;
-    if(typeof s.fxMode==='string')fxMode=s.fxMode;
-    if(typeof s.fxDrift==='number')fxDrift=s.fxDrift;
-    if(typeof s.activeCase==='number')activeCase=Math.max(0,Math.min(s.activeCase,cases.length-1));
-    normalizeGlide(); savedPanelOpen=false; render();
-  },{icon:'📂',okLabel:'불러오기'});
+// 💾 저장: 현재 CASE가 이전에 프리셋에서 왔다면 그 프리셋을 최신값으로 갱신, 아니면 새로 추가
+function saveActiveCaseToPreset(){
+  const c=cases[activeCase];
+  const arr=getSavedConfigs();
+  const origin=c._presetOrigin&&arr.find(p=>p.id===c._presetOrigin);
+  if(origin){
+    origin.fields=snapshotCaseFields(c); origin.ts=Date.now();
+    setSavedConfigs(arr);
+    renderCasePresetChips();
+    showToast(`'${origin.name}' 프리셋을 최신값으로 저장했어요! ✓`);
+  }else{
+    addCaseAsPreset();
+  }
 }
-function deleteSavedConfig(idx){
-  const arr=getSavedConfigs(); if(!arr[idx])return;
-  showConfirm(`'${arr[idx].name}' 저장을 삭제할까요?`,()=>{
-    arr.splice(idx,1); setSavedConfigs(arr); renderSavedConfigs();
+// 프리셋 칩 탭: 활성 CASE에 즉시 적용해서 빠르게 확인 (기존 사회초년생 등 내장 프리셋과 동일한 방식)
+function applyCasePreset(id){
+  const arr=getSavedConfigs(); const p=arr.find(x=>x.id===id); if(!p)return;
+  const c=cases[activeCase];
+  applyCaseFields(c,p.fields);
+  c._presetOrigin=id;
+  render();
+  showToast(`'${p.name}' 프리셋을 적용했어요`);
+}
+function deleteCasePreset(id,ev){
+  if(ev)ev.stopPropagation();
+  const arr=getSavedConfigs(); const p=arr.find(x=>x.id===id); if(!p)return;
+  showConfirm(`'${p.name}' 프리셋을 삭제할까요?`,()=>{
+    setSavedConfigs(arr.filter(x=>x.id!==id));
+    renderCasePresetChips();
+    if(savedPanelOpen)renderSavedConfigs();
+    showToast('프리셋을 삭제했어요');
   },{danger:true,okLabel:'삭제'});
+}
+// 📂 불러오기 목록에서 "새 케이스로 복사" — 원본은 그대로 두고 새 탭에서 일부만 바꿔가며 비교
+function copyPresetToNewCase(id){
+  const arr=getSavedConfigs(); const p=arr.find(x=>x.id===id); if(!p)return;
+  const nc=wifeCaseTemplate();
+  nc.name=p.name+' (사본)'; nc.enabled=false;
+  Object.assign(nc,JSON.parse(JSON.stringify(p.fields)));
+  nc._presetOrigin=id;
+  cases.push(nc); activeCase=cases.length-1;
+  rebuildGlideForAge(nc.startAge,nc.retireAge);
+  savedPanelOpen=false; const el=document.getElementById('pfSavedPanel'); if(el)el.style.display='none';
+  render();
+  showToast(`'${p.name}' 내용을 새 케이스로 복사했어요 ✓`);
+}
+function renderCasePresetChips(){
+  const row=document.getElementById('presetChipsRow'); if(!row)return;
+  const builtin=row.querySelectorAll('.preset-chip[onclick*="applyPreset"]');
+  row.querySelectorAll('.preset-chip.custom').forEach(el=>el.remove());
+  const arr=getSavedConfigs();
+  arr.forEach(p=>{
+    const chip=document.createElement('span');
+    chip.className='preset-chip custom';
+    chip.style.position='relative';
+    chip.innerHTML=`⭐ ${p.name}<span onclick="PF.deleteCasePreset('${p.id}',event)" style="margin-left:6px;opacity:.6">✕</span>`;
+    chip.onclick=()=>applyCasePreset(p.id);
+    row.appendChild(chip);
+  });
 }
 function renderSavedConfigs(){
   const el=document.getElementById('pfSavedPanel'); if(!el)return;
   const arr=getSavedConfigs();
-  if(!arr.length){ el.innerHTML='<div class="pf-saved-empty">저장된 포트폴리오가 없습니다. \'💾 저장\' 버튼으로 현재 설정을 보관하세요.</div>'; return; }
-  el.innerHTML='<div class="pf-saved-title">💼 저장된 포트폴리오 ('+arr.length+')</div>'+arr.map((s,i)=>{
+  if(!arr.length){ el.innerHTML='<div class="pf-saved-empty">저장된 케이스 프리셋이 없습니다. \'➕ 케이스 추가\' 버튼으로 현재 CASE를 저장하세요.</div>'; return; }
+  el.innerHTML='<div class="pf-saved-title">💼 저장된 케이스 프리셋 ('+arr.length+') · 새 CASE로 복사해서 비교하세요</div>'+arr.map((s)=>{
     const d=new Date(s.ts); const dt=`${d.getMonth()+1}/${d.getDate()}`;
-    const nc=Array.isArray(s.cases)?s.cases.length:1;
-    return `<div class="pf-saved-row"><span class="pf-saved-nm">${s.name} <span style="font-size:9px;color:var(--text4)">· ${nc}케이스 · ${dt}</span></span><span class="pf-saved-load" onclick="PF.loadSavedConfig(${i})">불러오기</span><span class="pf-saved-del" onclick="PF.deleteSavedConfig(${i})">🗑</span></div>`;
+    return `<div class="pf-saved-row"><span class="pf-saved-nm">${s.name} <span style="font-size:9px;color:var(--text4)">· ${dt}</span></span><span class="pf-saved-load" onclick="PF.copyPresetToNewCase('${s.id}')">새 케이스로 복사</span><span class="pf-saved-del" onclick="PF.deleteCasePreset('${s.id}')">🗑</span></div>`;
   }).join('');
 }
 
@@ -2504,7 +2556,7 @@ function simulateMerged(){
 }
 
 let mainChart=null;
-function render(){ renderCaseTabs(); renderBasic(); renderAlloc(); renderScenario(); renderGlide(); renderRebal(); renderRetireSettings(); renderResults(); pfSyncUI(); pfSaveDebounced(); }
+function render(){ renderCasePresetChips(); renderCaseTabs(); renderBasic(); renderAlloc(); renderScenario(); renderGlide(); renderRebal(); renderRetireSettings(); renderResults(); pfSyncUI(); pfSaveDebounced(); }
 // ── 자동 저장/복원 ──
 function pfSave(){
   try{ localStorage.setItem('pf-state', JSON.stringify({v:3,cases,glide,gpRebal,scen,inflOn,activeCase,assets:ASSETS,rates:RATES,terOn,fxMode,fxDrift})); }catch(e){}
@@ -3809,7 +3861,7 @@ function refreshGlideStats(i){
 }
 
 
-window.PF={addAsset, addBracket, addCase, addChange, addLump, addRebal, applyPreset, delAsset, delBracket, delCase, delChange, delLump, delRebal, deleteSavedConfig, glStep, hideTip, liveGlide, loadSavedConfig, onAllocInput, onSlide, render, renameAsset, saveCurrentConfig, selectCase, setFx, setFxDrift, setScen, showTip, slSet, slStep, toggleAssetLock, toggleBracketLock, toggleEnabled, toggleInfl, toggleLock, toggleSavedPanel, toggleScenAcc, toggleSec, toggleTer, toggleYearAcc, upd, updBracket, updChange, updLump, updRate, updRebal, updRebalTarget, updTer};
+window.PF={addAsset, addBracket, addCase, addCaseAsPreset, addChange, addLump, addRebal, applyCasePreset, applyPreset, copyPresetToNewCase, delAsset, delBracket, delCase, delChange, delLump, delRebal, deleteCasePreset, glStep, hideTip, liveGlide, onAllocInput, onSlide, render, renameAsset, saveActiveCaseToPreset, selectCase, setFx, setFxDrift, setScen, showTip, slSet, slStep, toggleAssetLock, toggleBracketLock, toggleEnabled, toggleInfl, toggleLock, toggleSavedPanel, toggleScenAcc, toggleSec, toggleTer, toggleYearAcc, upd, updBracket, updChange, updLump, updRate, updRebal, updRebalTarget, updTer};
 try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
 })();
   </script>
