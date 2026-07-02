@@ -2584,6 +2584,8 @@ function pfLoad(){
     if(typeof st.fxDrift==='number')fxDrift=st.fxDrift;
     // 자산 정의에 ter/usd 누락 보정
     for(const a of ASSETS){ if(a.ter==null)a.ter=a.builtin?(a.key==='tdf'?0.4:0.05):0.1; if(a.usd==null)a.usd=(a.key!=='tdf'&&a.builtin); }
+    // 복원된 케이스가 전부 비활성이면 최소 1개 활성화 (빈 결과 방지)
+    if(cases.length&&!cases.some(c=>c.enabled)){ cases[Math.max(0,Math.min(activeCase,cases.length-1))].enabled=true; }
     normalizeGlide();
   }catch(e){ normalizeGlide(); }
 }
@@ -3238,7 +3240,16 @@ function renderRetireSettings(){
 }
 
 function renderResults(){
-  const m=simulateMerged();
+  let m=simulateMerged();
+  if(!m){
+    // 활성 CASE가 하나도 없으면(구버전 저장 상태 등) 현재 선택된 CASE를 자동으로 켜서 복구
+    if(cases.length){
+      const idx=(activeCase>=0&&activeCase<cases.length)?activeCase:0;
+      cases[idx].enabled=true;
+      renderCaseTabs();
+      m=simulateMerged();
+    }
+  }
   if(!m){ document.getElementById('heroTotal').textContent='활성 CASE 없음'; return; }
   const {merged,last,principalTotal,refundTotal,names,baseCase}=m;
   document.getElementById('resScope').textContent='· '+names;
@@ -3788,7 +3799,14 @@ function rebuildGlideForAge(startAge, retireAge){
   glide=tmpl.map((t,i)=>({ fromAge:bounds[i], toAge:i<3?bounds[i+1]-1:bounds[4], irp:{...t.irp}, pen:{...t.pen}, isa:{...t.isa}, lock:{irp:{},pen:{},isa:{}} }));
   normalizeGlide();
 }
-function toggleEnabled(i){ cases[i].enabled=!cases[i].enabled; render(); }
+function toggleEnabled(i){
+  // 최소 1개 CASE는 항상 활성 유지 (전부 끄면 결과가 비어버리는 문제 방지)
+  if(cases[i].enabled && cases.filter(c=>c.enabled).length<=1){
+    showToast('최소 1개 CASE는 켜져 있어야 해요');
+    return;
+  }
+  cases[i].enabled=!cases[i].enabled; render();
+}
 function addCase(){ cases.push(wifeCaseTemplate()); activeCase=cases.length-1; render(); }
 function upd(key,val){ cases[activeCase][key]=val; render(); }
 function addLump(){ cases[activeCase].lumpsums.push({atAge:cases[activeCase].startAge+1,amount:1000,target:'pen'}); render(); }
