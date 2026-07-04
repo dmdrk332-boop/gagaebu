@@ -1968,8 +1968,6 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <span class="gloss-chip" onclick="PF.showTip('tdf')">TDF</span>
     <span class="gloss-chip" onclick="PF.showTip('ter')">운용보수</span>
     <span class="gloss-chip" onclick="PF.showTip('swr')">안전인출률</span>
-    <span class="gloss-chip" onclick="PF.showTip('seq')">시퀀스리스크</span>
-    <span class="gloss-chip" onclick="PF.showTip('montecarlo')">몬테카를로</span>
     <span class="gloss-chip" onclick="PF.showTip('fx')">환헤지</span>
     <span class="gloss-chip" onclick="PF.showTip('refund')">세액공제환급</span>
   </div>
@@ -2032,7 +2030,11 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div class="box-t">🔄 특정시기 자산 매도·재배치</div>
     <div class="box-s">특정 나이에 한 계좌 내 보유 자산의 일부를 <b>매도하여 다른 종목으로 갈아탑니다</b>. 예: 55세에 IRP의 S&P 50%를 SCHD로 전환(배당 확대). 글라이드패스 비중 변경과 별개로, 실제 보유분을 옮기는 일회성 이벤트입니다.</div>
     <div id="rebalList"></div>
-    <button class="btn-add" onclick="PF.addRebal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 매도·재배치 추가</button>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:4px">
+      <button class="btn-add" onclick="PF.addRebal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 매도·재배치 추가</button>
+      <button class="btn-add" style="border-color:var(--accent-border);color:var(--accent2)" onclick="PF.loadAllHoldings()">📥 보유자산 모두 불러오기</button>
+    </div>
+    <div id="rebalTotalGraph"></div>
   </div>
 </div>
 
@@ -2079,12 +2081,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   </div>
   <div id="retDepletion"></div>
   <div id="retProjection"></div>
-  <div id="retMonteCarlo"></div>
-  <div id="retSequence"></div>
-  <div id="retTarget"></div>
   <div id="retWithdrawOrder"></div>
-  <div id="retLimit"></div>
-  <div id="retHealth"></div>
   <div id="retTax"></div>
   <div class="box" style="border-color:rgba(34,197,94,.25)">
     <div class="box-t" style="color:var(--schd)">💡 인출·세금 최적화 전략</div>
@@ -2304,6 +2301,31 @@ function normalizeGlide(){
       if(!b.lock[acct])b.lock[acct]={};
     }
   }
+}
+// 글라이드패스 구간을 [현재나이, 은퇴나이] 안으로 한정 + 연속(다음 구간=이전 구간 끝) 정규화.
+// 비중·고정(lock) 상태는 그대로 보존한다. renderGlide 시작 시 항상 호출되어 저장값/나이변경과 동기화됨.
+function reconcileGlide(){
+  const c=cases[activeCase]; if(!c)return;
+  const sA=c.startAge, rA=c.retireAge;
+  if(!(rA>sA)||!glide.length)return;
+  glide.sort((a,b)=>(a.fromAge||0)-(b.fromAge||0));
+  const maxBrackets=Math.max(1, rA-sA); // 최소 1년/구간
+  if(glide.length>maxBrackets)glide.length=maxBrackets;
+  const n=glide.length;
+  glide[0].fromAge=sA;
+  for(let i=0;i<n;i++){
+    const b=glide[i];
+    if(i>0)b.fromAge=glide[i-1].toAge+1;
+    if(i===n-1){ b.toAge=rA-1; }
+    else{
+      const remaining=n-1-i;
+      const minTo=b.fromAge;
+      const maxTo=rA-1-remaining;
+      if(b.toAge==null||isNaN(b.toAge))b.toAge=b.fromAge+Math.max(1,Math.round((rA-sA)/n))-1;
+      b.toAge=Math.max(minTo, Math.min(b.toAge, maxTo));
+    }
+  }
+  normalizeGlide();
 }
 let gpRebal=[]; // 특정시기 자산 매도·재배치 시나리오
 let gpCharts={};
@@ -2973,6 +2995,8 @@ function gpAcctSection(acct,idx,b,bs,r){
 function toggleBracketLock(idx){ if(glide[idx]){ glide[idx].locked=!glide[idx].locked; renderGlide(); pfSaveDebounced&&pfSaveDebounced(); } }
 
 function renderGlide(){
+  reconcileGlide();
+  const c=cases[activeCase];
   const r=RATES[scen]; const sim=simulateCase(cases[activeCase]);
   const act=activeAccounts(cases[activeCase]);
   const order=['irp','pen','isa'].filter(a=>act[a]);
@@ -2985,18 +3009,29 @@ function renderGlide(){
     const acctSections=brOrder.map(a=>gpAcctSection(a,idx,b,bs,r)).join('');
     const hiddenAccts=order.filter(a=>!aa[a]);
     const hiddenNote=hiddenAccts.length?`<div class="gp-hidden-note">ℹ️ 이 시기엔 ${hiddenAccts.map(a=>({irp:'IRP',pen:'연금저축',isa:'ISA'}[a])).join('·')} 계좌에 잔액·납입이 없어 표시하지 않습니다.</div>`:'';
+    const isLast=(idx===glide.length-1);
+    let boundEdit;
+    if(!isLast){
+      const nx=glide[idx+1]; const lo=b.fromAge+1, hi=nx.toAge; let opts='';
+      for(let v=lo; v<=hi; v++){ opts+=`<option value="${v}" ${v===b.toAge+1?'selected':''}>${v}세부터</option>`; }
+      boundEdit=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <span style="font-size:10px;color:var(--text3);font-weight:600">시작 <b style="color:var(--accent2)">${b.fromAge}세</b> · 다음 구간 시작 나이 선택 →</span>
+        <select onchange="PF.setBracketBound(${idx}, +this.value)" style="background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-weight:800;padding:5px 8px;outline:none;font-family:inherit">${opts}</select>
+      </div>`;
+    } else {
+      boundEdit=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:9px">
+        <span style="font-size:10px;color:var(--text3);font-weight:600">시작 <b style="color:var(--accent2)">${b.fromAge}세</b> · 은퇴 <b style="color:var(--gold)">${c.retireAge}세</b>까지 (마지막 구간)</span>
+      </div>`;
+    }
     return `<div class="gp-bracket ${b.locked?'gp-locked':''}">
       <div class="gp-head">
-        <span class="gp-age">${b.fromAge}세 ~ ${b.toAge}세</span>
+        <span class="gp-age">${b.fromAge}세 ~ ${b.toAge+1}세</span>
         <span style="display:flex;align-items:center;gap:8px">
           <span class="gp-lockbtn ${b.locked?'on':''}" onclick="PF.toggleBracketLock(${idx})" title="${b.locked?'고정 해제':'이 구간 고정'}">${b.locked?'🔒 고정됨':'🔓 고정'}</span>
           ${glide.length>1?`<span class="gp-del" onclick="PF.delBracket(${idx})">🗑</span>`:''}
         </span>
       </div>
-      <div class="num-row" style="margin-bottom:8px">
-        <div class="num-cell"><div class="nl">시작 나이</div><input type="number" value="${b.fromAge}" onchange="PF.updBracket(${idx},'fromAge',+this.value)"></div>
-        <div class="num-cell"><div class="nl">종료 나이</div><input type="number" value="${b.toAge}" onchange="PF.updBracket(${idx},'toAge',+this.value)"></div>
-      </div>
+      ${boundEdit}
       ${acctSections}
       ${hiddenNote}
       <div class="gp-summary">
@@ -3091,14 +3126,84 @@ function renderRebal(){
       body=`<div class="rt-box"><div class="rt-title">🎯 목표 비중 (모든 계좌 공통) <span style="color:${twSum===100?'var(--schd)':'var(--minus)'}">합계 ${twSum}%</span></div>${weightRows}</div>`;
       desc=`${rb.atAge}세에 <b style="color:var(--accent2)">모든 계좌</b>를 위 목표 비중으로 <b style="color:var(--gold)">재배치(매도·매수)</b> — 노후 자산 구성 확정`;
     }
+    const refillBtn=(type==='retarget')?`<button class="add-mini" style="margin-top:6px" onclick="PF.fillRebalFromHoldings(${idx})">📥 ${rb.atAge}세 현재 보유비중 불러오기</button>`:'';
     return `<div class="rebal-card">
       ${typeSeg}
       ${ageDel}
       ${body}
+      ${refillBtn}
       <div class="rebal-desc">${desc}</div>
-      ${renderRebalPreviewBar(getRebalCompositionPreview(rb))}
     </div>`;
   }).join('') || '<div style="font-size:10px;color:var(--text4);text-align:center;padding:8px">등록된 매도·재배치 시나리오가 없습니다</div>';
+  renderRebalTotalGraph();
+}
+// ── 총자산 구성 변화: 재배치 나이별 하나의 그래프 (실시간, 실제 시뮬 기준) ──
+function totalCompAtAge(sim, atAge){
+  // atAge 연말(그 나이 처리 후) 시점의 전 계좌 합산 자산구성
+  const row=sim.rows.find(r=>r.contribAge===atAge) || sim.rows.filter(r=>r.contribAge<=atAge).pop();
+  const out={}; for(const k of aKeys())out[k]=0;
+  if(!row||!row.assetSnap)return {comp:out,total:0};
+  for(const a of ['irp','pen','isa']){ const pa=row.assetSnap[a]||{}; for(const k in pa)out[k]=(out[k]||0)+(pa[k]||0); }
+  const total=Object.values(out).reduce((x,y)=>x+y,0);
+  return {comp:out,total};
+}
+function compBarHTML(comp,total){
+  const keys=aKeys().filter(k=>comp[k]>0.5);
+  const bar=keys.map(k=>{ const pct=total>0?comp[k]/total*100:0; return `<div style="width:${pct.toFixed(1)}%;background:${aColor(k)};height:100%" title="${aLabel(k)} ${pct.toFixed(0)}%"></div>`; }).join('');
+  const leg=keys.map(k=>{ const pct=total>0?Math.round(comp[k]/total*100):0; return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:8.5px;color:var(--text3);margin-right:7px"><span style="width:7px;height:7px;border-radius:2px;background:${aColor(k)};display:inline-block"></span>${aLabel(k)} ${pct}%</span>`; }).join('');
+  return `<div style="display:flex;height:15px;border-radius:5px;overflow:hidden;background:var(--border)">${bar}</div><div style="margin-top:4px">${leg}</div>`;
+}
+function renderRebalTotalGraph(){
+  const el=document.getElementById('rebalTotalGraph'); if(!el)return;
+  if(!gpRebal.length){ el.innerHTML=''; return; }
+  const c=cases[activeCase]; let sim;
+  try{ sim=simulateCase(c); }catch(e){ el.innerHTML=''; return; }
+  const ages=[...new Set(gpRebal.map(rb=>rb.atAge))].sort((a,b)=>a-b);
+  // 최초 재배치 직전(기준) 구성
+  const firstAge=ages[0];
+  const base=totalCompAtAge(sim, firstAge-1);
+  let html=`<div style="margin-top:12px;background:var(--card2);border:1px solid var(--border2);border-radius:11px;padding:12px">
+    <div style="font-size:10.5px;color:var(--text2);font-weight:800;margin-bottom:9px">📊 총자산 구성 변화 (전 계좌 합산 · 실시간)</div>`;
+  if(base.total>0){
+    html+=`<div style="margin-bottom:11px"><div style="font-size:9px;color:var(--text4);margin-bottom:3px">재배치 전 · ${firstAge-1}세 (${fmtS(base.total)})</div>${compBarHTML(base.comp,base.total)}</div>`;
+  }
+  ages.forEach(age=>{
+    const at=totalCompAtAge(sim, age);
+    const rbHere=gpRebal.filter(rb=>rb.atAge===age);
+    const tag=rbHere.map(rb=>({single:'단일',bulk:'일괄',cashout:'현금화',retarget:'목표재배치'}[rb.type||'single'])).join('·');
+    html+=`<div style="margin-bottom:11px"><div style="font-size:9px;color:var(--accent2);font-weight:700;margin-bottom:3px">↔️ ${age}세 재배치 후 <span style="color:var(--text4);font-weight:500">${tag}</span> (${fmtS(at.total)})</div>${at.total>0?compBarHTML(at.comp,at.total):'<div style="font-size:9px;color:var(--text4)">이 나이 데이터가 아직 없어요 (은퇴나이 이전으로 설정해 주세요)</div>'}</div>`;
+  });
+  html+=`<div style="font-size:8.5px;color:var(--text4);line-height:1.5;margin-top:2px">💡 위 그래프는 실제 시뮬레이션 결과라 각 계좌 비중을 바꿔도 <b>총자산 기준으로 정확히</b> 반영돼요. 재배치 나이가 여러 개면 나이순으로 표시됩니다.</div></div>`;
+  el.innerHTML=html;
+}
+// 현재(atAge) 실제 보유 총비중을 retarget 목표비중으로 불러오기
+function fillRebalFromHoldings(idx){
+  const rb=gpRebal[idx]; if(!rb)return;
+  const c=cases[activeCase]; let sim; try{ sim=simulateCase(c); }catch(e){ return; }
+  const {comp,total}=totalCompAtAge(sim, rb.atAge);
+  if(total<=0){ showToast&&showToast('이 나이엔 아직 보유자산이 없어요'); return; }
+  if(!rb.targetWeights)rb.targetWeights={};
+  // 5% 단위 반올림해서 합계 100 보정
+  let acc=0; const keys=aKeys(); const raw={};
+  keys.forEach(k=>{ raw[k]=total>0?comp[k]/total*100:0; });
+  keys.forEach(k=>{ rb.targetWeights[k]=Math.round(raw[k]/5)*5; acc+=rb.targetWeights[k]; });
+  // 합계 100 맞추기: 최대 비중 자산에 차이 보정
+  if(acc!==100){ let mk=keys[0]; keys.forEach(k=>{ if((rb.targetWeights[k]||0)>(rb.targetWeights[mk]||0))mk=k; }); rb.targetWeights[mk]=Math.max(0,(rb.targetWeights[mk]||0)+(100-acc)); }
+  render();
+  showToast&&showToast(`${rb.atAge}세 보유비중을 불러왔어요 ✓`);
+}
+// 📥 보유자산 모두 불러오기: 은퇴나이 시점 전 계좌 합산 보유비중으로 '목표재배치' 카드 생성
+function loadAllHoldings(){
+  const c=cases[activeCase]; let sim; try{ sim=simulateCase(c); }catch(e){ return; }
+  const atAge=c.retireAge;
+  const {comp,total}=totalCompAtAge(sim, atAge-1);
+  const tw={}; const keys=aKeys();
+  if(total>0){ let acc=0; keys.forEach(k=>{ tw[k]=Math.round((comp[k]/total*100)/5)*5; acc+=tw[k]; });
+    if(acc!==100){ let mk=keys[0]; keys.forEach(k=>{ if((tw[k]||0)>(tw[mk]||0))mk=k; }); tw[mk]=Math.max(0,(tw[mk]||0)+(100-acc)); } }
+  else { const def={sp:40,schd:40,tdf:20}; keys.forEach(k=>tw[k]=def[k]||0); }
+  gpRebal.push({type:'retarget',atAge,acct:'irp',fromAsset:keys[0],toAsset:keys[1]||keys[0],pct:100,targetWeights:tw});
+  render();
+  showToast&&showToast(`${atAge}세 은퇴시점 전 계좌 보유자산을 불러왔어요 ✓`);
 }
 // ── 특정시기 매도·재배치 전후 자산 비중 변화 미리보기 ──
 function getRebalCompositionPreview(rb){
@@ -3263,6 +3368,14 @@ function toggleAssetLock(acct,idx,asset){
 
 function renderRetireSettings(){
   const c=cases[activeCase];
+  // 은퇴 시점 계좌별 평가액(원금+수익) — 공백기 현금화 가능액 안내용
+  let _acctTot={irp:0,pen:0,isa:0};
+  try{ const _s=simulateCase(c); const _lr=_s.rows[_s.rows.length-1]; if(_lr){ _acctTot={irp:_lr.irp||0,pen:_lr.pen||0,isa:_lr.isa||0}; } }catch(e){}
+  const _bridgeAcct=c.bridgeAccount||'irp';
+  const _bridgeAvail=_bridgeAcct==='mix'?(_acctTot.irp+_acctTot.pen+_acctTot.isa):(_acctTot[_bridgeAcct]||0);
+  const _bridgeAcctNm={irp:'IRP',pen:'연금저축',isa:'ISA',mix:'전체 계좌'}[_bridgeAcct];
+  const _bridgeReqWon=manToWon(c.bridgeCashout||0);
+  const _bridgeOver=_bridgeReqWon>_bridgeAvail+1;
   document.getElementById('caseRetire').innerHTML=`
     <div class="box">
       <div class="box-t">${c.name} 국민연금</div>
@@ -3302,14 +3415,14 @@ function renderRetireSettings(){
         <button class="${c.withdrawMode==='manual'?'on':''}" onclick="PF.upd('withdrawMode','manual')">월 인출액 직접</button>
       </div>
       ${c.withdrawMode==='manual'?`<div class="num-row" style="margin-top:8px"><div class="num-cell"><div class="nl">월 인출 목표액 (만원)</div><input type="number" value="${c.withdrawMonthly||0}" onchange="PF.upd('withdrawMonthly',+this.value)"></div></div>`
-        :`<div class="num-row" style="margin-top:8px"><div class="num-cell"><div class="nl">목표 월 생활비 (만원, 선택)</div><input type="number" value="${c.targetMonthly||0}" onchange="PF.upd('targetMonthly',+this.value)"></div><div class="num-cell" style="background:transparent;border:none"><div style="font-size:8.5px;color:var(--text4);line-height:1.5;padding-top:2px">입력하면 3.5% 대신 이 금액 기준으로 인출을 계산하고, 아래 '목표 달성 분석'에도 쓰여요.</div></div></div>`}
+        :`<div class="num-row" style="margin-top:8px"><div class="num-cell"><div class="nl">목표 월 생활비 (만원, 선택)</div><input type="number" value="${c.targetMonthly||0}" onchange="PF.upd('targetMonthly',+this.value)"></div><div class="num-cell" style="background:transparent;border:none"><div style="font-size:8.5px;color:var(--text4);line-height:1.5;padding-top:2px">입력하면 3.5% 대신 이 금액 기준으로 인출을 계산해요.</div></div></div>`}
       <div class="num-row" style="margin-top:8px">
         <div class="num-cell"><div class="nl">은퇴 후 운용수익률 (%)</div><input type="number" step="0.5" value="${c.postReturn||4}" onchange="PF.upd('postReturn',+this.value)"></div>
         <div class="num-cell"><div class="nl">사적연금 개시 나이</div><input type="number" value="${c.pensionStartAge||c.retireAge}" onchange="PF.upd('pensionStartAge',+this.value)"></div>
       </div>
       <div class="num-row" style="margin-top:7px">
         <div class="num-cell"><div class="nl">비상금 확보 (생활비 N년치)</div><input type="number" min="0" max="10" value="${c.emergencyYears!=null?c.emergencyYears:3}" onchange="PF.upd('emergencyYears',+this.value)"></div>
-        <div class="num-cell" style="background:transparent;border:none"><div style="font-size:8.5px;color:var(--text4);line-height:1.5;padding-top:2px">비상금은 현금으로 따로 빼두어 <b style="color:var(--gold)">운용수익이 발생하지 않습니다</b>. 나머지 자산만 위 수익률로 굴러갑니다 (시퀀스 리스크 대비).</div></div>
+        <div class="num-cell" style="background:transparent;border:none"><div style="font-size:8.5px;color:var(--text4);line-height:1.5;padding-top:2px">비상금은 현금으로 따로 빼두어 <b style="color:var(--gold)">운용수익이 발생하지 않습니다</b>. 나머지 자산만 위 수익률로 굴러갑니다 (은퇴 초기 폭락 대비 완충).</div></div>
       </div>
       <div style="font-size:9px;color:var(--text4);margin-top:6px;line-height:1.5">📌 사적연금(IRP·연금저축)은 만 55세부터 수령 가능. 은퇴 후 남은 자산 중 비상금을 뺀 금액이 설정한 수익률로 운용됩니다.</div>
     </div>
@@ -3336,6 +3449,14 @@ function renderRetireSettings(){
             <option value="schd" ${c.bridgeAsset==='schd'?'selected':''}>SCHD</option>
             <option value="tdf" ${c.bridgeAsset==='tdf'?'selected':''}>TDF</option>
           </select></div>
+      </div>
+      <div class="bridge-avail" style="margin-top:9px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:9px 11px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:10px;color:var(--text3);font-weight:700">📦 <b style="color:var(--accent2)">${_bridgeAcctNm}</b> 은퇴시점 보유 총액 <span style="font-size:8.5px;color:var(--text4);font-weight:500">(원금+수익)</span></span>
+          <span style="font-size:14px;font-weight:800;color:var(--accent2)">${fmt(_bridgeAvail)}</span>
+        </div>
+        ${_bridgeAcct==='mix'?`<div style="font-size:8.5px;color:var(--text4);margin-top:5px;display:flex;gap:10px;flex-wrap:wrap">${_acctTot.irp>0?`<span>IRP ${fmtS(_acctTot.irp)}</span>`:''}${_acctTot.pen>0?`<span>연금저축 ${fmtS(_acctTot.pen)}</span>`:''}${_acctTot.isa>0?`<span>ISA ${fmtS(_acctTot.isa)}</span>`:''}</div>`:''}
+        <div style="font-size:9px;color:${_bridgeOver?'var(--minus)':'var(--text4)'};margin-top:6px;line-height:1.5">${_bridgeReqWon>0?(_bridgeOver?`⚠️ 현금화 요청액 <b>${fmt(_bridgeReqWon)}</b>이 보유 총액을 초과해요. 최대 <b>${fmt(_bridgeAvail)}</b>까지만 현금화됩니다.`:`✅ 현금화 요청액 <b>${fmt(_bridgeReqWon)}</b> / 보유 총액의 <b>${_bridgeAvail>0?Math.round(_bridgeReqWon/_bridgeAvail*100):0}%</b>`):`이 계좌에서 최대 <b style="color:var(--accent2)">${fmt(_bridgeAvail)}</b>까지 현금화할 수 있어요.`}</div>
       </div>
       <div style="font-size:9px;color:var(--text4);margin-top:6px;line-height:1.5">💡 현금화한 금액은 공백기 동안 <b style="color:var(--accent2)">가장 먼저 소진</b>되고(운용수익 없음), 부족하면 일반 운용자산에서 이어서 인출해요. <b style="color:var(--schd)">SCHD</b>를 팔면 그만큼 매도한 비율로 이후 배당수익도 줄어들어요.</div>
     </div>`;
@@ -3766,57 +3887,7 @@ function renderRetirement(m){
         <div class="dep-cell"><div class="dep-rate" style="color:var(--minus)">5.0%</div><div class="dep-amt">월 ${Math.round(total*0.05/12/10000).toLocaleString()}만</div><div class="dep-last">${lastsTo(dep5)}</div></div>
       </div>
       <div class="dep-note"><b>인출률이 낮을수록 오래 갑니다.</b> 3.5%는 미국 트리니티 연구에서 <b>30년간 95% 확률로 고갈되지 않은</b> 안전 기준이에요. 한국은 국민연금이 더해져 실제 사적연금 인출 부담이 줄어 더 오래 유지됩니다. ${dep.depleted?`현재 설정으로는 <b style="color:var(--gold)">${retireAge+dep.years}세까지</b> 유지됩니다.`:`현재 설정이면 국민연금 보강으로 <b style="color:var(--schd)">사실상 평생 유지</b>됩니다.`}</div>
-      <div class="dep-warn">⚠️ <b>시퀀스 리스크</b>: 은퇴 직후 몇 년간 시장이 크게 하락하면 같은 평균수익률이어도 자산이 훨씬 빨리 고갈됩니다. 은퇴 초기에는 인출액을 줄이거나 안전자산(현금·채권) 비중을 높이는 게 안전해요.</div>
     </div>`;
-
-  // ── A2) 몬테카를로 시뮬레이션 (성공확률) ──
-  const mcMean=0.05, mcStd=0.12; // 은퇴 후 보수적 포트 평균/변동성
-  const mc=monteCarlo(total, annualWon, mcMean, mcStd, INFL/100, npsAnnualWon, npsStartAge-retireAge, 30, 1000);
-  const mc4=monteCarlo(total, Math.round(total*0.04), mcMean, mcStd, INFL/100, npsAnnualWon, npsStartAge-retireAge, 30, 1000);
-  const scColor=(r)=>r>=90?'var(--schd)':r>=75?'var(--gold)':'var(--minus)';
-  document.getElementById('retMonteCarlo').innerHTML=`
-    <div class="box" style="border-color:rgba(126,98,243,.25)">
-      <div class="box-t" style="color:var(--accent2)">🎲 몬테카를로 시뮬레이션 (성공 확률)</div>
-      <div class="box-s">매년 수익률이 들쭉날쭉(평균 ${(mcMean*100)}%·변동성 ${(mcStd*100)}%)할 때를 <b>1,000번</b> 무작위 시뮬레이션해 30년간 자산이 고갈되지 않을 확률을 계산합니다.</div>
-      <div class="mc-grid">
-        <div class="mc-cell"><div class="mc-l">3.5% 인출</div><div class="mc-rate" style="color:${scColor(mc.successRate)}">${mc.successRate}%</div><div class="mc-sub">30년 생존확률</div></div>
-        <div class="mc-cell"><div class="mc-l">4.0% 인출</div><div class="mc-rate" style="color:${scColor(mc4.successRate)}">${mc4.successRate}%</div><div class="mc-sub">30년 생존확률</div></div>
-        <div class="mc-cell"><div class="mc-l">30년 후 잔액(중앙값)</div><div class="mc-rate" style="font-size:15px;color:var(--accent2)">${fmtS(mc.median)}</div><div class="mc-sub">하위10% ${fmtS(mc.p10)}</div></div>
-      </div>
-      <div class="dep-note">💡 <b>성공확률 ${mc.successRate}%</b>는 100번 중 ${mc.successRate}번은 30년간 돈이 안 떨어진다는 뜻이에요. ${mc.successRate>=90?'<b style="color:var(--schd)">매우 안정적</b>입니다.':mc.successRate>=75?'<b style="color:var(--gold)">대체로 안정적</b>이나 인출률을 낮추면 더 안전해요.':'<b style="color:var(--minus)">인출률이 높습니다.</b> 인출을 줄이거나 자산을 더 모으는 게 좋아요.'} 평균이 같아도 <b>나쁜 해가 먼저 오면</b> 결과가 크게 달라지므로 확률로 봐야 합니다.</div>
-    </div>`;
-
-  // ── A3) 시퀀스 리스크 시나리오 ──
-  const seqNormal=depletionSim(total, annualWon, postRet, INFL/100, npsAnnualWon, npsStartAge-retireAge);
-  const seqShock=depletionSimSeq(total, annualWon, postRet, INFL/100, npsAnnualWon, npsStartAge-retireAge, 5, -0.10);
-  document.getElementById('retSequence').innerHTML=`
-    <div class="box">
-      <div class="box-t">📉 시퀀스 리스크 (은퇴 직후 폭락 시)</div>
-      <div class="box-s">은퇴 직후 5년간 시장이 연 -10% 하락하는 최악의 경우를 비교합니다.</div>
-      <div class="seq-compare">
-        <div class="seq-side"><div class="seq-lbl">정상 시장</div><div class="seq-val" style="color:var(--schd)">${seqNormal.depleted?retireAge+seqNormal.years+'세':'평생'}</div></div>
-        <div class="seq-arrow">vs</div>
-        <div class="seq-side"><div class="seq-lbl">은퇴초 5년 폭락</div><div class="seq-val" style="color:var(--minus)">${seqShock.depleted?retireAge+seqShock.years+'세':'평생'}</div></div>
-      </div>
-      <div class="dep-note">같은 평균수익률이어도 <b>은퇴 초반에 폭락이 오면</b> 자산이 ${seqNormal.depleted&&seqShock.depleted?`<b style="color:var(--minus)">${seqNormal.years-seqShock.years}년 일찍</b> 고갈`:'더 빨리 고갈'}됩니다. 인출 중에는 하락분을 회복할 새 납입이 없기 때문이에요. <b>대비책</b>: ① 은퇴 직전·직후 2~3년 생활비를 현금·단기채로 확보 ② 하락장엔 인출액 일시 축소(가드레일 전략) ③ 은퇴 시점 안전자산 비중 확대.</div>
-    </div>`;
-
-  // ── A9) 목표 노후생활비 역산 ──
-  const targetMonthly=m.targetMonthly||0;
-  const myMonthly=npsTotal+afterTax65+divMan;
-  const gap=myMonthly-targetMonthly;
-  const achievePct=targetMonthly>0?Math.min(200,Math.round(myMonthly/targetMonthly*100)):100;
-  const needAsset=targetMonthly>0?Math.round((targetMonthly-npsTotal-divMan)*12/0.035*10000):0;
-  document.getElementById('retTarget').innerHTML=targetMonthly>0?`
-    <div class="box" style="border-color:${gap>=0?'rgba(34,197,94,.3)':'rgba(255,123,90,.3)'}">
-      <div class="box-t" style="color:${gap>=0?'var(--schd)':'var(--minus)'}">🎯 목표 생활비 달성 분석</div>
-      <div class="box-s">목표 월 생활비 <b>${targetMonthly.toLocaleString()}만원</b> 대비 예상 수령액 분석</div>
-      <div class="gauge-wrap"><div class="gauge-bar"><div class="gauge-fill" style="width:${Math.min(100,achievePct)}%;background:${gap>=0?'var(--schd)':'var(--gold)'}"></div></div><div class="gauge-pct" style="color:${gap>=0?'var(--schd)':'var(--minus)'}">${achievePct}%</div></div>
-      <div class="inc-row"><span class="inc-l">예상 월 수령액</span><span class="inc-v">${myMonthly.toLocaleString()}만원</span></div>
-      <div class="inc-row"><span class="inc-l">목표 월 생활비</span><span class="inc-v">${targetMonthly.toLocaleString()}만원</span></div>
-      <div class="inc-row"><span class="inc-l">${gap>=0?'✅ 여유':'⚠️ 부족분'}</span><span class="inc-v" style="color:${gap>=0?'var(--schd)':'var(--minus)'}">${gap>=0?'+':''}${gap.toLocaleString()}만원/월</span></div>
-      ${gap<0?`<div class="dep-note">목표까지 월 ${(-gap).toLocaleString()}만원 부족해요. 이를 메우려면 은퇴 자산이 <b style="color:var(--minus)">약 ${fmt(needAsset)}</b> 더 필요합니다(3.5% 인출 기준). 월 납입을 늘리거나, 은퇴를 늦추거나, 목표 생활비를 조정해보세요.`:`<div class="dep-note">🎉 목표를 <b style="color:var(--schd)">${achievePct}%</b> 달성! 월 ${gap.toLocaleString()}만원의 여유가 있어 더 일찍 은퇴하거나 생활 수준을 높일 수 있어요.`}</div>
-    </div>`:'';
 
   // ── A7) 인출 순서 최적화 ──
   document.getElementById('retWithdrawOrder').innerHTML=`
@@ -3830,35 +3901,6 @@ function renderRetirement(m){
         <div class="order-item"><span class="order-num" style="background:rgba(155,133,246,.15);color:var(--accent2)">4</span><div class="order-tx"><b>SCHD 배당 등 현금흐름</b><span>매도 없이 배당만 수령 → 원금 보존</span></div></div>
       </div>
       <div class="dep-note">💡 이 순서로 빼면 <b>은퇴 초기엔 비과세·저율 구간</b>을 활용하고, 과세 대상은 나이 들어 세율이 낮아진 뒤(70세 4.4%, 80세 3.3%)로 미뤄 <b>평생 세금을 최소화</b>할 수 있어요.</div>
-    </div>`;
-
-  // ── A6) 연금수령한도 (연차별) ──
-  const limitRows=[1,3,5,7,10].map(yr=>{
-    const limit=Math.round(total/(11-yr)*1.2/10000);
-    return `<tr><td>${yr}년차</td><td>÷${11-yr}×120%</td><td style="color:var(--accent2);font-weight:700">${limit.toLocaleString()}만/년</td></tr>`;
-  }).join('');
-  document.getElementById('retLimit').innerHTML=`
-    <div class="box">
-      <div class="box-t">📐 연금수령한도 (연차별 인출 가능액)</div>
-      <div class="box-s">IRP·연금저축은 연차별 인출 한도가 있어요: <b>평가액 ÷ (11−수령연차) × 120%</b>. 한도 초과분은 기타소득세(16.5%)가 부과됩니다.</div>
-      <table class="tax-tbl">
-        <thead><tr><th>수령연차</th><th>공식</th><th>연 한도(현재 자산 기준)</th></tr></thead>
-        <tbody>${limitRows}</tbody>
-      </table>
-      <div class="dep-note">💡 초반 연차일수록 한도가 작아요(1년차 ÷10). <b>10년 이상 나눠 받으면</b> 매년 한도가 넉넉해지고 연금소득세 저율도 유지돼 가장 유리합니다.</div>
-    </div>`;
-
-  // ── A8) 건강보험료 피부양자 분석 ──
-  const annualIncome=Math.round((npsTotal+afterTax65+divMan)*12);
-  const overHealth=annualIncome>2000;
-  const estPremium=overHealth?Math.round(annualIncome*0.08/12):0; // 대략적 지역가입 추정
-  document.getElementById('retHealth').innerHTML=`
-    <div class="box" style="border-color:${overHealth?'rgba(255,123,90,.25)':'rgba(34,197,94,.2)'}">
-      <div class="box-t" style="color:${overHealth?'var(--minus)':'var(--schd)'}">🏥 건강보험 피부양자 분석</div>
-      <div class="box-s">연 소득 2,000만원 초과 시 피부양자 자격을 잃고 지역가입자로 전환돼 보험료가 발생합니다.</div>
-      <div class="inc-row"><span class="inc-l">예상 연 소득 (연금+배당)</span><span class="inc-v" style="color:${overHealth?'var(--minus)':'var(--schd)'}">${annualIncome.toLocaleString()}만원</span></div>
-      <div class="inc-row"><span class="inc-l">피부양자 기준 (2,000만)</span><span class="inc-v">${overHealth?'⚠️ 초과':'✅ 이내'}</span></div>
-      ${overHealth?`<div class="inc-row"><span class="inc-l">예상 지역보험료 (추정)</span><span class="inc-v" style="color:var(--minus)">월 약 ${estPremium.toLocaleString()}만원</span></div><div class="dep-note">⚠️ 연 소득이 2,000만원을 넘어 <b>피부양자에서 탈락</b>할 수 있어요. 연금 수령 시기를 분산하거나 비과세 재원(ISA·비과세 원금)을 활용해 <b>과세소득을 2,000만원 이하로 관리</b>하면 보험료를 아낄 수 있습니다. (※ 실제 보험료는 재산·자동차 등도 반영돼 달라질 수 있어요)</div>`:`<div class="dep-note">✅ 현재 예상 소득은 피부양자 기준 이내예요. 다만 연금+금융소득이 늘면 초과할 수 있으니 인출 시기를 분산하세요.</div>`}
     </div>`;
 
   // ── 3) 세금 상세 ──
@@ -3939,7 +3981,14 @@ function rebuildGlideForAge(startAge, retireAge){
     {irp:{sp:45,nq:5,schd:20,tdf:30}, pen:{sp:55,nq:5,schd:40,tdf:0}, isa:{sp:60,nq:0,schd:40,tdf:0}},
     {irp:{sp:30,nq:0,schd:40,tdf:30}, pen:{sp:35,nq:0,schd:65,tdf:0}, isa:{sp:40,nq:0,schd:60,tdf:0}},
   ];
-  glide=tmpl.map((t,i)=>({ fromAge:bounds[i], toAge:i<3?bounds[i+1]-1:bounds[4], irp:{...t.irp}, pen:{...t.pen}, isa:{...t.isa}, lock:{irp:{},pen:{},isa:{}} }));
+  // 기존 고정(lock)된 구간의 비중·잠금 상태를 인덱스 기준으로 보존한다 (프리셋 적용 등으로도 풀리지 않게)
+  const prev=glide.map(b=>({locked:!!b.locked, lock:b.lock, irp:{...b.irp}, pen:{...b.pen}, isa:{...b.isa}}));
+  glide=tmpl.map((t,i)=>({ fromAge:bounds[i], toAge:i<3?bounds[i+1]-1:bounds[4]-1, irp:{...t.irp}, pen:{...t.pen}, isa:{...t.isa}, lock:{irp:{},pen:{},isa:{}} }));
+  for(let i=0;i<glide.length;i++){
+    const p=prev[i];
+    if(p&&p.locked){ glide[i].locked=true; glide[i].lock=p.lock||{irp:{},pen:{},isa:{}};
+      glide[i].irp={...p.irp}; glide[i].pen={...p.pen}; glide[i].isa={...p.isa}; }
+  }
   normalizeGlide();
 }
 function toggleEnabled(i){
@@ -3961,9 +4010,27 @@ function updSeverance(i,k,v){ cases[activeCase].severances[i][k]=v; render(); }
 function addChange(){ const c=cases[activeCase]; c.monthlyChanges.push({fromAge:c.startAge+7,toAge:c.startAge+11,delta:50}); render(); }
 function delChange(i){ cases[activeCase].monthlyChanges.splice(i,1); render(); }
 function updChange(i,k,v){ cases[activeCase].monthlyChanges[i][k]=v; render(); }
-function addBracket(){ const la=glide[glide.length-1].toAge; glide.push({fromAge:la+1,toAge:la+5,irp:{sp:30,nq:0,schd:40,tdf:30},pen:{sp:40,nq:0,schd:60},isa:{sp:40,nq:0,schd:60},lock:{irp:{},pen:{},isa:{}}}); glide.sort((a,b)=>a.fromAge-b.fromAge); render(); }
-function delBracket(i){ glide.splice(i,1); render(); }
-function updBracket(i,k,v){ glide[i][k]=v; glide.sort((a,b)=>a.fromAge-b.fromAge); render(); }
+function addBracket(){
+  const c=cases[activeCase]; const sA=c.startAge, rA=c.retireAge;
+  if(rA-sA<=glide.length){ showToast&&showToast('현재 나이~은퇴 나이 범위로는 구간을 더 못 늘려요'); return; }
+  // 가장 긴 구간을 절반으로 분할 (비중은 복사, 새 구간은 미고정)
+  let li=0, span=-1; glide.forEach((b,i)=>{ const s=b.toAge-b.fromAge; if(s>span){span=s;li=i;} });
+  const b=glide[li]; const mid=Math.floor((b.fromAge+b.toAge)/2);
+  const nb={ fromAge:mid+1, toAge:b.toAge, irp:{...b.irp}, pen:{...b.pen}, isa:{...b.isa}, lock:{irp:{},pen:{},isa:{}} };
+  b.toAge=mid;
+  glide.splice(li+1,0,nb);
+  render();
+}
+function delBracket(i){ if(glide.length<=1)return; glide.splice(i,1); render(); }
+function updBracket(i,k,v){ if(!glide[i])return; glide[i][k]=v; glide.sort((a,b)=>a.fromAge-b.fromAge); render(); }
+// 구간 경계(다음 구간 시작 나이) 클릭-선택: 이 구간 끝을 v-1로, 다음 구간 시작을 v로.
+function setBracketBound(i, v){
+  const n=glide.length; if(i<0||i>=n-1)return;
+  const b=glide[i], nx=glide[i+1];
+  v=Math.max(b.fromAge+1, Math.min(v, nx.toAge));
+  b.toAge=v-1; nx.fromAge=v;
+  render();
+}
 // 드래그 중 라이브 업데이트: 슬라이더 DOM 재생성 없이 데이터+표시만 갱신
 function liveGlide(acct,i,asset,v){
   const b=glide[i]; const grp=b[acct];
@@ -4044,7 +4111,7 @@ function refreshGlideStats(i){
 }
 
 
-window.PF={addAsset, addBracket, addCase, addCaseAsPreset, addChange, addLump, addRebal, addSeverance, applyCasePreset, applyPreset, copyPresetToNewCase, delAsset, delBracket, delCase, delChange, delLump, delRebal, delSeverance, deleteCasePreset, glStep, hideTip, liveGlide, onAllocInput, onSlide, render, renameAsset, saveActiveCaseToPreset, selectCase, setFx, setFxDrift, setScen, showTip, slSet, slStep, toggleAssetLock, toggleBracketLock, toggleEnabled, toggleInfl, toggleLock, toggleSavedPanel, toggleScenAcc, toggleSec, toggleTer, toggleYearAcc, upd, updBracket, updChange, updLump, updRate, updRebal, updRebalTarget, updSeverance, updTer};
+window.PF={addAsset, addBracket, addCase, addCaseAsPreset, addChange, addLump, addRebal, addSeverance, applyCasePreset, applyPreset, copyPresetToNewCase, delAsset, delBracket, delCase, delChange, delLump, delRebal, delSeverance, deleteCasePreset, fillRebalFromHoldings, glStep, hideTip, liveGlide, loadAllHoldings, onAllocInput, onSlide, render, renameAsset, saveActiveCaseToPreset, selectCase, setBracketBound, setFx, setFxDrift, setScen, showTip, slSet, slStep, toggleAssetLock, toggleBracketLock, toggleEnabled, toggleInfl, toggleLock, toggleSavedPanel, toggleScenAcc, toggleSec, toggleTer, toggleYearAcc, upd, updBracket, updChange, updLump, updRate, updRebal, updRebalTarget, updSeverance, updTer};
 try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
 })();
   </script>
