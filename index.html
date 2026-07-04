@@ -2140,8 +2140,9 @@ function toggleSavedPanel(){ savedPanelOpen=!savedPanelOpen; const el=document.g
 // 📂불러오기는 저장된 프리셋을 "새 CASE 탭으로 복사"해서 원본과 비교할 수 있게 한다.
 const CASE_PRESET_FIELDS=['salary','baseMonthly','startAge','retireAge','alloc','allocLock','reinvestRefund',
   'monthlyChanges','lumpsums','isaTransferMode','isaTransferAge','isaTargetGain','isaTransferTarget',
-  'isaTransferAmount','isaRemainMode','npsMonthly','npsStartAge','severance','targetMonthly',
-  'withdrawMode','withdrawMonthly','postReturn','pensionStartAge','emergencyYears'];
+  'isaTransferAmount','isaRemainMode','npsMonthly','npsStartAge','severances','targetMonthly',
+  'withdrawMode','withdrawMonthly','postReturn','pensionStartAge','emergencyYears',
+  'bridgeMonthly','bridgeCashout','bridgeAccount','bridgeAsset'];
 function getSavedConfigs(){ try{ return JSON.parse(localStorage.getItem('pf-case-presets')||'[]'); }catch(e){ return []; } }
 function setSavedConfigs(arr){ try{ localStorage.setItem('pf-case-presets',JSON.stringify(arr)); }catch(e){} }
 function snapshotCaseFields(c){
@@ -2277,13 +2278,15 @@ let cases=[
     monthlyChanges:[],
     lumpsums:[{atAge:35,amount:2500,target:'pen'},{atAge:36,amount:1500,target:'pen'},{atAge:37,amount:5500,target:'pen'}],
     isaTransferMode:'auto', isaTransferAge:42, isaTargetGain:400, isaTransferTarget:'pen', isaTransferAmount:0, isaRemainMode:'keep', npsMonthly:0, npsStartAge:65,
-    severance:0, targetMonthly:300, withdrawMode:'swr', withdrawMonthly:0, postReturn:4.0, pensionStartAge:60, emergencyYears:3 }
+    severances:[], targetMonthly:300, withdrawMode:'swr', withdrawMonthly:0, postReturn:4.0, pensionStartAge:60, emergencyYears:3,
+    bridgeMonthly:0, bridgeCashout:0, bridgeAccount:'irp', bridgeAsset:'mix' }
 ];
 function wifeCaseTemplate(){
   return { name:'CASE '+(cases.length+1), enabled:false, salary:3500, baseMonthly:50, startAge:37, retireAge:60,
     alloc:{irp:60,pen:40,isa:0}, allocLock:{irp:false,pen:false,isa:false}, reinvestRefund:true, monthlyChanges:[], lumpsums:[],
     isaTransferMode:'auto', isaTransferAge:45, isaTargetGain:400, isaTransferTarget:'pen', isaTransferAmount:0, isaRemainMode:'keep', npsMonthly:0, npsStartAge:65,
-    severance:0, targetMonthly:200, withdrawMode:'swr', withdrawMonthly:0, postReturn:4.0, pensionStartAge:60, emergencyYears:3 };
+    severances:[], targetMonthly:200, withdrawMode:'swr', withdrawMonthly:0, postReturn:4.0, pensionStartAge:60, emergencyYears:3,
+    bridgeMonthly:0, bridgeCashout:0, bridgeAccount:'irp', bridgeAsset:'mix' };
 }
 let glide=[
   { fromAge:34, toAge:44, irp:{sp:49,nq:21,schd:0,tdf:30}, pen:{sp:60,nq:40,schd:0}, isa:{sp:70,nq:30,schd:0}, lock:{irp:{},pen:{},isa:{}} },
@@ -2316,9 +2319,39 @@ function blendRate(w,scKey){ scKey=scKey||scen; let t=0,s=0; for(const k in w){ 
 function monthlyTotal(c,age){ let t=c.baseMonthly; for(const ch of c.monthlyChanges){ if(age>=ch.fromAge&&age<=ch.toAge)t+=ch.delta; } return Math.max(0,t); }
 function monthlySplit(c,age){ const t=monthlyTotal(c,age); return {irp:t*c.alloc.irp/100, pen:t*c.alloc.pen/100, isa:t*c.alloc.isa/100, total:t}; }
 
+function applyRebal(pot, rb){
+  const acct=rb.acct; if(!pot[acct])return;
+  const from=rb.fromAsset, to=rb.toAsset;
+  if(!(from in pot[acct]) || !(to in pot[acct]))return;
+  const moveAmt=pot[acct][from]*(rb.pct/100);
+  pot[acct][from]-=moveAmt; pot[acct][to]+=moveAmt;
+}
+// 일괄/현금화/목표재배치 처리. 반환: {cashed, moved}
+function applyRebalAdvanced(pot, rb){
+  const accts=['irp','pen','isa']; let cashed=0, moved=0;
+  const type=rb.type||'single';
+  if(type==='single'){ const m=pot[rb.acct]?pot[rb.acct][rb.fromAsset]*(rb.pct/100):0; applyRebal(pot,rb); return {cashed:0,moved:m}; }
+  if(type==='bulk'){ // 모든 계좌에서 fromAsset의 pct%를 toAsset으로
+    for(const a of accts){ if(!pot[a]||!(rb.fromAsset in pot[a])||!(rb.toAsset in pot[a]))continue;
+      const m=pot[a][rb.fromAsset]*(rb.pct/100); pot[a][rb.fromAsset]-=m; pot[a][rb.toAsset]+=m; moved+=m; }
+    return {cashed:0,moved};
+  }
+  if(type==='cashout'){ // 모든 계좌의 모든 자산 pct%를 현금화
+    for(const a of accts){ if(!pot[a])continue; for(const k in pot[a]){ const m=pot[a][k]*(rb.pct/100); pot[a][k]-=m; cashed+=m; } }
+    return {cashed,moved:0};
+  }
+  if(type==='retarget'){ // 각 계좌를 목표비중으로 재배치
+    const w=rb.targetWeights||{}; const ws=Object.values(w).reduce((x,y)=>x+(y||0),0);
+    if(ws<=0)return {cashed:0,moved:0};
+    for(const a of accts){ if(!pot[a])continue; const tot=Object.values(pot[a]).reduce((x,y)=>x+y,0); if(tot<=0)continue;
+      for(const k in pot[a]){ pot[a][k]=tot*((w[k]||0)/ws); } moved+=tot; }
+    return {cashed:0,moved};
+  }
+  return {cashed:0,moved:0};
+}
 function simulateCase(c){
   const months=(c.retireAge-c.startAge)*12; const refundRate=creditRate(c.salary);
-  let irp=0,pen=0,isa=0,isaPrincipal=0,principalTotal=0,refundTotal=0;
+  let irp=0,pen=0,isa=0,isaPrincipal=0,principalTotal=0,refundTotal=0,severanceAppliedWon=0;
   let isaXferDone=false,isaXferAge=null,isaXferAmt=0,isaXferCredit=0,cashPot=0,isaCashAmt=0,rebalCashAmt=0;
   const bracketPrincipal=glide.map(()=>0); const rows=[];
 
@@ -2336,36 +2369,6 @@ function simulateCase(c){
   function addPrin(bi,acct,won,weights){
     if(bi<0)return; const ws=wsum(weights); if(ws<=0||won<=0)return;
     for(const k in bAssetPrin[bi][acct]){ bAssetPrin[bi][acct][k]+= won*(weights[k]||0)/ws; }
-  }
-  function applyRebal(pot, rb){
-    const acct=rb.acct; if(!pot[acct])return;
-    const from=rb.fromAsset, to=rb.toAsset;
-    if(!(from in pot[acct]) || !(to in pot[acct]))return;
-    const moveAmt=pot[acct][from]*(rb.pct/100);
-    pot[acct][from]-=moveAmt; pot[acct][to]+=moveAmt;
-  }
-  // 일괄/현금화/목표재배치 처리. 반환: {cashed, moved}
-  function applyRebalAdvanced(pot, rb){
-    const accts=['irp','pen','isa']; let cashed=0, moved=0;
-    const type=rb.type||'single';
-    if(type==='single'){ const m=pot[rb.acct]?pot[rb.acct][rb.fromAsset]*(rb.pct/100):0; applyRebal(pot,rb); return {cashed:0,moved:m}; }
-    if(type==='bulk'){ // 모든 계좌에서 fromAsset의 pct%를 toAsset으로
-      for(const a of accts){ if(!pot[a]||!(rb.fromAsset in pot[a])||!(rb.toAsset in pot[a]))continue;
-        const m=pot[a][rb.fromAsset]*(rb.pct/100); pot[a][rb.fromAsset]-=m; pot[a][rb.toAsset]+=m; moved+=m; }
-      return {cashed:0,moved};
-    }
-    if(type==='cashout'){ // 모든 계좌의 모든 자산 pct%를 현금화
-      for(const a of accts){ if(!pot[a])continue; for(const k in pot[a]){ const m=pot[a][k]*(rb.pct/100); pot[a][k]-=m; cashed+=m; } }
-      return {cashed,moved:0};
-    }
-    if(type==='retarget'){ // 각 계좌를 목표비중으로 재배치
-      const w=rb.targetWeights||{}; const ws=Object.values(w).reduce((x,y)=>x+(y||0),0);
-      if(ws<=0)return {cashed:0,moved:0};
-      for(const a of accts){ if(!pot[a])continue; const tot=Object.values(pot[a]).reduce((x,y)=>x+y,0); if(tot<=0)continue;
-        for(const k in pot[a]){ pot[a][k]=tot*((w[k]||0)/ws); } moved+=tot; }
-      return {cashed:0,moved};
-    }
-    return {cashed:0,moved:0};
   }
 
   for(let mi=1;mi<=months;mi++){
@@ -2399,6 +2402,13 @@ function simulateCase(c){
         else { addToPot('isa',amt,g.isa); isaPrincipal+=amt; addPrin(bi,'isa',amt,g.isa); }
         principalTotal+=amt; if(bi>=0)bracketPrincipal[bi]+=amt; yearLump+=amt;
         events.push({t:'lump',amt,target:l.target}); } }
+      // ── 중도퇴직 퇴직금 (은퇴나이 전에 지급되는 항목) ──
+      for(const sv of (c.severances||[])){ if(sv.atAge===age && age<c.retireAge){ const amt=manToWon(sv.amount);
+        if(sv.target==='irp'){ addToPot('irp',amt,g.irp); addPrin(bi,'irp',amt,g.irp); }
+        else if(sv.target==='pen'){ addToPot('pen',amt,g.pen); addPrin(bi,'pen',amt,g.pen); }
+        else { addToPot('isa',amt,g.isa); isaPrincipal+=amt; addPrin(bi,'isa',amt,g.isa); }
+        principalTotal+=amt; if(bi>=0)bracketPrincipal[bi]+=amt; yearLump+=amt; severanceAppliedWon+=amt;
+        events.push({t:'severance',amt,target:sv.target}); } }
       // ── 특정시기 자산 매도·재배치 ──
       for(const rb of gpRebal){ if(rb.atAge===age){
         const type=rb.type||'single';
@@ -2450,23 +2460,35 @@ function simulateCase(c){
       rows.push({ age:age+1, contribAge:age, irp:Math.round(irp), pen:Math.round(pen), isa:Math.round(isa),
         total:Math.round(total), totalReal:Math.round(total/rf), principalCum:Math.round(principalTotal),
         annualPrincipal:Math.round(annualPrincipal), annualRefund:Math.round(refund), events,
-        irpReal:Math.round(irp/rf), penReal:Math.round(pen/rf), isaReal:Math.round(isa/rf), xfer:(isaXferAge===age) });
+        irpReal:Math.round(irp/rf), penReal:Math.round(pen/rf), isaReal:Math.round(isa/rf), xfer:(isaXferAge===age), assetSnap:snap() });
     }
   }
-  // ── 퇴직금: 은퇴 시점 IRP로 입금 (과세이연) ──
-  const severanceWon=manToWon(c.severance||0);
-  if(severanceWon>0){
-    const g=glide[glide.length-1]||{irp:{}};
-    addToPot('irp',severanceWon,g.irp&&wsum(g.irp)>0?g.irp:{tdf:100});
-    principalTotal+=severanceWon;
-    if(rows.length){ const lr=rows[rows.length-1];
-      const newIrp=wsum(pot.irp), newTot=newIrp+wsum(pot.pen)+wsum(pot.isa);
+  // ── 퇴직금: 은퇴 나이 시점에 지급되는 항목은 여기서 일시 반영 (과세이연) ──
+  // atAge < retireAge(중도퇴직)는 위 월별 루프에서 이미 반영됨. atAge > retireAge(은퇴 이후 수령)는
+  // 글라이드패스 범위 밖이라 여기서 제외하고, 은퇴후 연도별 인출 시뮬레이션(buildRetirementProjection)에서 처리한다.
+  const severancesAtRetire=(c.severances||[]).filter(sv=>sv.atAge===c.retireAge);
+  const severancesAfterRetire=(c.severances||[]).filter(sv=>sv.atAge>c.retireAge);
+  if(severancesAtRetire.length){
+    const g=glide[glide.length-1]||{irp:{},pen:{},isa:{}};
+    let sumWon=0;
+    for(const sv of severancesAtRetire){
+      const amt=manToWon(sv.amount); sumWon+=amt; severanceAppliedWon+=amt;
+      const tgt=sv.target||'irp';
+      const gw=g[tgt]&&wsum(g[tgt])>0?g[tgt]:{tdf:100};
+      addToPot(tgt,amt,gw);
+      principalTotal+=amt;
+    }
+    if(rows.length && sumWon>0){ const lr=rows[rows.length-1];
+      const newIrp=wsum(pot.irp),newPen=wsum(pot.pen),newIsa=wsum(pot.isa),newTot=newIrp+newPen+newIsa;
       const rf=Math.pow(1+INFL/100,c.retireAge-c.startAge);
-      lr.irp=Math.round(newIrp); lr.total=Math.round(newTot); lr.totalReal=Math.round(newTot/rf);
-      lr.irpReal=Math.round(newIrp/rf); lr.principalCum=Math.round(principalTotal);
-      lr.events=(lr.events||[]).concat([{t:'severance',amt:severanceWon}]);
+      lr.irp=Math.round(newIrp); lr.pen=Math.round(newPen); lr.isa=Math.round(newIsa);
+      lr.total=Math.round(newTot); lr.totalReal=Math.round(newTot/rf);
+      lr.irpReal=Math.round(newIrp/rf); lr.penReal=Math.round(newPen/rf); lr.isaReal=Math.round(newIsa/rf);
+      lr.principalCum=Math.round(principalTotal);
+      lr.events=(lr.events||[]).concat(severancesAtRetire.map(sv=>({t:'severance',amt:manToWon(sv.amount),target:sv.target})));
     }
   }
+  const severanceWon=severanceAppliedWon;
   const bracketSummary=glide.map((b,bi)=>{
     const inRows=rows.filter(rr=>rr.contribAge>=b.fromAge&&rr.contribAge<=b.toAge);
     const valEnd=inRows.length?inRows[inRows.length-1].total:0;
@@ -2526,6 +2548,7 @@ function simulateCase(c){
   return { rows, principalTotal:Math.round(principalTotal), refundTotal:Math.round(refundTotal),
     isaXferAge, isaXferAmt:Math.round(isaXferAmt), isaXferCredit:Math.round(isaXferCredit),
     isaCashAmt:Math.round(isaCashAmt), rebalCashAmt:Math.round(rebalCashAmt), severance:Math.round(severanceWon),
+    severancesAfterRetire,
     divHold:Math.round(divHold), divMonthly:Math.round(divIncomeAnnual/12),
     bracketSummary, startAge:c.startAge, retireAge:c.retireAge };
 }
@@ -2550,9 +2573,10 @@ function simulateMerged(){
   const isaCashAmt=sims.reduce((a,s)=>a+(s.sim.isaCashAmt||0),0);
   const rebalCashAmt=sims.reduce((a,s)=>a+(s.sim.rebalCashAmt||0),0);
   const severance=sims.reduce((a,s)=>a+(s.sim.severance||0),0);
+  const severancesAfterRetire=sims.reduce((a,s)=>a.concat((s.sim.severancesAfterRetire||[]).map(sv=>({...sv,caseName:s.c.name}))),[]);
   const targetMonthly=sims.reduce((a,s)=>a+(s.c.targetMonthly||0),0);
   const names=sims.map(s=>s.c.name).join(' + ');
-  return { merged,last,principalTotal,refundTotal,divHold,divMonthly,isaCashAmt,rebalCashAmt,severance,targetMonthly,names,baseCase:sims[0].c,sims };
+  return { merged,last,principalTotal,refundTotal,divHold,divMonthly,isaCashAmt,rebalCashAmt,severance,severancesAfterRetire,targetMonthly,names,baseCase:sims[0].c,sims };
 }
 
 let mainChart=null;
@@ -2577,8 +2601,9 @@ function pfLoad(){
     if(typeof st.inflOn==='boolean')inflOn=st.inflOn;
     if(typeof st.activeCase==='number')activeCase=Math.max(0,Math.min(st.activeCase,cases.length-1));
     // 케이스 ISA 이전대상 기본값 보정
-    for(const c of cases){ if(!c.isaTransferTarget)c.isaTransferTarget='pen'; if(c.severance==null)c.severance=0; if(c.targetMonthly==null)c.targetMonthly=300;
-      if(!c.withdrawMode)c.withdrawMode='swr'; if(c.withdrawMonthly==null)c.withdrawMonthly=0; if(c.postReturn==null)c.postReturn=4.0; if(c.pensionStartAge==null)c.pensionStartAge=c.retireAge||60; if(c.emergencyYears==null)c.emergencyYears=3; }
+    for(const c of cases){ if(!c.isaTransferTarget)c.isaTransferTarget='pen'; if(c.severances==null){ c.severances=(c.severance>0)?[{atAge:c.retireAge,amount:c.severance,target:'irp'}]:[]; } delete c.severance; if(c.targetMonthly==null)c.targetMonthly=300;
+      if(!c.withdrawMode)c.withdrawMode='swr'; if(c.withdrawMonthly==null)c.withdrawMonthly=0; if(c.postReturn==null)c.postReturn=4.0; if(c.pensionStartAge==null)c.pensionStartAge=c.retireAge||60; if(c.emergencyYears==null)c.emergencyYears=3;
+      if(c.bridgeMonthly==null)c.bridgeMonthly=0; if(c.bridgeCashout==null)c.bridgeCashout=0; if(!c.bridgeAccount)c.bridgeAccount='irp'; if(!c.bridgeAsset)c.bridgeAsset='mix'; }
     if(typeof st.terOn==='boolean')terOn=st.terOn;
     if(typeof st.fxMode==='string')fxMode=st.fxMode;
     if(typeof st.fxDrift==='number')fxDrift=st.fxDrift;
@@ -3071,8 +3096,46 @@ function renderRebal(){
       ${ageDel}
       ${body}
       <div class="rebal-desc">${desc}</div>
+      ${renderRebalPreviewBar(getRebalCompositionPreview(rb))}
     </div>`;
   }).join('') || '<div style="font-size:10px;color:var(--text4);text-align:center;padding:8px">등록된 매도·재배치 시나리오가 없습니다</div>';
+}
+// ── 특정시기 매도·재배치 전후 자산 비중 변화 미리보기 ──
+function getRebalCompositionPreview(rb){
+  const c=cases[activeCase];
+  let sim; try{ sim=simulateCase(c); }catch(e){ return null; }
+  const emptyP={irp:emptyAssets(),pen:emptyAssets(),isa:emptyAssets()};
+  const beforeRow=sim.rows.find(r=>r.contribAge===rb.atAge-1);
+  const beforePot=beforeRow?beforeRow.assetSnap:(sim.rows[0]?sim.rows[0].assetSnap:emptyP);
+  const afterPot=JSON.parse(JSON.stringify(beforePot));
+  try{ applyRebalAdvanced(afterPot, rb); }catch(e){}
+  const sumByAsset=(pot)=>{ const out={}; for(const k of aKeys())out[k]=0;
+    for(const a of ['irp','pen','isa']){ for(const k in (pot[a]||{})) out[k]=(out[k]||0)+pot[a][k]; } return out; };
+  const before=sumByAsset(beforePot), after=sumByAsset(afterPot);
+  const totBefore=Object.values(before).reduce((a,b)=>a+b,0), totAfter=Object.values(after).reduce((a,b)=>a+b,0);
+  return {before,after,totBefore,totAfter,atAge:beforeRow?beforeRow.contribAge:rb.atAge};
+}
+function renderRebalPreviewBar(comp){
+  if(!comp||comp.totBefore<=0) return `<div style="font-size:9.5px;color:var(--text4);padding:6px 0">이 나이 이전 데이터가 아직 없어 미리보기를 계산할 수 없어요 (더 이른 나이거나, 시작나이 이전이에요).</div>`;
+  const keys=aKeys();
+  const mkBar=(dist,tot)=>keys.filter(k=>dist[k]>0).map(k=>{
+    const pct=tot>0?(dist[k]/tot*100):0;
+    return `<div style="width:${pct.toFixed(1)}%;background:${aColor(k)};height:100%" title="${aLabel(k)} ${pct.toFixed(0)}%"></div>`;
+  }).join('');
+  const legend=(dist,tot)=>keys.filter(k=>dist[k]>0).map(k=>{
+    const pct=tot>0?Math.round(dist[k]/tot*100):0;
+    return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;color:var(--text3);margin-right:8px"><span style="width:7px;height:7px;border-radius:2px;background:${aColor(k)};display:inline-block"></span>${aLabel(k)} ${pct}%</span>`;
+  }).join('');
+  return `
+    <div style="margin-top:8px;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:9px 10px">
+      <div style="font-size:9.5px;color:var(--text3);font-weight:700;margin-bottom:6px">📊 이 시점(${comp.atAge}세) 자산 비중 변화</div>
+      <div style="font-size:9px;color:var(--text4);margin-bottom:3px">매도 전 (${fmtS(comp.totBefore)})</div>
+      <div style="display:flex;height:16px;border-radius:5px;overflow:hidden;margin-bottom:3px">${mkBar(comp.before,comp.totBefore)}</div>
+      <div style="margin-bottom:8px">${legend(comp.before,comp.totBefore)}</div>
+      <div style="font-size:9px;color:var(--text4);margin-bottom:3px">매도·재배치 후 (${fmtS(comp.totAfter)})</div>
+      <div style="display:flex;height:16px;border-radius:5px;overflow:hidden;margin-bottom:3px">${mkBar(comp.after,comp.totAfter)}</div>
+      <div>${legend(comp.after,comp.totAfter)}</div>
+    </div>`;
 }
 function addRebal(){
   const c=cases[activeCase]; const act=activeAccounts(c);
@@ -3211,12 +3274,24 @@ function renderRetireSettings(){
     </div>
     <div class="box">
       <div class="box-t">🏢 ${c.name} 퇴직금 (DC/DB)</div>
-      <div class="box-s">은퇴 시점 IRP로 이전되는 퇴직금. 과세이연되며 은퇴자산에 합산됩니다.</div>
-      <div class="num-row">
-        <div class="num-cell"><div class="nl">예상 퇴직금 (만원)</div><input type="number" value="${c.severance||0}" onchange="PF.upd('severance',+this.value)"></div>
-        <div class="num-cell"><div class="nl">목표 월 생활비 (만원)</div><input type="number" value="${c.targetMonthly||0}" onchange="PF.upd('targetMonthly',+this.value)"></div>
-      </div>
-      <div style="font-size:10px;color:var(--text4);margin-top:4px">퇴직금은 은퇴 시점에 일시 반영(복리 미적용). 목표 생활비는 아래 '목표 달성 분석'에 사용됩니다.</div>
+      <div class="box-s">지정한 나이·계좌로 일시 반영되는 퇴직금. 여러 번 이직·중도퇴직한다면 각각 추가하세요. 은퇴나이(${c.retireAge}세) 이전 항목은 <b style="color:var(--accent2)">글라이드패스</b>에, 이후 항목은 <b style="color:var(--gold)">은퇴 후 연도별 인출 시뮬레이션</b>에 반영됩니다.</div>
+      <div id="sevList">${(c.severances||[]).map((sv,idx)=>{
+        const late=sv.atAge>c.retireAge;
+        return `<div class="chg-row" style="grid-template-columns:1fr 1.2fr 1.2fr auto">
+          <div class="chg-cell"><div class="nl">퇴직 나이</div><div class="chg-input"><input type="number" value="${sv.atAge}" onchange="PF.updSeverance(${idx},'atAge',+this.value)"><span class="chg-unit">세</span></div></div>
+          <div class="chg-cell"><div class="nl">퇴직금</div><div class="chg-input"><input type="number" value="${sv.amount}" onchange="PF.updSeverance(${idx},'amount',+this.value)"><span class="chg-unit">만</span></div></div>
+          <div class="chg-cell"><div class="nl">입금 계좌</div>
+            <select onchange="PF.updSeverance(${idx},'target',this.value)" style="background:transparent;border:none;border-bottom:1.5px solid var(--border2);color:var(--text);font-size:13px;font-weight:800;width:100%;outline:none;font-family:inherit">
+              <option value="irp" ${sv.target==='irp'?'selected':''}>IRP</option>
+              <option value="pen" ${sv.target==='pen'?'selected':''}>연금저축</option>
+              <option value="isa" ${sv.target==='isa'?'selected':''}>ISA</option>
+            </select></div>
+          <div class="btn-del" onclick="PF.delSeverance(${idx})">${icoX()}</div>
+        </div>
+        ${late?`<div style="font-size:9px;color:var(--gold);margin:-2px 0 8px 2px">📅 은퇴(${c.retireAge}세) 이후라 아래 '은퇴 후 연도별 인출 시뮬레이션'에 그 해 입금으로 반영돼요</div>`:''}`;
+      }).join('')}</div>
+      <button class="btn-add" onclick="PF.addSeverance()">${icoPlus()} 퇴직금 항목 추가</button>
+      <div style="font-size:10px;color:var(--text4);margin-top:8px">퇴직금은 해당 시점에 일시 반영(복리 미적용)되고 과세이연됩니다.</div>
     </div>
     <div class="box" style="border-color:rgba(245,158,11,.25)">
       <div class="box-t" style="color:var(--gold)">📤 ${c.name} 은퇴 인출·운용 계획</div>
@@ -3226,7 +3301,8 @@ function renderRetireSettings(){
         <button class="${(c.withdrawMode||'swr')==='swr'?'on':''}" onclick="PF.upd('withdrawMode','swr')">안전인출률 3.5%</button>
         <button class="${c.withdrawMode==='manual'?'on':''}" onclick="PF.upd('withdrawMode','manual')">월 인출액 직접</button>
       </div>
-      ${c.withdrawMode==='manual'?`<div class="num-row" style="margin-top:8px"><div class="num-cell"><div class="nl">월 인출 목표액 (만원)</div><input type="number" value="${c.withdrawMonthly||0}" onchange="PF.upd('withdrawMonthly',+this.value)"></div></div>`:''}
+      ${c.withdrawMode==='manual'?`<div class="num-row" style="margin-top:8px"><div class="num-cell"><div class="nl">월 인출 목표액 (만원)</div><input type="number" value="${c.withdrawMonthly||0}" onchange="PF.upd('withdrawMonthly',+this.value)"></div></div>`
+        :`<div class="num-row" style="margin-top:8px"><div class="num-cell"><div class="nl">목표 월 생활비 (만원, 선택)</div><input type="number" value="${c.targetMonthly||0}" onchange="PF.upd('targetMonthly',+this.value)"></div><div class="num-cell" style="background:transparent;border:none"><div style="font-size:8.5px;color:var(--text4);line-height:1.5;padding-top:2px">입력하면 3.5% 대신 이 금액 기준으로 인출을 계산하고, 아래 '목표 달성 분석'에도 쓰여요.</div></div></div>`}
       <div class="num-row" style="margin-top:8px">
         <div class="num-cell"><div class="nl">은퇴 후 운용수익률 (%)</div><input type="number" step="0.5" value="${c.postReturn||4}" onchange="PF.upd('postReturn',+this.value)"></div>
         <div class="num-cell"><div class="nl">사적연금 개시 나이</div><input type="number" value="${c.pensionStartAge||c.retireAge}" onchange="PF.upd('pensionStartAge',+this.value)"></div>
@@ -3236,6 +3312,32 @@ function renderRetireSettings(){
         <div class="num-cell" style="background:transparent;border:none"><div style="font-size:8.5px;color:var(--text4);line-height:1.5;padding-top:2px">비상금은 현금으로 따로 빼두어 <b style="color:var(--gold)">운용수익이 발생하지 않습니다</b>. 나머지 자산만 위 수익률로 굴러갑니다 (시퀀스 리스크 대비).</div></div>
       </div>
       <div style="font-size:9px;color:var(--text4);margin-top:6px;line-height:1.5">📌 사적연금(IRP·연금저축)은 만 55세부터 수령 가능. 은퇴 후 남은 자산 중 비상금을 뺀 금액이 설정한 수익률로 운용됩니다.</div>
+    </div>
+    <div class="box" style="border-color:rgba(155,133,246,.25)">
+      <div class="box-t" style="color:var(--accent2)">🌉 ${c.name} 국민연금 개시 전 공백기</div>
+      <div class="box-s">은퇴(${c.retireAge}세)부터 국민연금 개시(${c.npsStartAge||65}세) 전까지, 이 기간엔 국민연금 없이 버텨야 해요. 이 시기 전용 생활비와, 미리 현금화해 둘 자산·계좌를 직접 정해보세요. (0으로 두면 일반 계산을 그대로 씁니다)</div>
+      <div class="num-row">
+        <div class="num-cell"><div class="nl">이 시기 월 생활비 (만원)</div><input type="number" value="${c.bridgeMonthly||0}" onchange="PF.upd('bridgeMonthly',+this.value)"></div>
+        <div class="num-cell"><div class="nl">미리 현금화할 금액 (만원)</div><input type="number" value="${c.bridgeCashout||0}" onchange="PF.upd('bridgeCashout',+this.value)"></div>
+      </div>
+      <div class="num-row" style="margin-top:8px">
+        <div class="num-cell"><div class="nl">어느 계좌에서 팔까요</div>
+          <select onchange="PF.upd('bridgeAccount',this.value)" style="background:transparent;border:none;border-bottom:1.5px solid var(--border2);color:var(--text);font-size:14px;font-weight:800;width:100%;outline:none;font-family:inherit">
+            <option value="irp" ${c.bridgeAccount==='irp'?'selected':''}>IRP</option>
+            <option value="pen" ${c.bridgeAccount==='pen'?'selected':''}>연금저축</option>
+            <option value="isa" ${c.bridgeAccount==='isa'?'selected':''}>ISA</option>
+            <option value="mix" ${c.bridgeAccount==='mix'?'selected':''}>여러 계좌 섞어서</option>
+          </select></div>
+        <div class="num-cell"><div class="nl">어떤 자산을 팔까요</div>
+          <select onchange="PF.upd('bridgeAsset',this.value)" style="background:transparent;border:none;border-bottom:1.5px solid var(--border2);color:var(--text);font-size:14px;font-weight:800;width:100%;outline:none;font-family:inherit">
+            <option value="mix" ${c.bridgeAsset==='mix'?'selected':''}>전체 비례 매도</option>
+            <option value="sp" ${c.bridgeAsset==='sp'?'selected':''}>S&P500</option>
+            <option value="nq" ${c.bridgeAsset==='nq'?'selected':''}>나스닥100</option>
+            <option value="schd" ${c.bridgeAsset==='schd'?'selected':''}>SCHD</option>
+            <option value="tdf" ${c.bridgeAsset==='tdf'?'selected':''}>TDF</option>
+          </select></div>
+      </div>
+      <div style="font-size:9px;color:var(--text4);margin-top:6px;line-height:1.5">💡 현금화한 금액은 공백기 동안 <b style="color:var(--accent2)">가장 먼저 소진</b>되고(운용수익 없음), 부족하면 일반 운용자산에서 이어서 인출해요. <b style="color:var(--schd)">SCHD</b>를 팔면 그만큼 매도한 비율로 이후 배당수익도 줄어들어요.</div>
     </div>`;
 }
 
@@ -3414,19 +3516,37 @@ function buildRetirementProjection(m){
   const emergencyYears=baseCase.emergencyYears!=null?baseCase.emergencyYears:3;
   const withdrawMode=baseCase.withdrawMode||'swr';
   const withdrawMonthly=baseCase.withdrawMonthly||0;
-  const divAnnual=(m.divMonthly||0)*12; // SCHD 배당 연 (원)
+  let divAnnual=(m.divMonthly||0)*12; // SCHD 배당 연 (원)
+  // ── 국민연금 개시 전 공백기: 사용자가 지정한 생활비·현금화 규모·출처 계좌/자산 ──
+  const bridgeMonthly=baseCase.bridgeMonthly||0; // 만원, 이 기간 전용 월생활비 (0이면 일반 계산 사용)
+  const bridgeCashoutWon=manToWon(baseCase.bridgeCashout||0);
+  const bridgeAccount=baseCase.bridgeAccount||'irp';
+  const bridgeAsset=baseCase.bridgeAsset||'mix';
+  const ACC_LABEL={irp:'IRP',pen:'연금저축',isa:'ISA',mix:'여러 계좌'};
+  const ASSET_LABEL={sp:'S&P500',nq:'나스닥100',schd:'SCHD',tdf:'TDF',mix:'전체 비례'};
+  // SCHD 자산을 헐어 공백기 현금화하면, 그만큼 향후 배당수익도 줄어든다 (원금 매도分 비례 차감)
+  if(bridgeAsset==='schd' && bridgeCashoutWon>0 && (m.divHold||0)>0){
+    const soldRatio=Math.min(1, bridgeCashoutWon/m.divHold);
+    divAnnual=divAnnual*(1-soldRatio);
+  }
   // 1년차 필요 생활비(연, 원)
   let annualNeed0;
   if(withdrawMode==='manual'&&withdrawMonthly>0) annualNeed0=withdrawMonthly*12*10000;
   else if(targetMonthly>0) annualNeed0=targetMonthly*12*10000;
   else annualNeed0=Math.round(total*0.035);
+  const bridgeAnnual0=bridgeMonthly>0?bridgeMonthly*12*10000:null;
   // 비상금 = N년치 생활비(현금, 무수익), 과도하면 총자산 50% 제한
   let emergencyCash=Math.min(annualNeed0*emergencyYears, total*0.5);
-  let working=total-emergencyCash; let emerg=emergencyCash;
+  // 공백기 현금화(있다면 working에서 미리 떼어 별도 보관, 무수익 — '이 계좌·자산을 팔아 마련한 현금'이라는 의미를 유지)
+  let bridgeCash=Math.min(bridgeCashoutWon, Math.max(0,total-emergencyCash));
+  const bridgeCashInitWon=bridgeCash;
+  let working=total-emergencyCash-bridgeCash; let emerg=emergencyCash;
   const rows=[]; let depletedAge=null; const endAge=95;
+  const sevQueue=(m.severancesAfterRetire||[]).slice();
   for(let age=retireAge; age<=endAge; age++){
     const yr=age-retireAge;
-    const need=annualNeed0*Math.pow(1+inflR,yr);
+    const inBridge=age<npsStartAge;
+    const need=(inBridge&&bridgeAnnual0!=null)?bridgeAnnual0*Math.pow(1+inflR,yr):annualNeed0*Math.pow(1+inflR,yr);
     const nps=(age>=npsStartAge)?npsAnnual:0;
     const div=divAnnual; // 단순화: 배당 일정
     const taxRate=age<70?0.055:age<80?0.044:0.033;
@@ -3439,24 +3559,38 @@ function buildRetirementProjection(m){
     // 건보료 포함해 재계산
     withdrawGross=(baseShort+health)/(1-taxRate);
     const tax=withdrawGross*taxRate;
-    // 인출: 운용자산 먼저, 부족 시 비상금
-    let fromWorking=Math.min(Math.max(0,working), withdrawGross);
-    let fromEmerg=withdrawGross-fromWorking;
+    // 인출 순서: 공백기엔 '공백기 현금화 자산'을 먼저 소진 → 운용자산 → 비상금
+    let need2=withdrawGross;
+    let fromBridge=0;
+    if(inBridge&&bridgeCash>0){ fromBridge=Math.min(bridgeCash,need2); bridgeCash-=fromBridge; need2-=fromBridge; }
+    let fromWorking=Math.min(Math.max(0,working), need2);
+    let fromEmerg=need2-fromWorking;
     if(fromEmerg>emerg)fromEmerg=Math.max(0,emerg);
     working-=fromWorking; emerg-=fromEmerg;
-    // 운용자산 성장(연말)
+    // ── 은퇴 이후 시점에 지급되는 퇴직금(글라이드패스 범위 밖) 반영 ──
+    const sevEvents=[];
+    for(let k=sevQueue.length-1;k>=0;k--){ if(sevQueue[k].atAge===age){
+      const amt=manToWon(sevQueue[k].amount); working+=amt;
+      sevEvents.push({caseName:sevQueue[k].caseName,amt,target:sevQueue[k].target});
+      sevQueue.splice(k,1);
+    } }
+    // 운용자산 성장(연말) — 공백기 현금화분·비상금은 무수익 유지
     if(working>0)working*=(1+postRet);
-    const balance=Math.max(0,working)+Math.max(0,emerg);
-    const monthlyLiving=need/12; // 월 필요생활비
+    const balance=Math.max(0,working)+Math.max(0,emerg)+Math.max(0,bridgeCash);
+    const monthlyLiving=need/12; // 월 필요생활비 (명목, 그 해 물가 반영)
+    const monthlyLivingReal=monthlyLiving/Math.pow(1+inflR,yr); // 오늘(은퇴시점) 가치 기준 실질값 — 매년 거의 동일해야 정상
     const monthlyAvail=(nps+div+withdrawGross-tax-health)/12; // 세후 월 수령가능
+    const divMonthlyWon=div/12;
     if(balance<=0 && depletedAge==null) depletedAge=age;
-    rows.push({ age, balance:Math.round(balance), working:Math.round(Math.max(0,working)), emerg:Math.round(Math.max(0,emerg)),
-      monthlyLiving:Math.round(monthlyLiving/10000), withdrawAnnual:Math.round(withdrawGross/10000),
+    rows.push({ age, balance:Math.round(balance), working:Math.round(Math.max(0,working)), emerg:Math.round(Math.max(0,emerg)), bridgeCash:Math.round(Math.max(0,bridgeCash)),
+      monthlyLiving:Math.round(monthlyLiving/10000), monthlyLivingReal:Math.round(monthlyLivingReal/10000), withdrawAnnual:Math.round(withdrawGross/10000),
       tax:Math.round(tax/10000), health:Math.round(health/10000), nps:Math.round(nps/12/10000),
+      divMonthly:Math.round(divMonthlyWon/10000), inBridge, sevEvents,
       monthlyAvail:Math.round(monthlyAvail/10000) });
     if(balance<=0)break;
   }
-  return { rows, depletedAge, emergencyCash:Math.round(emergencyCash), annualNeed0:Math.round(annualNeed0), endAge };
+  return { rows, depletedAge, emergencyCash:Math.round(emergencyCash), bridgeCashInit:Math.round(bridgeCashInitWon), annualNeed0:Math.round(annualNeed0), endAge,
+    bridgeMonthly, bridgeAccount, bridgeAsset, accLabel:ACC_LABEL, assetLabel:ASSET_LABEL, npsStartAge };
 }
 let retProjChart=null;
 function renderRetProjection(m){
@@ -3467,36 +3601,45 @@ function renderRetProjection(m){
   const depWarn=pj.depletedAge!=null
     ? `<div class="proj-warn">🚨 <b>자산 소멸 경고</b>: 현재 설정으로는 <b style="color:var(--minus)">${pj.depletedAge}세</b>에 자산이 모두 소진됩니다. 인출액·생활비를 줄이거나, 운용수익률·은퇴자산을 높여야 합니다.</div>`
     : `<div class="proj-ok">✅ ${pj.endAge}세까지 자산이 유지됩니다. (현재 설정 기준)</div>`;
-  // 표: 5년 단위 + 소멸 직전 (모바일 가독성). 가로 스크롤로 전체 컬럼
+  // 표: 5년 단위 + 소멸 직전 + 퇴직금 이벤트 발생 연도 + 공백기 종료 연도 (모바일 가독성). 가로 스크롤로 전체 컬럼
   const showAges=new Set();
   for(const r of pj.rows){ if((r.age-retireAge)%5===0||r.age===retireAge)showAges.add(r.age); }
   if(pj.depletedAge!=null)showAges.add(pj.depletedAge);
+  for(const r of pj.rows){ if(r.sevEvents&&r.sevEvents.length)showAges.add(r.age); if(r.age===pj.npsStartAge)showAges.add(r.age); }
   const dispRows=pj.rows.filter(r=>showAges.has(r.age));
+  const accL=pj.accLabel,astL=pj.assetLabel;
   const tableRows=dispRows.map(r=>{
     const danger=pj.depletedAge!=null&&r.age>=pj.depletedAge-2;
+    const sevBadge=(r.sevEvents&&r.sevEvents.length)?`<div style="font-size:8.5px;color:var(--gold);margin-top:2px">🏢+${r.sevEvents.map(e=>fmtS(e.amt)).join(', ')}</div>`:'';
     return `<tr class="${danger?'proj-row-danger':''}">
-      <td>${r.age}세</td>
+      <td>${r.age}세${r.inBridge?'<div style="font-size:8px;color:var(--purple)">공백기</div>':''}${sevBadge}</td>
       <td style="color:${r.balance<=0?'var(--minus)':'var(--accent2)'};font-weight:700">${r.balance<=0?'소멸':fmt(r.balance)}</td>
-      <td>${r.monthlyLiving.toLocaleString()}만</td>
+      <td>${r.monthlyLiving.toLocaleString()}만<div style="font-size:8.5px;color:var(--text4);font-weight:500">(오늘가치 ${r.monthlyLivingReal.toLocaleString()}만)</div></td>
       <td style="color:var(--gold)">${r.withdrawAnnual.toLocaleString()}만</td>
       <td style="color:var(--minus)">${(r.tax+r.health).toLocaleString()}만</td>
       <td style="color:var(--blue)">${r.nps>0?r.nps.toLocaleString()+'만':'-'}</td>
+      <td style="color:var(--schd)">${r.divMonthly>0?r.divMonthly.toLocaleString()+'만':'-'}</td>
       <td style="color:var(--schd);font-weight:700">${r.monthlyAvail.toLocaleString()}만</td>
     </tr>`;
   }).join('');
+  const bridgeInfo=pj.bridgeCashInit>0||pj.bridgeMonthly>0
+    ? `<div class="box-s" style="background:rgba(155,133,246,.08);border:1px solid rgba(155,133,246,.25);border-radius:8px;padding:7px 10px;margin:8px 0">🌉 <b style="color:var(--accent2)">국민연금 개시 전 공백기(${retireAge}~${pj.npsStartAge-1}세)</b>: ${pj.bridgeMonthly>0?`월 <b>${pj.bridgeMonthly.toLocaleString()}만원</b> 생활비, `:''}${pj.bridgeCashInit>0?`<b>${accL[pj.bridgeAccount]}</b> 계좌의 <b>${astL[pj.bridgeAsset]}</b>를 매도해 <b>${fmt(pj.bridgeCashInit)}</b>을 현금으로 미리 마련해 이 기간에 우선 사용합니다.`:'별도 현금화 없이 운용자산에서 인출합니다.'}</div>`
+    : '';
   el.innerHTML=`
     <div class="box" style="border-color:rgba(126,98,243,.25)">
       <div class="box-t" style="color:var(--accent2)">📅 은퇴 후 연도별 자산·인출 시뮬레이션</div>
       <div class="box-s">은퇴 시점 <b>${fmt(m.last.total)}</b> 기준 · 비상금 <b>${fmt(pj.emergencyCash)}</b>(${emgY}년치, 현금) 분리 후 나머지를 연 ${((baseCase.postReturn!=null?baseCase.postReturn:4))}% 운용 · 물가 ${INFL}% 반영</div>
+      ${bridgeInfo}
+      <div style="font-size:9.5px;color:var(--gold);background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:7px 10px;margin:8px 0">⚠️ 표의 <b>월생활비·연인출 금액은 '명목금액'</b>이에요. 매년 물가상승률(${INFL}%)만큼 숫자가 커지지만, <b>실제 구매력(오늘 돈 가치로 환산한 실질금액)은 거의 동일</b>하게 유지돼요 — 돈이 계속 더 필요해지는 게 아니라 화폐가치가 그만큼 떨어지는 거예요. 괄호 안 '오늘가치'가 실질 기준입니다.</div>
       ${depWarn}
       <div class="proj-chart-wrap"><canvas id="retProjCanvas"></canvas></div>
       <div class="proj-tbl-scroll">
         <table class="proj-tbl">
-          <thead><tr><th>나이</th><th>자산잔액</th><th>월생활비</th><th>연인출</th><th>세금+건보</th><th>국민연금</th><th>월수령</th></tr></thead>
+          <thead><tr><th>나이</th><th>자산잔액</th><th>월생활비<br><span style="font-weight:500;font-size:8px">(명목/오늘가치)</span></th><th>연인출</th><th>세금+건보</th><th>국민연금</th><th>📈배당<br><span style="font-weight:500;font-size:8px">(SCHD)</span></th><th>월수령</th></tr></thead>
           <tbody>${tableRows}</tbody>
         </table>
       </div>
-      <div class="proj-note">💡 <b>자산잔액</b>=그 해 말 운용자산+비상금 · <b>연인출</b>=운용자산서 빼는 금액(세전) · <b>세금+건보</b>=연금소득세+건강보험료 · <b>월수령</b>=세후 실제 손에 쥐는 월 금액(국민연금·배당 포함). 표는 5년 단위 요약이며 그래프는 매년 기준입니다.</div>
+      <div class="proj-note">💡 <b>자산잔액</b>=그 해 말 운용자산+비상금+공백기현금 · <b>연인출</b>=운용자산서 빼는 금액(세전, 명목) · <b>세금+건보</b>=연금소득세+건강보험료 · <b>📈배당</b>=SCHD 등 배당자산에서 매도 없이 들어오는 월 배당금 · <b>월수령</b>=세후 실제 손에 쥐는 월 금액(국민연금·배당 포함, 명목). 🏢 표시는 그 해 반영된 퇴직금입니다. 표는 5년 단위 요약이며 그래프는 매년 기준입니다.</div>
     </div>`;
   // 차트 (매년 자산잔액)
   if(typeof Chart==='undefined'){ schedulePfChartRetry(); }
@@ -3508,14 +3651,14 @@ function renderRetProjection(m){
       const liveData=pj.rows.map(r=>r.monthlyLiving);
       const ds=[
         {label:'자산잔액(억)',data:balData,borderColor:'#9b85f6',backgroundColor:'rgba(155,133,246,.12)',borderWidth:2,fill:true,tension:.25,pointRadius:0,yAxisID:'y'},
-        {label:'월 생활비(만)',data:liveData,borderColor:'#f59e0b',borderWidth:1.4,fill:false,tension:.25,pointRadius:0,yAxisID:'y1',borderDash:[4,3]},
+        {label:'월 생활비-명목(만)',data:liveData,borderColor:'#f59e0b',borderWidth:1.4,fill:false,tension:.25,pointRadius:0,yAxisID:'y1',borderDash:[4,3]},
       ];
       const annotations=[];
       retProjChart=new Chart(cv,{type:'line',data:{labels,datasets:ds},
         options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
           plugins:{legend:{labels:{color:'#9a9aa5',font:{size:9},boxWidth:10}},
             tooltip:{callbacks:{title:(t)=>t[0].label+'세',
-              label:(c)=>c.dataset.label.includes('억')?`자산 ${c.raw}억`:`월생활비 ${c.raw}만`}}},
+              label:(c)=>c.dataset.label.includes('억')?`자산 ${c.raw}억`:`월생활비(명목) ${c.raw}만 — 실질구매력은 거의 동일`}}},
           scales:{
             x:{ticks:{color:'#6a6a72',font:{size:8},maxTicksLimit:10},grid:{display:false}},
             y:{position:'left',ticks:{color:'#9b85f6',font:{size:8},callback:v=>v+'억'},grid:{color:'rgba(60,60,68,.3)'},beginAtZero:true},
@@ -3773,11 +3916,11 @@ function applyPreset(kind){
   const c=cases[activeCase];
   const presets={
     young:{ name:c.name, salary:3500, baseMonthly:50, startAge:28, retireAge:60,
-      alloc:{irp:30,pen:40,isa:30}, lumpsums:[], isaTargetGain:400, isaTransferTarget:'pen', severance:0, targetMonthly:250, npsMonthly:0, npsStartAge:65 },
+      alloc:{irp:30,pen:40,isa:30}, lumpsums:[], isaTargetGain:400, isaTransferTarget:'pen', severances:[], targetMonthly:250, npsMonthly:0, npsStartAge:65 },
     mid:{ name:c.name, salary:7000, baseMonthly:120, startAge:43, retireAge:60,
-      alloc:{irp:50,pen:35,isa:15}, lumpsums:[{atAge:45,amount:3000,target:'pen'}], isaTargetGain:500, isaTransferTarget:'pen', severance:5000, targetMonthly:350, npsMonthly:0, npsStartAge:65 },
+      alloc:{irp:50,pen:35,isa:15}, lumpsums:[{atAge:45,amount:3000,target:'pen'}], isaTargetGain:500, isaTransferTarget:'pen', severances:[{atAge:60,amount:5000,target:'irp'}], targetMonthly:350, npsMonthly:0, npsStartAge:65 },
     near:{ name:c.name, salary:8000, baseMonthly:200, startAge:53, retireAge:62,
-      alloc:{irp:45,pen:35,isa:20}, lumpsums:[{atAge:54,amount:5000,target:'irp'}], isaTargetGain:300, isaTransferTarget:'pen', severance:15000, targetMonthly:400, npsMonthly:0, npsStartAge:65 },
+      alloc:{irp:45,pen:35,isa:20}, lumpsums:[{atAge:54,amount:5000,target:'irp'}], isaTargetGain:300, isaTransferTarget:'pen', severances:[{atAge:62,amount:15000,target:'irp'}], targetMonthly:400, npsMonthly:0, npsStartAge:65 },
   };
   const p=presets[kind]; if(!p)return;
   Object.assign(c, p, { enabled:c.enabled, allocLock:{irp:false,pen:false,isa:false}, reinvestRefund:true,
@@ -3812,6 +3955,9 @@ function upd(key,val){ cases[activeCase][key]=val; render(); }
 function addLump(){ cases[activeCase].lumpsums.push({atAge:cases[activeCase].startAge+1,amount:1000,target:'pen'}); render(); }
 function delLump(i){ cases[activeCase].lumpsums.splice(i,1); render(); }
 function updLump(i,k,v){ cases[activeCase].lumpsums[i][k]=v; render(); }
+function addSeverance(){ const c=cases[activeCase]; if(!c.severances)c.severances=[]; c.severances.push({atAge:c.retireAge,amount:2000,target:'irp'}); render(); }
+function delSeverance(i){ cases[activeCase].severances.splice(i,1); render(); }
+function updSeverance(i,k,v){ cases[activeCase].severances[i][k]=v; render(); }
 function addChange(){ const c=cases[activeCase]; c.monthlyChanges.push({fromAge:c.startAge+7,toAge:c.startAge+11,delta:50}); render(); }
 function delChange(i){ cases[activeCase].monthlyChanges.splice(i,1); render(); }
 function updChange(i,k,v){ cases[activeCase].monthlyChanges[i][k]=v; render(); }
@@ -3898,7 +4044,7 @@ function refreshGlideStats(i){
 }
 
 
-window.PF={addAsset, addBracket, addCase, addCaseAsPreset, addChange, addLump, addRebal, applyCasePreset, applyPreset, copyPresetToNewCase, delAsset, delBracket, delCase, delChange, delLump, delRebal, deleteCasePreset, glStep, hideTip, liveGlide, onAllocInput, onSlide, render, renameAsset, saveActiveCaseToPreset, selectCase, setFx, setFxDrift, setScen, showTip, slSet, slStep, toggleAssetLock, toggleBracketLock, toggleEnabled, toggleInfl, toggleLock, toggleSavedPanel, toggleScenAcc, toggleSec, toggleTer, toggleYearAcc, upd, updBracket, updChange, updLump, updRate, updRebal, updRebalTarget, updTer};
+window.PF={addAsset, addBracket, addCase, addCaseAsPreset, addChange, addLump, addRebal, addSeverance, applyCasePreset, applyPreset, copyPresetToNewCase, delAsset, delBracket, delCase, delChange, delLump, delRebal, delSeverance, deleteCasePreset, glStep, hideTip, liveGlide, onAllocInput, onSlide, render, renameAsset, saveActiveCaseToPreset, selectCase, setFx, setFxDrift, setScen, showTip, slSet, slStep, toggleAssetLock, toggleBracketLock, toggleEnabled, toggleInfl, toggleLock, toggleSavedPanel, toggleScenAcc, toggleSec, toggleTer, toggleYearAcc, upd, updBracket, updChange, updLump, updRate, updRebal, updRebalTarget, updSeverance, updTer};
 try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
 })();
   </script>
