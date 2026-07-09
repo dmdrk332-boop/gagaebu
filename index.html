@@ -391,8 +391,10 @@ body.dark-mode .chip{background:#141414 !important;border:1px solid rgba(255,255
 body.dark-mode .chip.active{background:#B3FF3B !important;color:#0a0a0a !important;border-color:#B3FF3B !important;font-weight:700 !important}
 
 /* 보조 버튼/배지: 퍼플 */
-body.dark-mode .add-btn,
-body.dark-mode .tab-month-badge{background:rgba(126,98,243,.18) !important;border:1px solid rgba(126,98,243,.5) !important;color:#b9a6ff !important;border-radius:12px !important}
+body.dark-mode .add-btn{background:rgba(126,98,243,.18) !important;border:1px solid rgba(126,98,243,.5) !important;color:#b9a6ff !important;border-radius:12px !important}
+/* 날짜기준(YYYY.MM 기준) 배지: 모든 탭에서 라이트=검정, 다크=흰색으로 통일 */
+body.dark-mode .tab-month-badge{background:rgba(126,98,243,.18) !important;border:1px solid rgba(126,98,243,.5) !important;color:#ffffff !important;border-radius:12px !important}
+body.light-mode .tab-month-badge{color:#1C1C1E !important}
 
 /* 버튼 */
 body.dark-mode .btn{border-radius:14px !important}
@@ -871,10 +873,12 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       <div class="hero-num" id="h-balance">0원</div>
       <div class="hero-row">
         <div class="hero-item"><div class="hero-item-label">💵 수입</div><div class="hero-item-val" id="h-inc" style="color:var(--blue)">0원</div></div>
-        <div class="hero-item"><div class="hero-item-label">💸 지출</div><div class="hero-item-val" id="h-exp" style="color:var(--red)">0원</div></div>
-        <div class="hero-item"><div class="hero-item-label">🏛️ 대출</div><div class="hero-item-val" id="h-loan" style="color:var(--red)">0원</div></div>
-        <div class="hero-item"><div class="hero-item-label">📌 고정</div><div class="hero-item-val" id="h-fixed" style="color:var(--fixedexp)">0원</div></div>
         <div class="hero-item"><div class="hero-item-label">🏦 적금</div><div class="hero-item-val" id="h-sav" style="color:var(--c-sav)">0원</div></div>
+      </div>
+      <div class="hero-row" style="margin-top:8px">
+        <div class="hero-item"><div class="hero-item-label">💸 지출</div><div class="hero-item-val" id="h-exp" style="color:var(--red)">0원</div></div>
+        <div class="hero-item"><div class="hero-item-label">📌 고정</div><div class="hero-item-val" id="h-fixed" style="color:var(--fixedexp)">0원</div></div>
+        <div class="hero-item"><div class="hero-item-label">🏛️ 대출</div><div class="hero-item-val" id="h-loan" style="color:var(--red)">0원</div></div>
       </div>
       <div id="h-flow" style="margin-top:16px"></div>
     </div>
@@ -6256,7 +6260,7 @@ function renderHome(){
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
           <span style="width:9px;height:9px;border-radius:3px;background:var(--red);flex-shrink:0"></span>
           <span style="font-size:calc(11px * var(--fs,1));color:var(--text2);flex:1">남은 잔액</span>
-          <span style="font-size:calc(12px * var(--fs,1));font-weight:700;color:#3E3E3E">${fmtShort2(sumBalance)}</span>
+          <span style="font-size:calc(12px * var(--fs,1));font-weight:700;color:var(--red)">${fmtShort2(sumBalance)}</span>
         </div>
         <div style="padding-top:7px;border-top:1px solid var(--border);display:flex;justify-content:space-between">
           <span style="font-size:calc(11px * var(--fs,1));color:var(--text3)">총 대출액</span>
@@ -6286,7 +6290,7 @@ function renderHome(){
         <div class="prog-bar" style="height:11px"><div class="prog-fill" style="width:${pct}%;background:var(--minus)"></div></div>
         <div style="display:flex;justify-content:space-between;margin-top:4px">
           <span style="font-size:calc(10px * var(--fs,1));color:var(--minus)">✓ ${pct.toFixed(1)}% 상환</span>
-          <span style="font-size:calc(10px * var(--fs,1));color:var(--text3)">남은 잔액 <b style="color:#3E3E3E">${fmt(entry.balance)}</b></span>
+          <span style="font-size:calc(10px * var(--fs,1));color:var(--text3)">남은 잔액 <b style="color:var(--red)">${fmt(entry.balance)}</b></span>
         </div>
       </div>`);
     });
@@ -6620,7 +6624,7 @@ function renderIncDetail(t){
   if(grossAll>0&&net!=null){
     inc[t]=String(net);lss('inc:'+mk(),inc);
     const inp=document.getElementById('i-'+t);
-    if(inp&&document.activeElement!==inp)inp.value=net;
+    if(inp&&document.activeElement!==inp)inp.value=fmtNum(net);
     document.getElementById('i-total').textContent=fmt(num(inc.me)+num(inc.sp)+incExtra(inc));
   }else{lss('inc:'+mk(),inc);}
   const dedRows=deds.map((d,i)=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
@@ -8144,7 +8148,7 @@ function renderFixed(){
   const total=activeFixed.length,pct=total?Math.round(checkedCount/total*100):0;
   const progEl=document.getElementById('fx-check-progress');
   if(total>0){progEl.innerHTML=`<div class="fx-progress">
-    ${svgRing(pct,'var(--green)',62,pct+'%','완료')}
+    ${svgRing(pct,'var(--purple)',62,pct+'%','완료')}
     <div style="flex:1">
       <div style="font-size:calc(13px * var(--fs,1));color:var(--green);font-weight:700;margin-bottom:3px">✅ 이번 달 납부 현황</div>
       <div style="font-size:calc(12px * var(--fs,1));color:var(--text2)"><b style="color:var(--purple);font-size:calc(16px * var(--fs,1))">${checkedCount}</b> / ${total}건 납부 완료</div>
@@ -8178,38 +8182,38 @@ function renderFixed(){
         </div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-            <input class="inline-input" style="font-size:calc(14px * var(--fs,1));font-weight:${checked?600:500};color:${active?nameColor:'var(--text3)'};flex:1;${checked?'text-decoration:line-through;':''}"
+            <input class="inline-input" style="font-size:calc(14px * var(--fs,1));font-weight:700;color:${active?nameColor:'var(--text3)'};flex:1;${checked?'text-decoration:line-through;':''}"
               value="${f.name}" placeholder="항목명" onchange="updFixed(${i},'name',this.value)"/>
             ${!active&&f.startYM?`<span style="font-size:calc(9px * var(--fs,1));color:var(--text4);background:var(--card);border:1px solid var(--border2);padding:2px 6px;border-radius:99px;flex-shrink:0">⏳ ${f.startYM} 시작</span>`:''}
             ${!active&&f.endYM?`<span style="font-size:calc(9px * var(--fs,1));color:#f87171;background:var(--card);border:1px solid var(--red-border);padding:2px 6px;border-radius:99px;flex-shrink:0">🏁 ${f.endYM} 종료</span>`:''}
           </div>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-            <input type="text" inputmode="numeric" class="inline-input money-input" style="color:${amtColor};width:90px;border-bottom:1px solid var(--border2);font-weight:600"
+            <input type="text" inputmode="numeric" class="inline-input money-input" style="color:${amtColor};width:90px;border-bottom:1px solid var(--border2);font-weight:700"
               value="${fmtNum(f.amount)}" placeholder="${f.isBudget?'월 예산':'월 금액'}" onchange="updFixed(${i},'amount',this.value)"/>
-            <input class="inline-input" style="flex:1;min-width:50px;border-bottom:1px solid var(--border2);color:${noteColor}"
+            <input class="inline-input" style="flex:1;min-width:50px;border-bottom:1px solid var(--border2);color:${noteColor};font-weight:700"
               value="${f.note||''}" placeholder="메모" onchange="updFixed(${i},'note',this.value)"/>
-            <input class="inline-input" style="width:60px;border-bottom:1px solid var(--purple-border);color:var(--purple);font-size:calc(11px * var(--fs,1))"
+            <input class="inline-input" style="width:60px;border-bottom:1px solid var(--purple-border);color:var(--purple);font-size:calc(11px * var(--fs,1));font-weight:700"
               value="${f.group||''}" placeholder="그룹명" onchange="setFixedGroup(${i},this.value)"/>
           </div>
           <div style="display:flex;gap:5px;margin-top:7px">
             ${(()=>{
               const fxType=f.isTransfer?'transfer':(f.isBudget?'budget':'fixed');
-              const opts=[['fixed','📌','고정형',{bg:'var(--card2)',bd:'var(--border2)',tx:'var(--text3)'}],
-                          ['budget','📊','예산형',{bg:'var(--blue-dim)',bd:'var(--blue-border)',tx:'#9a9a95'}],
-                          ['transfer','🔁','단순이체',{bg:'var(--purple-dim)',bd:'var(--purple-border)',tx:'var(--purple)'}]];
-              return opts.map(([t,ic,label,on])=>{
+              const onStyle={bg:'var(--purple-dim)',bd:'var(--purple-border)',tx:'var(--purple)'};
+              const opts=[['fixed','📌','고정형'],['budget','📊','예산형'],['transfer','🔁','단순이체']];
+              return opts.map(([t,ic,label])=>{
                 const active=fxType===t;
-                return `<button onclick="setFxType(${i},'${t}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:5px 4px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:calc(10px * var(--fs,1));font-weight:600;border:1px solid ${active?on.bd:'var(--border2)'};background:${active?on.bg:'var(--card2)'};color:${active?on.tx:'var(--text3)'}">${ic} ${label}</button>`;
+                return `<button onclick="setFxType(${i},'${t}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:5px 4px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:calc(10px * var(--fs,1));font-weight:600;border:1px solid ${active?onStyle.bd:'var(--border2)'};background:${active?onStyle.bg:'var(--card2)'};color:${active?onStyle.tx:'var(--text3)'}">${ic} ${label}</button>`;
               }).join('');
             })()}
           </div>
           ${f.isTransfer?`<div style="font-size:calc(9px * var(--fs,1));color:var(--text4);margin-top:5px">💡 단순이체는 계좌 간 자동이체 확인용으로, 지출·고정지출 합계에 포함되지 않아요.</div>`:''}
           ${(!f.isBudget&&!f.isTransfer)?(()=>{
             const fc=CAT_MAP[f.cat||'etc']||CAT_MAP.etc;
+            const selColor=(CAT_MAP.home||{}).color||'#F55B93';
             return `<div style="margin-top:7px">
               <div style="font-size:calc(9px * var(--fs,1));color:var(--text4);margin-bottom:5px">카테고리 (지출 분포에 반영돼요)</div>
               <div style="display:flex;flex-wrap:wrap;gap:5px">
-                ${CATS.map(c=>`<button onclick="updFixed(${i},'cat','${c.id}')" style="font-size:calc(10px * var(--fs,1));font-weight:600;padding:5px 9px;border-radius:99px;cursor:pointer;font-family:inherit;border:1px solid ${c.id===(f.cat||'etc')?c.color:'var(--border2)'};background:${c.id===(f.cat||'etc')?c.color+'22':'var(--card2)'};color:${c.id===(f.cat||'etc')?c.color:'var(--text3)'}">${c.icon} ${c.label}</button>`).join('')}
+                ${CATS.map(c=>`<button onclick="updFixed(${i},'cat','${c.id}')" style="font-size:calc(10px * var(--fs,1));font-weight:600;padding:5px 9px;border-radius:99px;cursor:pointer;font-family:inherit;border:1px solid ${c.id===(f.cat||'etc')?selColor:'var(--border2)'};background:${c.id===(f.cat||'etc')?selColor+'22':'var(--card2)'};color:${c.id===(f.cat||'etc')?selColor:'var(--text3)'}">${c.icon} ${c.label}</button>`).join('')}
               </div>
             </div>`;
           })():''}
