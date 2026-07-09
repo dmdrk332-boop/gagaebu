@@ -871,11 +871,12 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div class="hero-card" id="h-hero">
       <div class="hero-sub">💰 이달 총액 <span style="font-size:calc(9px * var(--fs,1));color:var(--text3)">(수입 - 지출 - 고정 - 대출 - 적금)</span></div>
       <div class="hero-num" id="h-balance">0원</div>
-      <div class="hero-row">
+      <div class="hero-row" style="display:grid;grid-template-columns:repeat(3,1fr);margin-top:16px">
         <div class="hero-item"><div class="hero-item-label">💵 수입</div><div class="hero-item-val" id="h-inc" style="color:var(--blue)">0원</div></div>
         <div class="hero-item"><div class="hero-item-label">🏦 적금</div><div class="hero-item-val" id="h-sav" style="color:var(--c-sav)">0원</div></div>
+        <div class="hero-item" id="h-dep-slot"></div>
       </div>
-      <div class="hero-row" style="margin-top:8px">
+      <div class="hero-row" style="display:grid;grid-template-columns:repeat(3,1fr);margin-top:8px">
         <div class="hero-item"><div class="hero-item-label">💸 지출</div><div class="hero-item-val" id="h-exp" style="color:var(--red)">0원</div></div>
         <div class="hero-item"><div class="hero-item-label">📌 고정</div><div class="hero-item-val" id="h-fixed" style="color:var(--fixedexp)">0원</div></div>
         <div class="hero-item"><div class="hero-item-label">🏛️ 대출</div><div class="hero-item-val" id="h-loan" style="color:var(--red)">0원</div></div>
