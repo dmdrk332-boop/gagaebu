@@ -5920,7 +5920,7 @@ function renderHome(){
   const totalExp=exps.filter(e=>!budgetFixedIds.includes(e.fixedId)).reduce((a,e)=>a+num(e.amount),0);
   // 고정지출: 일반형은 고정액, 예산형은 연결된 실제 지출만 반영(중복 방지)
   const totalFixed=fixed.filter(f=>isFxActive(f,curYear,curMonth)).reduce((a,f)=>{
-    if(f.isTransfer||f.savLink||f.loanLink)return a; // 단순이체·적금연동·대출연동: 합산 제외 (중복방지)
+    if(f.isTransfer||f.savLink||f.loanLink||f.invLink)return a; // 단순이체·적금연동·대출연동·투자연동: 합산 제외 (중복방지)
     if(f.isBudget){
       // 예산형: 이 항목에 연결된 지출탭 기록 합계
       const used=exps.filter(e=>e.fixedId===f.id).reduce((s,e)=>s+num(e.amount),0);
@@ -6358,7 +6358,7 @@ function renderAnnual(){
     // 예산형 고정항목: 실제 지출 반영 / 일반형: 정액
     const budgetFxIds=fixed.filter(f=>f.isBudget).map(f=>f.id);
     const mFixed=fixed.filter(f=>isFxActive(f,annualYear,m)).reduce((a,f)=>{
-      if(f.isTransfer||f.savLink||f.loanLink)return a; // 단순이체·적금연동·대출연동: 합산 제외 (중복방지)
+      if(f.isTransfer||f.savLink||f.loanLink||f.invLink)return a; // 단순이체·적금연동·대출연동·투자연동: 합산 제외 (중복방지)
       if(f.isBudget)return a+exps.filter(e=>e.fixedId===f.id).reduce((s,e)=>s+num(e.amount),0);
       return a+num(f.amount);
     },0);
@@ -6936,13 +6936,13 @@ function renderExpCalendar(){
   const addDot=(d,color)=>{if(d>=1&&d<=31){(dotsByDay[d]=dotsByDay[d]||[]);if(!dotsByDay[d].includes(color))dotsByDay[d].push(color);}};
   exps.forEach(e=>{const d=dayOf(e.date);if(d)addDot(d,CAL_TYPE_COLORS.expense);});
   const fixedActive=(ls('budget:fixed')||getDefaultFixed()).filter(f=>isFxActive(f,curYear,curMonth));
-  fixedActive.forEach(f=>{const d=num(f.autoDay);if(d>=1&&d<=31)addDot(d,CAL_TYPE_COLORS.fixed);});
+  fixedActive.forEach(f=>{const d=num(f.instDay||f.autoDay);if(d>=1&&d<=31)addDot(d,CAL_TYPE_COLORS.fixed);});
   const legend=calLegendHTML();
   let detail;
   if(!expSelDay){detail=calTapHint('날짜를 탭하면 그날 지출 내역이 보여요');}
   else{
     const list=exps.filter(e=>dayOf(e.date)===expSelDay);
-    const fxList=fixedActive.filter(f=>num(f.autoDay)===expSelDay);
+    const fxList=fixedActive.filter(f=>num(f.instDay||f.autoDay)===expSelDay);
     const tot=byDay[expSelDay]||0;
     detail=`<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
       <div style="display:flex;align-items:center;justify-content:space-between">
@@ -6959,12 +6959,12 @@ function expCalSel(d){expSelDay=(expSelDay===d?null:d);renderExpCalendar();}
 function renderFxCalendar(){
   const el=document.getElementById('fx-calendar');if(!el)return;
   const fixed=(ls('budget:fixed')||getDefaultFixed()).filter(f=>isFxActive(f,curYear,curMonth));
-  const byDay={};fixed.forEach(f=>{if(f.isTransfer||f.savLink||f.loanLink)return;const d=num(f.autoDay);if(d>=1&&d<=31)byDay[d]=(byDay[d]||0)+num(f.amount);});
+  const byDay={};fixed.forEach(f=>{if(f.isTransfer||f.savLink||f.loanLink||f.invLink)return;const d=num(f.instDay||f.autoDay);if(d>=1&&d<=31)byDay[d]=(byDay[d]||0)+num(f.amount);});
   const hasAny=Object.keys(byDay).length>0;
   let detail;
-  if(!fxSelDay){detail=calTapHint(hasAny?'날짜를 탭하면 그날 고정지출이 보여요':'각 항목의 🗓 자동이체일을 입력하면 달력에 표시돼요');}
+  if(!fxSelDay){detail=calTapHint(hasAny?'날짜를 탭하면 그날 고정지출이 보여요':'각 항목의 🗓 자동이체일(또는 출금일)을 입력하면 달력에 표시돼요');}
   else{
-    const list=fixed.filter(f=>num(f.autoDay)===fxSelDay);
+    const list=fixed.filter(f=>num(f.instDay||f.autoDay)===fxSelDay);
     const tot=byDay[fxSelDay]||0;
     detail=`<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
       <div style="display:flex;align-items:center;justify-content:space-between">
@@ -6985,7 +6985,7 @@ function getCombinedCategoryBreakdown(y,m){
   const fixedList=ls('budget:fixed')||getDefaultFixed();
   const byCat={};
   const ensure=id=>{ if(!byCat[id])byCat[id]={fixed:0,var:0}; return byCat[id]; };
-  fixedList.filter(f=>!f.isBudget&&!f.isTransfer&&!f.savLink&&!f.loanLink&&isFxActive(f,yy,mm)).forEach(f=>{
+  fixedList.filter(f=>!f.isBudget&&!f.isTransfer&&!f.savLink&&!f.loanLink&&!f.invLink&&isFxActive(f,yy,mm)).forEach(f=>{
     const id=f.cat||'etc'; ensure(id).fixed+=num(f.amount);
   });
   exps.forEach(e=>{ const id=e.cat||'etc'; ensure(id).var+=num(e.amount); });
@@ -8100,10 +8100,25 @@ function isLoanActiveNow(loan,y,m){
   const sch=getLoanSchedule(loan);
   return sch.some(e=>e.year===y&&e.month===m);
 }
+// 투자연동용: id 없는 구버전 보유종목에 id 부여 후 반환
+function ensureHoldingIds(){
+  const h=ls('invest-holdings')||[];
+  let changed=false;
+  h.forEach((x,idx)=>{if(!x.id){x.id='hold_'+Date.now()+'_'+idx;changed=true;}});
+  if(changed)lss('invest-holdings',h);
+  return h;
+}
+// 해당 연/월 시점까지 이력이 있으면(=이미 보유 시작) 활성으로 간주
+function isHoldingActiveNow(h,y,m){
+  if(!h.history||!h.history.length)return false;
+  const curYm=y+'-'+String(m).padStart(2,'0');
+  return h.history.some(x=>x.ym&&x.ym<=curYm);
+}
 function setFxLink(i,kind,val){
   const f=ls('budget:fixed')||getDefaultFixed();
-  if(kind==='sav'){f[i].savLink=val||'';if(val)f[i].loanLink='';}
-  else{f[i].loanLink=val||'';if(val)f[i].savLink='';}
+  if(kind==='sav'){f[i].savLink=val||'';if(val){f[i].loanLink='';f[i].invLink='';}}
+  else if(kind==='loan'){f[i].loanLink=val||'';if(val){f[i].savLink='';f[i].invLink='';}}
+  else{f[i].invLink=val||'';if(val){f[i].savLink='';f[i].loanLink='';}}
   lss('budget:fixed',f);renderFixed();renderHome();
 }
 // 자동이체일이 지났는지 판정 (보고 있는 달 기준, 저장 안 함)
@@ -8152,7 +8167,7 @@ function renderFixed(){
   const fixed=fixedAll; // 리스트는 전체 표시
   const expsCur=ls('exp:'+mk())||[];
   // 예산형은 실제 지출, 일반형은 정액
-  const fxAmount=f=>(f.isTransfer||f.savLink||f.loanLink)?0:(f.isBudget?expsCur.filter(e=>e.fixedId===f.id).reduce((s,e)=>s+num(e.amount),0):num(f.amount));
+  const fxAmount=f=>(f.isTransfer||f.savLink||f.loanLink||f.invLink)?0:(f.isBudget?expsCur.filter(e=>e.fixedId===f.id).reduce((s,e)=>s+num(e.amount),0):num(f.amount));
   // 이번 달 활성 항목만 합계에 반영 (시작년월 이후)
   const activeFixed=fixedAll.filter(f=>isFxActive(f,curYear,curMonth));
   const totalM=activeFixed.reduce((a,f)=>a+fxAmount(f),0);
@@ -8239,19 +8254,25 @@ function renderFixed(){
           ${(()=>{
             const savCfgs=(ls('saving-configs')||[]).filter(c=>isSavingActiveNow(c,curYear,curMonth));
             const loans=(ls('loans')||[]).filter(l=>isLoanActiveNow(l,curYear,curMonth));
+            const holdings=ensureHoldingIds().filter(h=>isHoldingActiveNow(h,curYear,curMonth));
             const linkedSav=f.savLink?savCfgs.find(c=>c.id===f.savLink):null;
             const linkedLoan=f.loanLink?loans.find(l=>l.id===f.loanLink):null;
-            return `<div style="display:flex;gap:6px;margin-top:6px">
-              <select onchange="setFxLink(${i},'sav',this.value)" style="flex:1;font-size:calc(10px * var(--fs,1));font-weight:600;padding:5px 6px;border-radius:8px;border:1px solid ${f.savLink?'var(--c-sav)':'var(--border2)'};background:${f.savLink?'var(--c-sav)22':'var(--card2)'};color:${f.savLink?'var(--c-sav)':'var(--text3)'};font-family:inherit">
+            const linkedInv=f.invLink?holdings.find(h=>h.id===f.invLink):null;
+            return `<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+              <select onchange="setFxLink(${i},'sav',this.value)" style="flex:1;min-width:90px;font-size:calc(10px * var(--fs,1));font-weight:600;padding:5px 6px;border-radius:8px;border:1px solid ${f.savLink?'var(--c-sav)':'var(--border2)'};background:${f.savLink?'var(--c-sav)22':'var(--card2)'};color:${f.savLink?'var(--c-sav)':'var(--text3)'};font-family:inherit">
                 <option value="">🏦 적금연동 안함</option>
                 ${savCfgs.map(c=>`<option value="${c.id}" ${f.savLink===c.id?'selected':''}>🏦 ${c.name}</option>`).join('')}
               </select>
-              <select onchange="setFxLink(${i},'loan',this.value)" style="flex:1;font-size:calc(10px * var(--fs,1));font-weight:600;padding:5px 6px;border-radius:8px;border:1px solid ${f.loanLink?'var(--red-border)':'var(--border2)'};background:${f.loanLink?'var(--red-dim)':'var(--card2)'};color:${f.loanLink?'var(--red)':'var(--text3)'};font-family:inherit">
+              <select onchange="setFxLink(${i},'loan',this.value)" style="flex:1;min-width:90px;font-size:calc(10px * var(--fs,1));font-weight:600;padding:5px 6px;border-radius:8px;border:1px solid ${f.loanLink?'var(--red-border)':'var(--border2)'};background:${f.loanLink?'var(--red-dim)':'var(--card2)'};color:${f.loanLink?'var(--red)':'var(--text3)'};font-family:inherit">
                 <option value="">🏛️ 대출연동 안함</option>
                 ${loans.map(l=>`<option value="${l.id}" ${f.loanLink===l.id?'selected':''}>🏛️ ${l.name}</option>`).join('')}
               </select>
+              <select onchange="setFxLink(${i},'inv',this.value)" style="flex:1;min-width:90px;font-size:calc(10px * var(--fs,1));font-weight:600;padding:5px 6px;border-radius:8px;border:1px solid ${f.invLink?'var(--accent-border)':'var(--border2)'};background:${f.invLink?'var(--accent-dim)':'var(--card2)'};color:${f.invLink?'var(--accent)':'var(--text3)'};font-family:inherit">
+                <option value="">📈 투자연동 안함</option>
+                ${holdings.map(h=>`<option value="${h.id}" ${f.invLink===h.id?'selected':''}>📈 ${h.name||'(이름없음)'}</option>`).join('')}
+              </select>
             </div>
-            ${(linkedSav||linkedLoan)?`<div style="font-size:calc(9px * var(--fs,1));color:var(--text4);margin-top:4px">💡 ${linkedSav?linkedSav.name:linkedLoan.name}(으)로 연동되어 고정지출 합계에서 제외돼요 (해당 탭에서 별도 집계)</div>`:''}`;
+            ${(linkedSav||linkedLoan||linkedInv)?`<div style="font-size:calc(9px * var(--fs,1));color:var(--text4);margin-top:4px">💡 ${linkedSav?linkedSav.name:linkedLoan?linkedLoan.name:(linkedInv.name||'(이름없음)')}(으)로 연동되어 고정지출 합계에서 제외돼요 (해당 탭에서 별도 집계)</div>`:''}`;
           })()}
           ${f.isTransfer?`<div style="font-size:calc(9px * var(--fs,1));color:var(--text4);margin-top:5px">💡 단순이체는 계좌 간 자동이체 확인용으로, 지출·고정지출 합계에 포함되지 않아요.</div>`:''}
           ${(!f.isBudget&&!f.isTransfer)?(()=>{
@@ -9453,7 +9474,7 @@ function drawHoldingGraph(svgId,hist){
   });
   svg.innerHTML=svgContent;
 }
-function addHolding(){const h=ls('invest-holdings')||[];h.push({name:'',history:[{ym:mk(),cost:'',value:''}]});lss('invest-holdings',h);renderHoldings();renderHome();}
+function addHolding(){const h=ls('invest-holdings')||[];h.push({id:'hold_'+Date.now(),name:'',history:[{ym:mk(),cost:'',value:''}]});lss('invest-holdings',h);renderHoldings();renderHome();}
 function updHolding(i,k,v){const h=ls('invest-holdings')||[];h[i][k]=v;lss('invest-holdings',h);renderHoldings();renderHome();}
 function delHolding(i){showConfirm('삭제할까요?',()=>{const h=ls('invest-holdings')||[];h.splice(i,1);lss('invest-holdings',h);renderHoldings();renderHome();},{danger:true,okLabel:'삭제'});}
 function addHoldHist(i){const h=ls('invest-holdings')||[];if(!h[i].history)h[i].history=[];h[i].history.push({ym:mk(),cost:'',value:''});lss('invest-holdings',h);renderHoldings();renderHome();}
