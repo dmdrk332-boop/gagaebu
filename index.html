@@ -5920,7 +5920,7 @@ function renderHome(){
   const totalExp=exps.filter(e=>!budgetFixedIds.includes(e.fixedId)).reduce((a,e)=>a+num(e.amount),0);
   // 고정지출: 일반형은 고정액, 예산형은 연결된 실제 지출만 반영(중복 방지)
   const totalFixed=fixed.filter(f=>isFxActive(f,curYear,curMonth)).reduce((a,f)=>{
-    if(f.isTransfer)return a; // 단순이체: 합산 제외 (체크용)
+    if(f.isTransfer||f.savLink||f.loanLink)return a; // 단순이체·적금연동·대출연동: 합산 제외 (중복방지)
     if(f.isBudget){
       // 예산형: 이 항목에 연결된 지출탭 기록 합계
       const used=exps.filter(e=>e.fixedId===f.id).reduce((s,e)=>s+num(e.amount),0);
@@ -6358,7 +6358,7 @@ function renderAnnual(){
     // 예산형 고정항목: 실제 지출 반영 / 일반형: 정액
     const budgetFxIds=fixed.filter(f=>f.isBudget).map(f=>f.id);
     const mFixed=fixed.filter(f=>isFxActive(f,annualYear,m)).reduce((a,f)=>{
-      if(f.isTransfer)return a; // 단순이체: 합산 제외 (체크용)
+      if(f.isTransfer||f.savLink||f.loanLink)return a; // 단순이체·적금연동·대출연동: 합산 제외 (중복방지)
       if(f.isBudget)return a+exps.filter(e=>e.fixedId===f.id).reduce((s,e)=>s+num(e.amount),0);
       return a+num(f.amount);
     },0);
@@ -6959,7 +6959,7 @@ function expCalSel(d){expSelDay=(expSelDay===d?null:d);renderExpCalendar();}
 function renderFxCalendar(){
   const el=document.getElementById('fx-calendar');if(!el)return;
   const fixed=(ls('budget:fixed')||getDefaultFixed()).filter(f=>isFxActive(f,curYear,curMonth));
-  const byDay={};fixed.forEach(f=>{if(f.isTransfer)return;const d=num(f.autoDay);if(d>=1&&d<=31)byDay[d]=(byDay[d]||0)+num(f.amount);});
+  const byDay={};fixed.forEach(f=>{if(f.isTransfer||f.savLink||f.loanLink)return;const d=num(f.autoDay);if(d>=1&&d<=31)byDay[d]=(byDay[d]||0)+num(f.amount);});
   const hasAny=Object.keys(byDay).length>0;
   let detail;
   if(!fxSelDay){detail=calTapHint(hasAny?'날짜를 탭하면 그날 고정지출이 보여요':'각 항목의 🗓 자동이체일을 입력하면 달력에 표시돼요');}
@@ -6985,7 +6985,7 @@ function getCombinedCategoryBreakdown(y,m){
   const fixedList=ls('budget:fixed')||getDefaultFixed();
   const byCat={};
   const ensure=id=>{ if(!byCat[id])byCat[id]={fixed:0,var:0}; return byCat[id]; };
-  fixedList.filter(f=>!f.isBudget&&!f.isTransfer&&isFxActive(f,yy,mm)).forEach(f=>{
+  fixedList.filter(f=>!f.isBudget&&!f.isTransfer&&!f.savLink&&!f.loanLink&&isFxActive(f,yy,mm)).forEach(f=>{
     const id=f.cat||'etc'; ensure(id).fixed+=num(f.amount);
   });
   exps.forEach(e=>{ const id=e.cat||'etc'; ensure(id).var+=num(e.amount); });
@@ -8078,6 +8078,34 @@ function isFxActive(f,y,m){
   }
   return true;
 }
+// 종료월이 지났는지 (시작 전 항목은 계속 표시, 종료 지난 항목만 목록에서 제외)
+function isFxEnded(f,y,m){
+  if(!f.endYM)return false;
+  const[ey,em]=f.endYM.split('-').map(Number);
+  return y>ey||(y===ey&&m>em);
+}
+// 적금·대출 연동용: 해당 연/월에 이 계좌가 활성 상태인지
+function isSavingActiveNow(cfg,y,m){
+  if(cfg.startDate){
+    const[sy,sm]=cfg.startDate.split('-').map(Number);
+    if(y<sy||(y===sy&&m<sm))return false;
+  }
+  if(cfg.endDate){
+    const[ey,em]=cfg.endDate.split('-').map(Number);
+    if(y>ey||(y===ey&&m>em))return false;
+  }
+  return true;
+}
+function isLoanActiveNow(loan,y,m){
+  const sch=getLoanSchedule(loan);
+  return sch.some(e=>e.year===y&&e.month===m);
+}
+function setFxLink(i,kind,val){
+  const f=ls('budget:fixed')||getDefaultFixed();
+  if(kind==='sav'){f[i].savLink=val||'';if(val)f[i].loanLink='';}
+  else{f[i].loanLink=val||'';if(val)f[i].savLink='';}
+  lss('budget:fixed',f);renderFixed();renderHome();
+}
 // 자동이체일이 지났는지 판정 (보고 있는 달 기준, 저장 안 함)
 function isAutoPassed(autoDay){
   const ad=parseInt(autoDay);
@@ -8094,7 +8122,7 @@ function isFxChecked(f){
   const manual=checks[f.id];
   if(manual==='on')return true;    // 사용자가 직접 체크
   if(manual==='off')return false;  // 사용자가 직접 해제
-  return isAutoPassed(f.autoDay);  // 조작 안 했으면 자동이체일 기준
+  return isAutoPassed(f.instDay||f.autoDay);  // 출금일(기관) 입력 시 우선 적용, 없으면 자동이체일 기준
 }
 function toggleCheck(id){
   const fixed=ls('budget:fixed')||getDefaultFixed();
@@ -8124,7 +8152,7 @@ function renderFixed(){
   const fixed=fixedAll; // 리스트는 전체 표시
   const expsCur=ls('exp:'+mk())||[];
   // 예산형은 실제 지출, 일반형은 정액
-  const fxAmount=f=>f.isTransfer?0:(f.isBudget?expsCur.filter(e=>e.fixedId===f.id).reduce((s,e)=>s+num(e.amount),0):num(f.amount));
+  const fxAmount=f=>(f.isTransfer||f.savLink||f.loanLink)?0:(f.isBudget?expsCur.filter(e=>e.fixedId===f.id).reduce((s,e)=>s+num(e.amount),0):num(f.amount));
   // 이번 달 활성 항목만 합계에 반영 (시작년월 이후)
   const activeFixed=fixedAll.filter(f=>isFxActive(f,curYear,curMonth));
   const totalM=activeFixed.reduce((a,f)=>a+fxAmount(f),0);
@@ -8157,11 +8185,12 @@ function renderFixed(){
     </div>
   </div>`;}else{progEl.innerHTML='';}
 
-  // 그룹별 항목 렌더링
+  // 그룹별 항목 렌더링 (종료월이 지난 항목은 목록에서도 제외)
   const listEl=document.getElementById('fx-list');
   let html='';
   groups.forEach(g=>{
-    const items=fixed.map((f,i)=>({...f,_i:i})).filter(f=>(f.group||'기본')===g);
+    const items=fixed.map((f,i)=>({...f,_i:i})).filter(f=>(f.group||'기본')===g&&!isFxEnded(f,curYear,curMonth));
+    if(!items.length)return; // 표시할 항목이 없으면 그룹 자체를 숨김
     const gTotal=items.filter(f=>isFxActive(f,curYear,curMonth)).reduce((a,f)=>a+fxAmount(f),0);
     html+=`<div style="margin-bottom:16px">
       <div class="fx-group-header">
@@ -8207,6 +8236,23 @@ function renderFixed(){
               }).join('');
             })()}
           </div>
+          ${(()=>{
+            const savCfgs=(ls('saving-configs')||[]).filter(c=>isSavingActiveNow(c,curYear,curMonth));
+            const loans=(ls('loans')||[]).filter(l=>isLoanActiveNow(l,curYear,curMonth));
+            const linkedSav=f.savLink?savCfgs.find(c=>c.id===f.savLink):null;
+            const linkedLoan=f.loanLink?loans.find(l=>l.id===f.loanLink):null;
+            return `<div style="display:flex;gap:6px;margin-top:6px">
+              <select onchange="setFxLink(${i},'sav',this.value)" style="flex:1;font-size:calc(10px * var(--fs,1));font-weight:600;padding:5px 6px;border-radius:8px;border:1px solid ${f.savLink?'var(--c-sav)':'var(--border2)'};background:${f.savLink?'var(--c-sav)22':'var(--card2)'};color:${f.savLink?'var(--c-sav)':'var(--text3)'};font-family:inherit">
+                <option value="">🏦 적금연동 안함</option>
+                ${savCfgs.map(c=>`<option value="${c.id}" ${f.savLink===c.id?'selected':''}>🏦 ${c.name}</option>`).join('')}
+              </select>
+              <select onchange="setFxLink(${i},'loan',this.value)" style="flex:1;font-size:calc(10px * var(--fs,1));font-weight:600;padding:5px 6px;border-radius:8px;border:1px solid ${f.loanLink?'var(--red-border)':'var(--border2)'};background:${f.loanLink?'var(--red-dim)':'var(--card2)'};color:${f.loanLink?'var(--red)':'var(--text3)'};font-family:inherit">
+                <option value="">🏛️ 대출연동 안함</option>
+                ${loans.map(l=>`<option value="${l.id}" ${f.loanLink===l.id?'selected':''}>🏛️ ${l.name}</option>`).join('')}
+              </select>
+            </div>
+            ${(linkedSav||linkedLoan)?`<div style="font-size:calc(9px * var(--fs,1));color:var(--text4);margin-top:4px">💡 ${linkedSav?linkedSav.name:linkedLoan.name}(으)로 연동되어 고정지출 합계에서 제외돼요 (해당 탭에서 별도 집계)</div>`:''}`;
+          })()}
           ${f.isTransfer?`<div style="font-size:calc(9px * var(--fs,1));color:var(--text4);margin-top:5px">💡 단순이체는 계좌 간 자동이체 확인용으로, 지출·고정지출 합계에 포함되지 않아요.</div>`:''}
           ${(!f.isBudget&&!f.isTransfer)?(()=>{
             const fc=CAT_MAP[f.cat||'etc']||CAT_MAP.etc;
@@ -8237,10 +8283,14 @@ function renderFixed(){
             </div>`;
           })():''}
           <div style="display:flex;flex-direction:column;gap:7px;margin-top:7px">
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:calc(10px * var(--fs,1));color:var(--text4);width:78px;flex-shrink:0">🗓 자동이체일</span>
-              <input type="number" class="inline-input" style="width:48px;border-bottom:1px solid var(--border2);color:var(--blue);font-size:calc(12px * var(--fs,1));font-weight:600;text-align:center"
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:6px">
+              <span style="font-size:calc(10px * var(--fs,1));color:var(--text4);flex-shrink:0">🗓 자동이체일</span>
+              <input type="number" class="inline-input" style="width:40px;border-bottom:1px solid var(--border2);color:var(--blue);font-size:calc(12px * var(--fs,1));font-weight:600;text-align:center"
                 value="${f.autoDay||''}" placeholder="일" min="1" max="31" onchange="updFixed(${i},'autoDay',this.value)"/>
+              <span style="font-size:calc(10px * var(--fs,1));color:var(--text4)">일</span>
+              <span style="font-size:calc(10px * var(--fs,1));color:var(--text4);flex-shrink:0;margin-left:6px">🏦 출금일(기관)</span>
+              <input type="number" class="inline-input" style="width:40px;border-bottom:1px solid var(--gold);color:var(--gold);font-size:calc(12px * var(--fs,1));font-weight:600;text-align:center"
+                value="${f.instDay||''}" placeholder="일" min="1" max="31" onchange="updFixed(${i},'instDay',this.value)" title="입력하면 자동이체일 대신 이 날짜 기준으로 완료 체크돼요"/>
               <span style="font-size:calc(10px * var(--fs,1));color:var(--text4)">일</span>
             </div>
             <div style="display:flex;align-items:center;gap:6px">
