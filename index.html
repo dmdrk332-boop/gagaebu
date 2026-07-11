@@ -9033,10 +9033,10 @@ function generateTaxPdf(year,person){
   <div class="wrap">
   <!-- ───────── 좌측: Ⅳ 정산명세서 소득공제 ───────── -->
   <div class="col left"><table>
-    <colgroup><col style="width:16px"><col style="width:38px"><col style="width:46px"><col><col style="width:40px"><col style="width:82px"></colgroup>
-    <tr><td rowspan="40" class="vlbl">Ⅳ정산명세서</td><td colspan="4">21.총급여(16. 외국인단일세율시 연간근로소득)</td><td class="amt b">${f(r.gross)}</td></tr>
-    <tr><td colspan="4">22.근로소득공제</td><td class="amt">${f(r.earnedDed)}</td></tr>
-    <tr><td colspan="4" class="b">23.근로소득금액</td><td class="amt b">${f(r.earnedIncome)}</td></tr>
+    <colgroup><col style="width:16px"><col style="width:30px"><col style="width:40px"><col style="width:76px"><col><col style="width:38px"><col style="width:84px"></colgroup>
+    <tr><td rowspan="40" class="vlbl">Ⅳ정산명세서</td><td colspan="5">21.총급여(16. 외국인단일세율시 연간근로소득)</td><td class="amt b">${f(r.gross)}</td></tr>
+    <tr><td colspan="5">22.근로소득공제</td><td class="amt">${f(r.earnedDed)}</td></tr>
+    <tr><td colspan="5" class="b">23.근로소득금액</td><td class="amt b">${f(r.earnedIncome)}</td></tr>
     <!-- 종합소득공제 세로라벨 -->
     <tr><td rowspan="37" class="vlbl">종합소득공제</td><td rowspan="7" class="vlbl gray" style="letter-spacing:1px">기본·추가공제</td><td colspan="3">24.본　인</td><td class="amt">${f(r.basicSelf)}</td></tr>
     <tr><td colspan="3">25.배 우 자</td><td class="amt">${f(r.hasSpouse)}</td></tr>
@@ -9066,7 +9066,7 @@ function generateTaxPdf(year,person){
     <tr><td colspan="2" class="gray ctr">소　계</td><td class="amt">${f(r.housingRentDed+r.housingLoanDed)}</td></tr>
     <tr><td colspan="2" class="b">35.특별소득공제 계</td><td class="amt b">${f(r.specialIncomeDed)}</td></tr>
     <!-- 그밖의 소득공제 -->
-    <tr><td rowspan="11" class="vlbl gray" style="letter-spacing:0">그밖의소득공제</td><td colspan="3">37.개인연금저축</td><td class="amt">${f(r.pensionSavingOld)}</td></tr>
+    <tr><td rowspan="12" class="vlbl gray" style="letter-spacing:0">그밖의소득공제</td><td colspan="3">37.개인연금저축</td><td class="amt">${f(r.pensionSavingOld)}</td></tr>
     <tr><td colspan="3">38.소기업·소상공인 공제부금</td><td class="amt">${f(r.smeFund)}</td></tr>
     <tr><td rowspan="3">39.주택<br>마련저축</td><td colspan="2">㉮청약저축</td><td class="amt">${f(r.housingSubscriptionOld)}</td></tr>
     <tr><td colspan="2">㉯주택청약종합저축</td><td class="amt">${f(r.housingSaving)}</td></tr>
@@ -9078,7 +9078,7 @@ function generateTaxPdf(year,person){
     <tr><td colspan="3">44.장기집합투자증권저축</td><td class="amt">${f(r.longtermFund)}</td></tr>
     <tr><td colspan="3">45.청년형장기집합투자증권저축</td><td class="amt">${f(r.youthFund)}</td></tr>
     <tr><td colspan="3" class="b">46.그밖의 소득공제 계</td><td class="amt b">${f(r.otherIncomeDed)}</td></tr>
-    <tr><td colspan="5" class="b gray">36.종합소득공제 합계</td><td class="amt b">${f(r.totalDeduction)}</td></tr>
+    <tr><td colspan="6" class="b gray">36.종합소득공제 합계</td><td class="amt b">${f(r.totalDeduction)}</td></tr>
   </table></div>
   <!-- ───────── 우측: 세액감면·세액공제 ───────── -->
   <div class="col right"><table>
@@ -9094,7 +9094,7 @@ function generateTaxPdf(year,person){
     <tr><td colspan="4">(56)혼인세액공제</td><td class="amt">${f(r.marriageCredit)}</td></tr>
     <tr><td rowspan="2">(57)자녀</td><td colspan="3">공제대상자녀(${f(n(d.children))||0} 명)</td><td class="amt">${f(r.childCredit)}</td></tr>
     <tr><td colspan="3">출산·입양자(${f(n(d.birthChild))||0} 명)</td><td class="amt">${f(r.birthCredit)}</td></tr>
-    <tr><td rowspan="10" class="vlbl gray" style="letter-spacing:1px">연금계좌</td><td rowspan="2">(58)과학기술인공제</td><td colspan="2" class="gray ctr">대상금액</td><td class="amt">${f(r.cappedScience)}</td></tr>
+    <tr><td rowspan="9" class="vlbl gray" style="letter-spacing:1px">연금계좌</td><td rowspan="2">(58)과학기술인공제</td><td colspan="2" class="gray ctr">대상금액</td><td class="amt">${f(r.cappedScience)}</td></tr>
     <tr><td colspan="2" class="gray ctr">세액공제액</td><td class="amt">${f(r.scienceCredit)}</td></tr>
     <tr><td rowspan="2">(59)근로자퇴직급여</td><td colspan="2" class="gray ctr">대상금액</td><td class="amt">${f(r.cappedWorker)}</td></tr>
     <tr><td colspan="2" class="gray ctr">세액공제액</td><td class="amt">${f(r.workerCredit)}</td></tr>
@@ -9104,7 +9104,7 @@ function generateTaxPdf(year,person){
     <tr><td colspan="2" class="gray ctr">세액공제액</td><td class="amt">${f(r.isaCredit)}</td></tr>
     <tr><td colspan="3" class="gray ctr b">연금계좌 세액공제 계</td><td class="amt b">${f(r.pensionCredit+r.isaCredit)}</td></tr>
     <!-- 특별세액공제 -->
-    <tr><td rowspan="17" class="vlbl gray" style="letter-spacing:1px">특별세액공제</td><td rowspan="4">(61)보험료</td><td rowspan="2">보장성</td><td class="gray ctr">대상</td><td class="amt">${f(n(d.insurance))}</td></tr>
+    <tr><td rowspan="16" class="vlbl gray" style="letter-spacing:1px">특별세액공제</td><td rowspan="4">(61)보험료</td><td rowspan="2">보장성</td><td class="gray ctr">대상</td><td class="amt">${f(n(d.insurance))}</td></tr>
     <tr><td class="gray ctr">세액공제</td><td class="amt">${f(r.insCredit)}</td></tr>
     <tr><td rowspan="2">장애인전용<br>보장성</td><td class="gray ctr">대상</td><td class="amt">${f(n(d.insuranceDisabled))}</td></tr>
     <tr><td class="gray ctr">세액공제</td><td class="amt">${f(r.insDisabledCredit)}</td></tr>
@@ -9112,17 +9112,17 @@ function generateTaxPdf(year,person){
     <tr><td colspan="2" class="gray ctr">세액공제액</td><td class="amt">${f(r.medCredit+r.medInfertility)}</td></tr>
     <tr><td rowspan="2">(63)교육비</td><td colspan="2" class="gray ctr">대상금액</td><td class="amt">${f(n(d.education))}</td></tr>
     <tr><td colspan="2" class="gray ctr">세액공제액</td><td class="amt">${f(r.eduCredit)}</td></tr>
-    <tr><td rowspan="8">(64)기부금</td><td colspan="2">㉮정치자금기부금</td><td class="amt">${f(r.donPoliticalCredit)}</td></tr>
+    <tr><td rowspan="7">(64)기부금</td><td colspan="2">㉮정치자금기부금</td><td class="amt">${f(r.donPoliticalCredit)}</td></tr>
     <tr><td colspan="2">㉯고향사랑기부금</td><td class="amt">${f(r.donHometownCredit)}</td></tr>
     <tr><td colspan="2">㉱특례기부금</td><td class="amt">${f(r.donLegalCredit)}</td></tr>
     <tr><td colspan="2">㉲우리사주조합기부금</td><td class="amt"></td></tr>
     <tr><td colspan="2">㉳일반기부금(종교 외)</td><td class="amt">${f(r.donGeneralCredit)}</td></tr>
     <tr><td colspan="2">㉴일반기부금(종교단체)</td><td class="amt">${f(r.donReligionCredit)}</td></tr>
     <tr><td colspan="2" class="gray ctr b">기부금 계</td><td class="amt b">${f(r.donationCredit)}</td></tr>
-    <tr><td colspan="2" class="b">(65)특별세액공제 계</td><td class="amt b">${f(r.insCredit+r.insDisabledCredit+r.medCredit+r.medInfertility+r.eduCredit+r.donationCredit)}</td></tr>
+    <tr><td colspan="3" class="b">(65)특별세액공제 계</td><td class="amt b">${f(r.insCredit+r.insDisabledCredit+r.medCredit+r.medInfertility+r.eduCredit+r.donationCredit)}</td></tr>
     <tr><td colspan="4">(66)표준세액공제</td><td class="amt">${f(r.standardCredit)}</td></tr>
-    <tr><td colspan="5">(67)납세조합공제</td><td class="amt">${f(r.taxAssociation)}</td></tr>
-    <tr><td colspan="5">(68)주택차입금</td><td class="amt">${f(r.housingLoanCredit)}</td></tr>
+    <tr><td colspan="4">(67)납세조합공제</td><td class="amt">${f(r.taxAssociation)}</td></tr>
+    <tr><td colspan="4">(68)주택차입금</td><td class="amt">${f(r.housingLoanCredit)}</td></tr>
     <tr><td colspan="5">(69)외국납부</td><td class="amt">${f(r.foreignTaxCredit)}</td></tr>
     <tr><td colspan="2" rowspan="2">(70)월세액</td><td colspan="3" class="gray ctr">공제대상금액</td><td class="amt">${f(n(d.rent))}</td></tr>
     <tr><td colspan="3" class="gray ctr">세액공제액</td><td class="amt">${f(r.rentCredit)}</td></tr>
