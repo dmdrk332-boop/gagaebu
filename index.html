@@ -874,7 +874,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       <button class="arrow-btn" onclick="changeMonth(1)">›</button>
     </div>
     <div class="hero-card" id="h-hero">
-      <div class="hero-sub">💰 이달 총액 <span style="font-size:calc(9px * var(--fs,1));color:var(--text3)">(수입 - 지출 - 고정 - 대출 - 적금 - 예금)</span></div>
+      <div class="hero-sub">💰 이달 총액 <span style="font-size:calc(9px * var(--fs,1));color:var(--text3)">(수입 - 지출 - 고정 - 대출)</span></div>
       <div class="hero-num" id="h-balance">0원</div>
       <div id="h-cash-balance" style="font-size:calc(12px * var(--fs,1));font-weight:700;color:var(--text);margin-top:2px">현금잔액 0원</div>
       <div class="hero-row" style="display:grid;grid-template-columns:repeat(3,1fr);margin-top:16px">
@@ -5984,14 +5984,16 @@ function renderHome(){
   // 이달 예금 신규납입액 (이번 달 개설 원금 + 중도추가입금 − 중도출금)
   const monthDeps=ls('deposit-configs')||[];
   const monthDepPay=getMonthDepositPay(monthDeps,curYear,curMonth);
-  // 잔여 = 수입 - 지출 - 대출 - 고정 - 적금납입(월+추가) - 예금(신규+추가-출금)
-  const bal=totalInc-totalExp-totalLoan-totalFixed-monthSavPay-monthDepPay;
+  // 이달총액 = 수입 - 지출 - 대출 - 고정 (적금·예금은 "지출"이 아니라 내 돈이 이동한 것뿐이므로 제외)
+  const bal=totalInc-totalExp-totalLoan-totalFixed;
+  // 현금잔액 = 이달총액에서 적금·예금 납입분까지 뺀 순수 현금 (실제 통장에 남는 돈)
+  const cashBal=bal-monthSavPay-monthDepPay;
 
   const balEl=document.getElementById('h-balance');
   balEl.textContent=(bal>=0?'+':'')+fmt(bal);
   balEl.style.color=bal>=0?'var(--blue)':'var(--minus)';
   const cashBalEl=document.getElementById('h-cash-balance');
-  if(cashBalEl)cashBalEl.textContent='현금잔액 '+(bal>=0?'':'-')+fmt(Math.abs(bal));
+  if(cashBalEl)cashBalEl.textContent='현금잔액 '+(cashBal>=0?'':'-')+fmt(Math.abs(cashBal));
   const heroEl=document.getElementById('h-hero');
   heroEl.style.background='var(--card)';
   heroEl.style.borderColor=bal>=0?'var(--blue-border)':'var(--red-border)';
@@ -6001,7 +6003,7 @@ function renderHome(){
   document.getElementById('h-fixed').textContent=fmt(totalFixed);
   document.getElementById('h-sav').textContent=fmt(monthSavPay);
   const heroSubEl=document.querySelector('.hero-sub');
-  if(heroSubEl)heroSubEl.innerHTML='💰 이달 총액 <span style="font-size:calc(9px * var(--fs,1));color:var(--text3)">(수입 - 지출 - 고정 - 대출 - 적금 - 예금)</span>';
+  if(heroSubEl)heroSubEl.innerHTML='💰 이달 총액 <span style="font-size:calc(9px * var(--fs,1));color:var(--text3)">(수입 - 지출 - 고정 - 대출)</span>';
   const depSlotEl=document.getElementById('h-dep-slot');
   if(depSlotEl)depSlotEl.innerHTML='<div class="hero-item-label">💎 예금</div><div class="hero-item-val" id="h-dep" style="color:var(--c-sav)">'+fmt(monthDepPay)+'</div>';
   window.__monthTotals={inc:totalInc,exp:totalExp,loan:totalLoan,fixed:totalFixed,sav:monthSavPay,dep:monthDepPay};
@@ -6432,7 +6434,8 @@ function renderAnnual(){
     }
   }
   // 잔여: 수입 - 지출 - 대출 - 고정(월별 활성 누적) - 적금 - 예금
-  const bal=totalInc-totalExp-totalLoan-annFixedTotal-annSavTotal-annDepTotal;
+  // 연간 잔여: 수입 - 지출 - 대출 - 고정 (적금·예금은 지출이 아니므로 제외 — 적금·예금 자체 납입액은 아래 별도 박스로 참고 표시)
+  const bal=totalInc-totalExp-totalLoan-annFixedTotal;
   document.getElementById('ann-total-inc').textContent=fmt(totalInc);
   document.getElementById('ann-total-exp').textContent=fmt(totalExp);
   document.getElementById('ann-total-loan').textContent=fmt(totalLoan);
