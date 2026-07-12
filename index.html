@@ -887,6 +887,11 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
         <div class="hero-item"><div class="hero-item-label">📌 고정</div><div class="hero-item-val" id="h-fixed" style="color:var(--fixedexp)">0원</div></div>
         <div class="hero-item"><div class="hero-item-label">🏛️ 대출</div><div class="hero-item-val" id="h-loan" style="color:var(--red)">0원</div></div>
       </div>
+      <div class="hero-row" style="display:grid;grid-template-columns:repeat(3,1fr);margin-top:8px">
+        <div class="hero-item"><div class="hero-item-label">📈 투자</div><div class="hero-item-val" id="h-inv" style="color:var(--purple)">0원</div></div>
+        <div class="hero-item"></div>
+        <div class="hero-item"></div>
+      </div>
       <div id="h-flow" style="margin-top:16px"></div>
     </div>
     <!-- 순자산 플립 카드 (탭하면 총자산 상세) -->
@@ -5886,6 +5891,48 @@ function getMonthDepositPay(deps,y,m){
     return a+amt;
   },0);
 }
+// 특정 연/월에 투자연동된 고정지출 항목들의 기여금 합계 (고정탭·홈탭 공용)
+function getMonthInvestPay(fixedList,expsCur,y,m){
+  return (fixedList||[]).reduce((a,f)=>{
+    if(!f.invLink)return a;
+    if(!isFxActive(f,y,m))return a;
+    const amt=f.isBudget?(expsCur||[]).filter(e=>e.fixedId===f.id).reduce((s,e)=>s+num(e.amount),0):num(f.amount);
+    return a+amt;
+  },0);
+}
+// 투자연동 고정지출 → 연동된 보유종목의 해당 월 원금·평가액 자동 반영
+// 원금: 직전월 누적원금 + 이번달 연동기여금(항상 자동)
+// 평가액: valueAuto!==false(=자동상태거나 빈칸)일 때만 직전월 평가액 + 이번달 기여금으로 자동계산, 사용자가 직접 입력해두면 보존
+function syncInvestLinks(fixedList,expsCur,y,m){
+  const holdings=ensureHoldingIds();
+  const ymKey=mk(y,m);
+  const contribByHolding={};
+  (fixedList||[]).forEach(f=>{
+    if(!f.invLink)return;
+    if(!isFxActive(f,y,m))return;
+    const amt=f.isBudget?(expsCur||[]).filter(e=>e.fixedId===f.id).reduce((s,e)=>s+num(e.amount),0):num(f.amount);
+    contribByHolding[f.invLink]=(contribByHolding[f.invLink]||0)+amt;
+  });
+  let changed=false;
+  holdings.forEach(h=>{
+    const contribution=contribByHolding[h.id];
+    if(contribution===undefined)return; // 이 종목에 연동된 활성 항목 없음 → 그대로 둠
+    if(!h.history)h.history=[];
+    const prior=h.history.filter(r=>r.ym&&r.ym<ymKey).sort((a,b)=>a.ym>b.ym?1:-1);
+    const priorCost=prior.length?num(prior[prior.length-1].cost):0;
+    const priorValue=prior.length?num(prior[prior.length-1].value):0;
+    let entry=h.history.find(r=>r.ym===ymKey);
+    if(!entry){entry={ym:ymKey,cost:'',value:'',valueAuto:true};h.history.push(entry);}
+    const newCost=priorCost+contribution;
+    if(num(entry.cost)!==newCost||entry.cost===''){entry.cost=newCost;changed=true;}
+    if(entry.valueAuto!==false){
+      const newValue=priorValue+contribution;
+      if(num(entry.value)!==newValue||entry.value===''){entry.value=newValue;entry.valueAuto=true;changed=true;}
+    }
+  });
+  if(changed)lss('invest-holdings',holdings);
+  return changed;
+}
 // 적금 납부회차: 시작월부터 보고있는 달까지 몇 번째 / 총 회차
 function getSavingRound(cfg,y,m){
   if(!cfg||!cfg.startDate)return null;
@@ -5984,10 +6031,14 @@ function renderHome(){
   // 이달 예금 신규납입액 (이번 달 개설 원금 + 중도추가입금 − 중도출금)
   const monthDeps=ls('deposit-configs')||[];
   const monthDepPay=getMonthDepositPay(monthDeps,curYear,curMonth);
-  // 이달총액 = 수입 - 지출 - 대출 - 고정 (적금·예금은 "지출"이 아니라 내 돈이 이동한 것뿐이므로 제외)
+  // 이달 투자연동 고정지출 기여금 (고정지출탭에서 투자와 연동된 항목들의 이번 달 납입액)
+  const fixedForInv=ls('budget:fixed')||getDefaultFixed();
+  const expsForInv=ls('exp:'+mk())||[];
+  const monthInvPay=getMonthInvestPay(fixedForInv,expsForInv,curYear,curMonth);
+  // 이달총액 = 수입 - 지출 - 대출 - 고정 (적금·예금·투자는 "지출"이 아니라 내 돈이 이동한 것뿐이므로 제외)
   const bal=totalInc-totalExp-totalLoan-totalFixed;
-  // 현금잔액 = 이달총액에서 적금·예금 납입분까지 뺀 순수 현금 (실제 통장에 남는 돈)
-  const cashBal=bal-monthSavPay-monthDepPay;
+  // 현금잔액 = 이달총액에서 적금·예금·투자 납입분까지 뺀 순수 현금 (실제 통장에 남는 돈)
+  const cashBal=bal-monthSavPay-monthDepPay-monthInvPay;
 
   const balEl=document.getElementById('h-balance');
   balEl.textContent=(bal>=0?'+':'')+fmt(bal);
@@ -6006,13 +6057,15 @@ function renderHome(){
   if(heroSubEl)heroSubEl.innerHTML='💰 이달 총액 <span style="font-size:calc(9px * var(--fs,1));color:var(--text3)">(수입 - 지출 - 고정 - 대출)</span>';
   const depSlotEl=document.getElementById('h-dep-slot');
   if(depSlotEl)depSlotEl.innerHTML='<div class="hero-item-label">💎 예금</div><div class="hero-item-val" id="h-dep" style="color:var(--c-sav)">'+fmt(monthDepPay)+'</div>';
-  window.__monthTotals={inc:totalInc,exp:totalExp,loan:totalLoan,fixed:totalFixed,sav:monthSavPay,dep:monthDepPay};
+  const hInvEl=document.getElementById('h-inv');
+  if(hInvEl)hInvEl.textContent=fmt(monthInvPay);
+  window.__monthTotals={inc:totalInc,exp:totalExp,loan:totalLoan,fixed:totalFixed,sav:monthSavPay,dep:monthDepPay,inv:monthInvPay};
 
   // 머니플로우: 수입이 어디로 갔는지 한눈에
   const flowEl=document.getElementById('h-flow');
   if(flowEl){
     if(totalInc>0){
-      const spent=totalExp+totalFixed+totalLoan+monthSavPay+monthDepPay;
+      const spent=totalExp+totalFixed+totalLoan+monthSavPay+monthDepPay+monthInvPay;
       const remain=Math.max(0,totalInc-spent);
       flowEl.innerHTML='<div style="font-size:calc(10px * var(--fs,1));color:var(--text3);margin-bottom:7px;font-weight:600">💧 이달 수입 사용 흐름</div>'+flowBar([
         {label:'지출',value:totalExp,color:'var(--red)'},
@@ -6020,6 +6073,7 @@ function renderHome(){
         {label:'대출',value:totalLoan,color:'var(--exp3)'},
         {label:'적금',value:monthSavPay,color:'var(--blue)'},
         {label:'예금',value:monthDepPay,color:'var(--c-sav)'},
+        {label:'투자',value:monthInvPay,color:'var(--purple)'},
         {label:'잔여',value:remain,color:'var(--blue2)'}
       ]);
     }else{flowEl.innerHTML='';}
@@ -8217,6 +8271,8 @@ function renderFixed(){
   const fixedAll=ls('budget:fixed')||getDefaultFixed();
   const fixed=fixedAll; // 리스트는 전체 표시
   const expsCur=ls('exp:'+mk())||[];
+  // 투자연동된 항목이 있으면 연동된 보유종목의 이번 달 원금·평가액 자동 반영
+  syncInvestLinks(fixedAll,expsCur,curYear,curMonth);
   // 예산형은 실제 지출, 일반형은 정액
   const fxAmount=f=>(f.isTransfer||f.savLink||f.loanLink||f.invLink)?0:(f.isBudget?expsCur.filter(e=>e.fixedId===f.id).reduce((s,e)=>s+num(e.amount),0):num(f.amount));
   // 이번 달 활성 항목만 합계에 반영 (시작년월 이후)
@@ -9576,7 +9632,7 @@ function addHolding(){const h=ls('invest-holdings')||[];h.push({id:'hold_'+Date.
 function updHolding(i,k,v){const h=ls('invest-holdings')||[];h[i][k]=v;lss('invest-holdings',h);renderHoldings();renderHome();}
 function delHolding(i){showConfirm('삭제할까요?',()=>{const h=ls('invest-holdings')||[];h.splice(i,1);lss('invest-holdings',h);renderHoldings();renderHome();},{danger:true,okLabel:'삭제'});}
 function addHoldHist(i){const h=ls('invest-holdings')||[];if(!h[i].history)h[i].history=[];h[i].history.push({ym:mk(),cost:'',value:''});lss('invest-holdings',h);renderHoldings();renderHome();}
-function updHoldHist(i,ri,k,v){const h=ls('invest-holdings')||[];if(!h[i].history||!h[i].history[ri])return;h[i].history[ri][k]=v;lss('invest-holdings',h);renderHoldings();renderHome();}
+function updHoldHist(i,ri,k,v){const h=ls('invest-holdings')||[];if(!h[i].history||!h[i].history[ri])return;h[i].history[ri][k]=v;if(k==='value')h[i].history[ri].valueAuto=(v===''||v==null);lss('invest-holdings',h);renderHoldings();renderHome();}
 function delHoldHist(i,ri){const h=ls('invest-holdings')||[];h[i].history.splice(ri,1);lss('invest-holdings',h);renderHoldings();renderHome();}
 
 function ivCalc(){
