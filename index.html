@@ -5901,8 +5901,8 @@ function getMonthInvestPay(fixedList,expsCur,y,m){
   },0);
 }
 // 투자연동 고정지출 → 연동된 보유종목의 해당 월 원금·평가액 자동 반영
-// 원금: 직전월 누적원금 + 이번달 연동기여금(항상 자동)
-// 평가액: valueAuto!==false(=자동상태거나 빈칸)일 때만 직전월 평가액 + 이번달 기여금으로 자동계산, 사용자가 직접 입력해두면 보존
+// 원금: 이번달 연동기여금 그 자체 (그 달의 "추가 납입액" 필드이며, 누적원금은 holdingLatest()에서 전체 합산으로 계산됨 — 항상 자동)
+// 평가액: valueAuto!==false(=자동상태거나 빈칸)일 때만 직전월 누적평가액 + 이번달 기여금으로 자동계산, 사용자가 직접 입력해두면 보존
 function syncInvestLinks(fixedList,expsCur,y,m){
   const holdings=ensureHoldingIds();
   const ymKey=mk(y,m);
@@ -5919,12 +5919,11 @@ function syncInvestLinks(fixedList,expsCur,y,m){
     if(contribution===undefined)return; // 이 종목에 연동된 활성 항목 없음 → 그대로 둠
     if(!h.history)h.history=[];
     const prior=h.history.filter(r=>r.ym&&r.ym<ymKey).sort((a,b)=>a.ym>b.ym?1:-1);
-    const priorCost=prior.length?num(prior[prior.length-1].cost):0;
     const priorValue=prior.length?num(prior[prior.length-1].value):0;
     let entry=h.history.find(r=>r.ym===ymKey);
     if(!entry){entry={ym:ymKey,cost:'',value:'',valueAuto:true};h.history.push(entry);}
-    const newCost=priorCost+contribution;
-    if(num(entry.cost)!==newCost||entry.cost===''){entry.cost=newCost;changed=true;}
+    // 원금: 이번달 연동기여금 그 자체 (누적 아님 — 매달 추가 납입분만)
+    if(num(entry.cost)!==contribution||entry.cost===''){entry.cost=contribution;changed=true;}
     if(entry.valueAuto!==false){
       const newValue=priorValue+contribution;
       if(num(entry.value)!==newValue||entry.value===''){entry.value=newValue;entry.valueAuto=true;changed=true;}
@@ -9482,16 +9481,18 @@ function migrateHolding(h){
   return h;
 }
 function holdingLatest(h){
-  // 가장 최근 월 이력 반환
+  // 원금(cost)은 월별 "그 달 추가 납입액"이 누적된 것 → 전체 합산이 누적원금
+  // 평가액(value)은 특정 시점의 스냅샷 → 최신월 값 그대로 사용
   if(!h.history||h.history.length===0)return {cost:0,value:0};
   const sorted=h.history.filter(r=>r.ym).slice().sort((a,b)=>a.ym>b.ym?1:-1);
   if(sorted.length===0)return {cost:0,value:0};
+  const cumCost=sorted.reduce((a,r)=>a+num(r.cost),0);
   const last=sorted[sorted.length-1];
-  return {cost:num(last.cost),value:num(last.value)};
+  return {cost:cumCost,value:num(last.value)};
 }
 function getDefaultHoldings(){return[
-  {name:'삼성전자',history:[{ym:'2026-04',cost:1000000,value:1040000},{ym:'2026-06',cost:1000000,value:1185000}]},
-  {name:'S&P 500 ETF',history:[{ym:'2026-05',cost:2000000,value:2060000},{ym:'2026-06',cost:2000000,value:2240000}]},
+  {name:'삼성전자',history:[{ym:'2026-04',cost:1000000,value:1040000},{ym:'2026-06',cost:0,value:1185000}]},
+  {name:'S&P 500 ETF',history:[{ym:'2026-05',cost:2000000,value:2060000},{ym:'2026-06',cost:0,value:2240000}]},
   {name:'비트코인',history:[{ym:'2026-06',cost:800000,value:712000}]}
 ];}
 function renderHoldings(){
@@ -9552,7 +9553,7 @@ function renderHoldings(){
       const rp=num(r.value)-num(r.cost);const rup=rp>=0;
       return '<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">'+
         '<input type="month" class="inline-input" style="border-bottom:1px solid var(--border2);color:#3E3E3E;width:96px;font-size:calc(11px * var(--fs,1))" value="'+(r.ym||'')+'" onchange="updHoldHist('+i+','+ri+',\'ym\',this.value)"/>'+
-        '<input type="number" class="inline-input" style="border-bottom:1px solid var(--border2);color:var(--text3);flex:1;font-size:calc(11px * var(--fs,1))" value="'+(r.cost||'')+'" placeholder="원금" onchange="updHoldHist('+i+','+ri+',\'cost\',this.value)"/>'+
+        '<input type="number" class="inline-input" style="border-bottom:1px solid var(--border2);color:var(--text3);flex:1;font-size:calc(11px * var(--fs,1))" value="'+(r.cost||'')+'" placeholder="추가원금" onchange="updHoldHist('+i+','+ri+',\'cost\',this.value)"/>'+
         '<input type="number" class="inline-input" style="border-bottom:1px solid var(--border2);color:#3E3E3E;flex:1;font-size:calc(11px * var(--fs,1))" value="'+(r.value||'')+'" placeholder="평가액" onchange="updHoldHist('+i+','+ri+',\'value\',this.value)"/>'+
         '<button class="icon-btn" onclick="delHoldHist('+i+','+ri+')" style="font-size:calc(12px * var(--fs,1))">🗑️</button>'+
         '</div>';
@@ -9565,13 +9566,15 @@ function renderHoldings(){
       '<button class="icon-btn" onclick="delHolding('+i+')">🗑️</button></div>'+
       // 최신 요약
       '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 11px;background:var(--card2);border-radius:9px;margin-bottom:10px">'+
-      '<div><div style="font-size:calc(9px * var(--fs,1));color:var(--text4)">현재 평가액</div><div style="font-size:calc(15px * var(--fs,1));font-weight:700;color:#3E3E3E">'+fmt(latest.value)+'</div></div>'+
+      '<div><div style="font-size:calc(9px * var(--fs,1));color:var(--text4)">현재 평가액</div><div style="font-size:calc(15px * var(--fs,1));font-weight:700;color:#3E3E3E">'+fmt(latest.value)+'</div>'+
+      (latest.cost>0?'<div style="font-size:calc(9px * var(--fs,1));color:var(--text4);margin-top:3px">누적원금 '+fmt(latest.cost)+'</div>':'')+'</div>'+
       (latest.cost>0?'<div style="text-align:right"><div style="font-size:calc(9px * var(--fs,1));color:var(--text4)">평가손익</div><div style="font-size:calc(13px * var(--fs,1));font-weight:700;color:'+(profit>=0?'var(--blue)':'var(--minus)')+'">'+(profit>=0?'▲ +':'▼ ')+fmt(Math.abs(profit))+' ('+(profit>=0?'+':'')+pct.toFixed(1)+'%)</div></div>':'')+
       '</div>'+
       // 월별 입력
-      '<div style="font-size:calc(10px * var(--fs,1));color:var(--text4);margin-bottom:6px;display:flex;gap:6px"><span style="width:96px">📅 월</span><span style="flex:1">원금</span><span style="flex:1">평가액</span><span style="width:24px"></span></div>'+
+      '<div style="font-size:calc(10px * var(--fs,1));color:var(--text4);margin-bottom:6px;display:flex;gap:6px"><span style="width:96px">📅 월</span><span style="flex:1">추가원금</span><span style="flex:1">평가액</span><span style="width:24px"></span></div>'+
       histRows+
       '<button onclick="addHoldHist('+i+')" style="font-size:calc(11px * var(--fs,1));color:#3E3E3E;background:none;border:1px dashed var(--purple-border);border-radius:8px;padding:6px;cursor:pointer;width:100%;font-family:\'Noto Sans KR\',sans-serif;margin-bottom:'+(hist.length>=2?'12px':'10px')+'">+ 월별 기록 추가</button>'+
+      '<div style="font-size:calc(9px * var(--fs,1));color:var(--text4);margin-bottom:'+(hist.length>=2?'12px':'0')+'">💡 원금칸엔 그 달에 새로 추가한 금액만 적어요 (누적 아님). 추가 납입이 없던 달은 0 또는 빈칸으로 둬요.</div>'+
       // 연말정산 연동
       '<div style="margin-bottom:'+(hist.length>=2?'12px':'0')+'">'+
       '<div style="font-size:calc(10px * var(--fs,1));color:#3E3E3E;margin-bottom:4px;font-weight:600">🧾 연말정산 공제 연동</div>'+
@@ -9600,7 +9603,8 @@ function drawHoldingGraph(svgId,hist){
   const svg=document.getElementById(svgId);
   if(!svg)return;
   const W=300,H=130,padL=8,padR=8,padT=12,padB=22;
-  const costs=hist.map(r=>num(r.cost)),values=hist.map(r=>num(r.value));
+  const costs=(()=>{let running=0;return hist.map(r=>{running+=num(r.cost);return running;});})(); // 누적원금 라인
+  const values=hist.map(r=>num(r.value));
   const allVals=costs.concat(values).filter(v=>v>0);
   const maxV=Math.max(...allVals,1),minV=0;
   const n=hist.length;
