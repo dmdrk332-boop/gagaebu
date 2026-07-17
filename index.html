@@ -866,6 +866,14 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     </div>
   </div>
 
+  <!-- 납부일·만기 리마인더 배너 -->
+  <div id="h-upcoming-banner" style="display:none;margin:0 16px 4px">
+    <div style="background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:calc(18px * var(--fs,1))">🔔</span>
+      <div style="flex:1;font-size:calc(11px * var(--fs,1));color:var(--accent);line-height:1.5" id="h-upcoming-msg"></div>
+    </div>
+  </div>
+
   <!-- MONTHLY -->
   <div id="view-monthly">
     <div class="month-bar">
@@ -5337,6 +5345,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div class="field"><label>시작 연도</label><input type="number" id="ln-syear" placeholder="2024"/></div>
       <div class="field"><label>시작 월</label><input type="number" id="ln-smonth" min="1" max="12" placeholder="1"/></div>
     </div>
+    <div class="field"><label>매월 상환일 (선택)</label><input type="number" id="ln-payday" min="1" max="31" placeholder="예: 25 — 입력하면 홈 화면에서 상환일 알림을 받아요"/></div>
     <div class="field">
       <label>월 상환금 직접 입력 (선택)</label>
       <input type="text" inputmode="numeric" class="money-input" id="ln-manual" placeholder="비워두면 자동 계산 (원리금균등)"/>
@@ -6232,10 +6241,64 @@ function renderWidgets(totalExp,budgetTotal,netWorth){
   el.innerHTML=w1+w2+w3;
 }
 
+// 다가오는 고정지출 자동이체일(7일 이내, 미확인분만) + 적금·예금 만기(이번달/다음달) 배너
+function renderUpcomingBanner(){
+  const banner=document.getElementById('h-upcoming-banner'); if(!banner)return;
+  const now=new Date(), today=now.getDate(), y=now.getFullYear(), m=now.getMonth()+1;
+  const items=[];
+
+  const fixed=ls('budget:fixed')||getDefaultFixed();
+  fixed.forEach(f=>{
+    if(f.isTransfer||f.savLink||f.loanLink||f.invLink)return; // 실제 납부성 항목만
+    const d=num(f.instDay||f.autoDay);
+    if(d<1||d>31)return;
+    if(!isFxActive(f,y,m))return;
+    if(isFxChecked(f))return; // 이미 처리된 건 제외
+    const daysUntil=d-today;
+    if(daysUntil<-3||daysUntil>7)return; // 너무 지난 건(설정 실수 등) 계속 띄우지 않음
+    const name=f.name||'고정지출';
+    const label=daysUntil<0?name+' 지남('+(-daysUntil)+'일 전)':daysUntil===0?name+' 오늘':name+' D-'+daysUntil;
+    items.push({label,days:daysUntil});
+  });
+
+  (ls('loans')||[]).forEach(l=>{
+    const d=num(l.payDay);
+    if(d<1||d>31)return; // 상환일 미입력 대출은 대상에서 제외
+    const sy=parseInt(l.startYear),sm=parseInt(l.startMonth),term=parseInt(l.termMonths);
+    if(!sy||!sm||!term)return;
+    const startIdx=sy*12+(sm-1), curIdx=y*12+(m-1), endIdx=startIdx+term-1;
+    if(curIdx<startIdx||curIdx>endIdx)return; // 상환 시작 전이거나 이미 다 갚은 대출
+    const daysUntil=d-today;
+    if(daysUntil<-3||daysUntil>7)return;
+    const name=l.name||'대출';
+    const label=daysUntil<0?name+' 상환일 지남('+(-daysUntil)+'일 전)':daysUntil===0?name+' 상환일 오늘':name+' 상환 D-'+daysUntil;
+    items.push({label,days:daysUntil});
+  });
+
+  const ym=y+'-'+String(m).padStart(2,'0');
+  const nx=new Date(y,m,1); // 다음 달 1일
+  const ymNext=nx.getFullYear()+'-'+String(nx.getMonth()+1).padStart(2,'0');
+  (ls('saving-configs')||getDefaultSavingConfigs()).forEach(s=>{
+    if(s.endDate===ym)items.push({label:(s.name||'적금')+' 이번 달 만기',days:1});
+    else if(s.endDate===ymNext)items.push({label:(s.name||'적금')+' 다음 달 만기',days:20});
+  });
+  (ls('deposit-configs')||[]).forEach(d=>{
+    if(d.endDate===ym)items.push({label:(d.name||'예금')+' 이번 달 만기',days:1});
+    else if(d.endDate===ymNext)items.push({label:(d.name||'예금')+' 다음 달 만기',days:20});
+  });
+
+  if(!items.length){banner.style.display='none';return;}
+  items.sort((a,b)=>a.days-b.days);
+  const shown=items.slice(0,3);
+  const rest=items.length-shown.length;
+  document.getElementById('h-upcoming-msg').textContent=shown.map(i=>i.label).join(' · ')+(rest>0?' 외 '+rest+'건':'');
+  banner.style.display='block';
+}
 function renderHome(){
   const inc=ls('inc:'+mk())||{};
   const exps=ls('exp:'+mk())||[];
   const fixed=ls('budget:fixed')||getDefaultFixed();
+  renderUpcomingBanner();
   // 백업 알림: 마지막 백업 14일 경과 또는 미백업 + 데이터 있을 때
   const banner=document.getElementById('h-backup-banner');
   if(banner){
@@ -8241,7 +8304,7 @@ function renderLoans(){
         <div style="display:flex;gap:6px;flex-shrink:0"><button class="icon-btn" onclick="openLoanModal(${idx})" style="font-size:calc(14px * var(--fs,1))">✏️</button><button class="icon-btn" onclick="deleteLoan(${idx})" style="font-size:calc(14px * var(--fs,1))">🗑️</button></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
-        ${[['대출원금',fmt(total),'#9a9a95'],['연이율',numf(l.rate).toFixed(2)+'%','#a78bfa'],['상환방식',methodLabel,'#e879f9'],['상환기간',l.termMonths+'개월','#9a9a95'],['월 납입액',fmt(dispM)+(manualM>0?' (직접)':''),'var(--accent)'],['잔여 잔액',fmt(balance),'var(--red)'],['잔여 기간',remainMonths+'개월','#9a9a95']].map(([k,v,c])=>
+        ${[['대출원금',fmt(total),'#9a9a95'],['연이율',numf(l.rate).toFixed(2)+'%','#a78bfa'],['상환방식',methodLabel,'#e879f9'],['상환기간',l.termMonths+'개월','#9a9a95'],['월 납입액',fmt(dispM)+(manualM>0?' (직접)':''),'var(--accent)'],['잔여 잔액',fmt(balance),'var(--red)'],['잔여 기간',remainMonths+'개월','#9a9a95'],...(l.payDay?[['상환일',l.payDay+'일','var(--accent)']]:[])].map(([k,v,c])=>
           `<div style="background:var(--card2);border-radius:8px;padding:10px;border:1px solid var(--border)"><div style="font-size:calc(9px * var(--fs,1));color:var(--text4);margin-bottom:3px">${k}</div><div style="font-size:calc(12px * var(--fs,1));font-weight:700;color:${c}">${v}</div></div>`).join('')}
       </div>
       <div onclick="toggleLoanExclude(${idx})" style="display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:10px;margin-bottom:12px;cursor:pointer;background:${l.excludeFromExpense?'var(--accent-dim)':'var(--card2)'};border:1px solid ${l.excludeFromExpense?'var(--accent-border)':'var(--border)'}">
@@ -8378,8 +8441,8 @@ function renderImputedCalc(l,idx){
 function openLoanModal(idx){
   editLoanId=(idx!==undefined)?idx:null;
   document.getElementById('loan-modal-title').textContent=(idx!==undefined)?'대출 수정':'대출 추가';
-  if(idx!==undefined){const l=getLoans()[idx];document.getElementById('ln-name').value=l.name||'';document.getElementById('ln-type').value=l.type||'mortgage';document.getElementById('ln-method').value=l.method||'annuity';document.getElementById('ln-principal').value=l.principal||'';document.getElementById('ln-rate').value=l.rate||'';document.getElementById('ln-term').value=l.termMonths||'';document.getElementById('ln-syear').value=l.startYear||'';document.getElementById('ln-smonth').value=l.startMonth||'';document.getElementById('ln-manual').value=l.manualMonthly||'';}
-  else{['ln-name','ln-principal','ln-rate','ln-term','ln-manual'].forEach(id=>document.getElementById(id).value='');document.getElementById('ln-type').value='mortgage';document.getElementById('ln-method').value='annuity';document.getElementById('ln-syear').value=curYear;document.getElementById('ln-smonth').value=curMonth;}
+  if(idx!==undefined){const l=getLoans()[idx];document.getElementById('ln-name').value=l.name||'';document.getElementById('ln-type').value=l.type||'mortgage';document.getElementById('ln-method').value=l.method||'annuity';document.getElementById('ln-principal').value=l.principal||'';document.getElementById('ln-rate').value=l.rate||'';document.getElementById('ln-term').value=l.termMonths||'';document.getElementById('ln-syear').value=l.startYear||'';document.getElementById('ln-smonth').value=l.startMonth||'';document.getElementById('ln-manual').value=l.manualMonthly||'';document.getElementById('ln-payday').value=l.payDay||'';}
+  else{['ln-name','ln-principal','ln-rate','ln-term','ln-manual','ln-payday'].forEach(id=>document.getElementById(id).value='');document.getElementById('ln-type').value='mortgage';document.getElementById('ln-method').value='annuity';document.getElementById('ln-syear').value=curYear;document.getElementById('ln-smonth').value=curMonth;}
   formatMoneyInputs();
   document.getElementById('loan-overlay').classList.add('show');
 }
@@ -8390,9 +8453,11 @@ function saveLoanModal(){
   const termMonths=document.getElementById('ln-term').value,startYear=document.getElementById('ln-syear').value;
   const startMonth=document.getElementById('ln-smonth').value,manualMonthly=(v=>v.trim()?String(num(v)):'')(document.getElementById('ln-manual').value);
   const method=document.getElementById('ln-method').value;
+  const payDayRaw=num(document.getElementById('ln-payday').value);
+  const payDay=(payDayRaw>=1&&payDayRaw<=31)?String(payDayRaw):'';
   if(!name||!principal||!termMonths){showAlert('대출명, 원금, 기간을 입력해주세요');return;}
   const loans=getLoans();
-  const entry={id:Date.now().toString(),name,type,method,principal,rate,termMonths,startYear,startMonth,manualMonthly};
+  const entry={id:Date.now().toString(),name,type,method,principal,rate,termMonths,startYear,startMonth,manualMonthly,payDay};
   if(editLoanId!==null){entry.id=loans[editLoanId].id;entry.prepayments=loans[editLoanId].prepayments||[];loans[editLoanId]=entry;}else loans.push(entry);
   lss('loans',loans);
   document.getElementById('loan-overlay').classList.remove('show');
