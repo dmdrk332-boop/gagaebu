@@ -1113,6 +1113,17 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   </div>
 </div>
 
+<!-- PIN 잠금 화면 (다른 모든 요소보다 위에 표시) -->
+<div id="pin-lock-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:99999;align-items:center;justify-content:center;flex-direction:column;padding:24px;box-sizing:border-box">
+  <div style="font-size:44px;margin-bottom:14px">🔒</div>
+  <div style="font-size:calc(16px * var(--fs,1));font-weight:800;color:var(--text);margin-bottom:20px">PIN을 입력해주세요</div>
+  <input id="pin-lock-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off"
+    style="width:180px;text-align:center;letter-spacing:14px;font-size:26px;padding:14px;border-radius:14px;border:1px solid var(--border2);background:var(--card2);color:var(--text);font-family:inherit;box-sizing:border-box"
+    onkeydown="if(event.key==='Enter')submitPinLock()"/>
+  <div id="pin-lock-error" style="color:#f87171;font-size:calc(12px * var(--fs,1));margin-top:10px;min-height:18px"></div>
+  <button onclick="submitPinLock()" style="margin-top:16px;width:180px;padding:13px;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);border-radius:13px;font-size:calc(14px * var(--fs,1));font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif">확인</button>
+</div>
+
 <!-- 명세서 이미지 뷰어 오버레이 -->
 <div id="slip-viewer-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:400;align-items:center;justify-content:center;flex-direction:column" onclick="closeSlipViewer()">
   <div style="position:relative;max-width:96vw;max-height:88vh">
@@ -5191,6 +5202,11 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
     </div>
   </div>
 
+  <div class="settings-section">
+    <div class="settings-title">🔒 앱 잠금</div>
+    <div class="card" id="pin-lock-box"></div>
+  </div>
+
   <!-- PWA 설치 -->
   <div class="settings-section" id="pwa-install-section" style="display:none">
     <div class="settings-title">📱 앱 설치</div>
@@ -5552,6 +5568,93 @@ fbAuth.onAuthStateChanged(user=>{
     }
   });
 });
+
+// ── PIN 잠금 ──────────────────────────────────────────────────────────────────
+async function sha256Hex(str){
+  const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function hasPinLock(){ return !!ls('app-pin-hash'); }
+function checkPinLockOnStart(){
+  if(!hasPinLock())return;
+  const ov=document.getElementById('pin-lock-overlay'); if(!ov)return;
+  ov.style.display='flex';
+  setTimeout(()=>{ const inp=document.getElementById('pin-lock-input'); if(inp)inp.focus(); },100);
+}
+async function submitPinLock(){
+  const inp=document.getElementById('pin-lock-input');
+  const errEl=document.getElementById('pin-lock-error');
+  const val=inp.value.trim();
+  if(!/^\d{4}$/.test(val)){ errEl.textContent='4자리 숫자를 입력해주세요'; return; }
+  const hash=await sha256Hex(val);
+  if(hash===ls('app-pin-hash')){
+    document.getElementById('pin-lock-overlay').style.display='none';
+    inp.value=''; errEl.textContent='';
+  } else {
+    errEl.textContent='PIN이 일치하지 않아요';
+    inp.value=''; inp.focus();
+  }
+}
+function askNewPin(onDone){
+  showPrompt('새 PIN 4자리를 입력해주세요',null,(p1)=>{
+    if(!/^\d{4}$/.test(p1)){ showAlert('숫자 4자리로 입력해주세요.'); return; }
+    showPrompt('확인을 위해 한 번 더 입력해주세요',null,(p2)=>{
+      if(p1!==p2){ showAlert('입력한 PIN이 서로 달라요. 처음부터 다시 시도해주세요.'); return; }
+      sha256Hex(p1).then(hash=>{ lss('app-pin-hash',hash); onDone(); });
+    },{icon:'🔒',title:'PIN 확인',inputType:'password',maxLength:4});
+  },{icon:'🔒',title:'PIN 설정',inputType:'password',maxLength:4});
+}
+function setupPinLock(){
+  askNewPin(()=>{ showToast('PIN이 설정됐어요! ✓'); renderPinUI(); });
+}
+function changePinLock(){
+  showPrompt('현재 PIN을 입력해주세요',null,(cur)=>{
+    sha256Hex(cur).then(hash=>{
+      if(hash!==ls('app-pin-hash')){ showAlert('현재 PIN이 일치하지 않아요.'); return; }
+      askNewPin(()=>{ showToast('PIN이 변경됐어요! ✓'); renderPinUI(); });
+    });
+  },{icon:'🔒',title:'현재 PIN 확인',inputType:'password',maxLength:4});
+}
+function removePinLock(){
+  showPrompt('현재 PIN을 입력해주세요',null,(cur)=>{
+    sha256Hex(cur).then(hash=>{
+      if(hash!==ls('app-pin-hash')){ showAlert('현재 PIN이 일치하지 않아요.'); return; }
+      localStorage.removeItem('app-pin-hash');
+      showToast('PIN 잠금이 해제됐어요');
+      renderPinUI();
+    });
+  },{icon:'🔓',title:'PIN 해제',inputType:'password',maxLength:4});
+}
+function resetPinViaCloud(){
+  if(!cloudUser){ showAlert('먼저 Google 로그인이 필요해요.'); return; }
+  const provider=new firebase.auth.GoogleAuthProvider();
+  fbAuth.signInWithPopup(provider).then(()=>{
+    showConfirm('본인 확인이 완료됐어요. PIN을 초기화할까요?',()=>{
+      localStorage.removeItem('app-pin-hash');
+      showToast('PIN이 초기화됐어요. 새로 설정해주세요.');
+      renderPinUI();
+    },{icon:'🔓',okLabel:'초기화'});
+  }).catch(()=>{ showAlert('본인 확인에 실패했어요.'); });
+}
+function renderPinUI(){
+  const box=document.getElementById('pin-lock-box'); if(!box)return;
+  if(hasPinLock()){
+    box.innerHTML=
+      '<div style="font-size:calc(12px * var(--fs,1));color:var(--text3);margin-bottom:12px;line-height:1.6">🔒 PIN 잠금이 켜져 있어요. 앱을 열 때마다 PIN을 입력해야 해요.</div>'+
+      '<div style="display:flex;gap:8px;margin-bottom:8px">'+
+        '<button class="action-btn" onclick="changePinLock()" style="flex:1;background:var(--card2);border:1px solid var(--border2);color:var(--text2)">PIN 변경</button>'+
+        '<button class="action-btn" onclick="removePinLock()" style="flex:1;background:var(--card2);border:1px solid var(--border2);color:var(--text2)">PIN 해제</button>'+
+      '</div>'+
+      (cloudUser?'<button onclick="resetPinViaCloud()" style="width:100%;background:transparent;border:none;color:var(--text3);font-size:calc(11px * var(--fs,1));text-decoration:underline;padding:6px;cursor:pointer;font-family:inherit">PIN을 잊어버렸어요 (Google로 본인 확인)</button>':'');
+  } else {
+    box.innerHTML=
+      '<div style="font-size:calc(12px * var(--fs,1));color:var(--text3);margin-bottom:12px;line-height:1.6">앱을 열 때마다 PIN 입력을 요구해서 다른 사람이 볼 수 없게 해요.</div>'+
+      '<button class="action-btn" onclick="setupPinLock()" style="background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);font-weight:700">🔒 PIN 설정</button>';
+  }
+}
+checkPinLockOnStart();
+renderPinUI();
+
 function fmt(n){if(typeof n==='string')n=parseFloat(n.replace(/,/g,''));n=Number(n);if(!isFinite(n))n=0;return privacyMode?'•••원':n.toLocaleString('ko-KR')+'원';}
 function num(s){return parseInt(String(s||'0').replace(/[^0-9]/g,''),10)||0;}
 function numf(s){return parseFloat(String(s||'0'))||0;}
@@ -11400,8 +11503,12 @@ function showPrompt(msg,defVal,onSubmit,opts){
   const msgEl=document.getElementById('gc-msg');
   if(msg){msgEl.textContent=msg;msgEl.style.display='block';}else{msgEl.style.display='none';}
   document.getElementById('gc-input-wrap').style.display='block';
-  document.getElementById('gc-input').value=defVal||'';
-  document.getElementById('gc-input').placeholder=opts.placeholder||'';
+  const inputEl=document.getElementById('gc-input');
+  inputEl.value=defVal||'';
+  inputEl.placeholder=opts.placeholder||'';
+  inputEl.type=opts.inputType||'text';
+  if(opts.maxLength)inputEl.maxLength=opts.maxLength; else inputEl.removeAttribute('maxlength');
+  inputEl.inputMode=opts.inputType==='password'&&opts.maxLength?'numeric':'';
   document.getElementById('gc-cancel').style.display='block';
   const ok=document.getElementById('gc-ok');ok.textContent=opts.okLabel||'확인';ok.style.cssText=_gcOkStyle(false);
   _gcOnAction=onSubmit;_gcMode='prompt';
