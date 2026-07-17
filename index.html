@@ -5353,6 +5353,26 @@ const CAT_REMAP={loan:'fin',ins:'fin',food:'food',trans:'traffic',comm:'traffic'
 const CAT_PALETTE=['#F55B93','#8E6FE8','#E8636F','#F0A03C','#3FB6C4','#5FB878','#6B8CD9','#E8C84A','#7CD1B0','#B07CE8','#7C9FF0','#8A8A90'];
 // 저장된 카테고리(기본 8종) 색상을 서로 구분되는 팔레트로 재지정 — 도넛/그래프 가독성
 const NEW_CAT_COLORS={home:'#F55B93',fin:'#8E6FE8',food:'#E8636F',dining:'#F0A03C',traffic:'#3FB6C4',health:'#5FB878',shop:'#6B8CD9',etc:'#8A8A90'};
+
+// ── 데이터 스키마 버전 관리 ──────────────────────────────────────────────────────
+// 저장 데이터 구조가 바뀔 때마다 SCHEMA_VERSION을 올리고 MIGRATIONS에 항목을 추가한다.
+// (기존 migrateCategoriesV2/migrateCatColorsV3는 각자 플래그/방어코드로 이미 안전하게 동작하므로 그대로 둔다.)
+const SCHEMA_VERSION=1;
+const MIGRATIONS=[
+  // { version:2, run:()=>{ /* 이전 버전 -> 이 버전으로 데이터 변환 */ } },
+];
+function runMigrations(){
+  const v=ls('schema-version');
+  if(v==null){
+    // 이 시스템 도입 이전부터 쓰던 사용자: 기존 데이터를 그대로 최신 버전으로 확정
+    lss('schema-version',SCHEMA_VERSION);
+    return;
+  }
+  MIGRATIONS.filter(m=>m.version>v).sort((a,b)=>a.version-b.version).forEach(m=>{
+    try{ m.run(); }catch(e){ console.error('schema migration '+m.version+' failed',e); }
+  });
+  if(v<SCHEMA_VERSION) lss('schema-version',SCHEMA_VERSION);
+}
 function migrateCatColorsV3(){
   const list=ls('cat-list');
   if(Array.isArray(list)){
@@ -9342,7 +9362,7 @@ function importData(e){
     showConfirm('현재 데이터가 모두 덮어씌워집니다. 계속할까요?',()=>{
       localStorage.clear();
       Object.keys(data).forEach(k=>localStorage.setItem(k,JSON.stringify(data[k])));
-      loadTheme();migrateCategoriesV2();migrateCatColorsV3();refreshCats();renderAll();
+      loadTheme();runMigrations();migrateCategoriesV2();migrateCatColorsV3();refreshCats();renderAll();
       showToast('데이터를 불러왔어요! ✓');
     },{icon:'⚠️',danger:true,okLabel:'덮어쓰기'});
   };
@@ -9391,7 +9411,7 @@ function importShareCode(){
   showConfirm('현재 데이터가 공유 데이터로 덮어씌워집니다. 계속할까요?',()=>{
     localStorage.clear();
     Object.keys(data).forEach(k=>localStorage.setItem(k,JSON.stringify(data[k])));
-    loadTheme();migrateCategoriesV2();migrateCatColorsV3();refreshCats();renderAll();
+    loadTheme();runMigrations();migrateCategoriesV2();migrateCatColorsV3();refreshCats();renderAll();
     showToast('공유 데이터를 불러왔어요! ✓');
     document.getElementById('import-code-input').value='';
   },{icon:'⚠️',danger:true,okLabel:'덮어쓰기'});
@@ -11279,6 +11299,7 @@ function closeGlobalConfirm(confirmed){
 // ── INIT ──────────────────────────────────────────────────────────────────────
 privacyMode=ls('privacy-mode')===true; // 프라이버시 모드 복원
 if(privacyMode)document.body.classList.add('privacy-on');
+runMigrations();
 loadTheme();
 loadFontScale();
 applyBrand();
