@@ -2475,18 +2475,18 @@ const SCEN_LABEL={ '보수':'보수적', '기본':'기본', '낙관':'낙관적'
 let scen='기본', inflOn=false; const INFL=2.5;
 let activeCase=0;
 let cases=[
-  { name:'본인', enabled:true, salary:5000, baseMonthly:100, startAge:30, retireAge:60,
+  { name:'본인', enabled:true, salary:0, baseMonthly:0, startAge:30, retireAge:60,
     alloc:{irp:50,pen:30,isa:20}, allocLock:{irp:false,pen:false,isa:false}, reinvestRefund:true,
     monthlyChanges:[],
     lumpsums:[],
-    isaTransferMode:'auto', isaTransferAge:42, isaTargetGain:400, isaTransferTarget:'pen', isaTransferAmount:0, isaRemainMode:'keep', npsMonthly:0, npsStartAge:65,
-    severances:[], targetMonthly:200, withdrawMode:'swr', withdrawMonthly:0, postReturn:4.0, pensionStartAge:60, emergencyYears:3,
+    isaTransferMode:'auto', isaTransferAge:42, isaTargetGain:0, isaTransferTarget:'pen', isaTransferAmount:0, isaRemainMode:'keep', npsMonthly:0, npsStartAge:65,
+    severances:[], targetMonthly:0, withdrawMode:'swr', withdrawMonthly:0, postReturn:4.0, pensionStartAge:60, emergencyYears:3,
     bridgeMonthly:0, bridgeCashout:0, bridgeAccount:'irp', bridgeAsset:'mix' }
 ];
 function wifeCaseTemplate(){
-  return { name:'CASE '+(cases.length+1), enabled:false, salary:3500, baseMonthly:50, startAge:37, retireAge:60,
+  return { name:'CASE '+(cases.length+1), enabled:false, salary:0, baseMonthly:0, startAge:30, retireAge:60,
     alloc:{irp:60,pen:40,isa:0}, allocLock:{irp:false,pen:false,isa:false}, reinvestRefund:true, monthlyChanges:[], lumpsums:[],
-    isaTransferMode:'auto', isaTransferAge:45, isaTargetGain:400, isaTransferTarget:'pen', isaTransferAmount:0, isaRemainMode:'keep', npsMonthly:0, npsStartAge:65,
+    isaTransferMode:'auto', isaTransferAge:45, isaTargetGain:0, isaTransferTarget:'pen', isaTransferAmount:0, isaRemainMode:'keep', npsMonthly:0, npsStartAge:65,
     severances:[], targetMonthly:200, withdrawMode:'swr', withdrawMonthly:0, postReturn:4.0, pensionStartAge:60, emergencyYears:3,
     bridgeMonthly:0, bridgeCashout:0, bridgeAccount:'irp', bridgeAsset:'mix' };
 }
