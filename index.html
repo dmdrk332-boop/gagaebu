@@ -5522,8 +5522,10 @@ function cloudSignIn(){
   fbAuth.signInWithPopup(provider).catch(e=>{ console.error('sign-in failed',e); showAlert('로그인에 실패했어요. 다시 시도해주세요.'); });
 }
 function cloudSignOut(){
-  if(cloudUnsub){cloudUnsub();cloudUnsub=null;}
-  fbAuth.signOut();
+  showConfirm('로그아웃할까요? (이 기기에 저장된 데이터는 그대로 남아있어요)',()=>{
+    if(cloudUnsub){cloudUnsub();cloudUnsub=null;}
+    fbAuth.signOut();
+  },{icon:'🚪',okLabel:'로그아웃'});
 }
 fbAuth.onAuthStateChanged(user=>{
   cloudUser=user;
