@@ -1049,6 +1049,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div style="background:var(--card);border:1px solid var(--blue-border);border-radius:14px;padding:16px">
       <div style="font-size:calc(11px * var(--fs,1));color:var(--blue);margin-bottom:4px">이달 총 수입</div>
       <div style="font-size:calc(28px * var(--fs,1));font-weight:900;color:var(--blue)" id="i-total">0원</div>
+      <div style="font-size:calc(10.5px * var(--fs,1));margin-top:5px;display:none" id="i-yoy"></div>
     </div>
   </div>
   <div class="section" style="margin-top:14px">
@@ -1173,6 +1174,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
         <div style="font-size:calc(11px * var(--fs,1));color:var(--text3);margin-bottom:4px;font-weight:600">이달 총 지출</div>
         <div style="font-size:calc(27px * var(--fs,1));font-weight:800;letter-spacing:-.03em;color:var(--red)" id="e-total">0원</div>
         <div style="font-size:calc(11px * var(--fs,1));color:var(--text3);margin-top:4px" id="e-count">0건</div>
+        <div style="font-size:calc(10.5px * var(--fs,1));margin-top:5px;display:none" id="e-yoy"></div>
         <div style="font-size:calc(10px * var(--fs,1));color:#3E3E3E;margin-top:3px;display:none" id="e-budget-note"></div>
       </div>
       <div id="e-donut"></div>
@@ -1286,6 +1288,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:16px">
       <div style="font-size:calc(11px * var(--fs,1));color:var(--purple);margin-bottom:4px">월 합계</div>
       <div style="font-size:calc(28px * var(--fs,1));font-weight:800;color:#3E3E3E" id="fx-monthly-total">0원</div>
+      <div style="font-size:calc(10.5px * var(--fs,1));margin-top:5px;display:none" id="fx-yoy"></div>
       <div id="fx-group-subtotals" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px"></div>
     </div>
   </div>
@@ -5675,6 +5678,23 @@ checkPinLockOnStart();
 renderPinUI();
 
 function fmt(n){if(typeof n==='string')n=parseFloat(n.replace(/,/g,''));n=Number(n);if(!isFinite(n))n=0;return privacyMode?'•••원':n.toLocaleString('ko-KR')+'원';}
+// 작년 같은 달 대비 증감 배지 (수입/지출/고정지출 공용)
+// increaseIsGood: 지출·고정지출처럼 증가가 나쁜 신호면 false(기본), 수입처럼 증가가 좋은 신호면 true
+function renderYoyBadge(elId,curTotal,lastYearTotal,increaseIsGood){
+  const el=document.getElementById(elId); if(!el)return;
+  if(lastYearTotal>0){
+    const diff=curTotal-lastYearTotal;
+    const pct=Math.round(Math.abs(diff)/lastYearTotal*100);
+    const arrow=diff>0?'▲':diff<0?'▼':'-';
+    const isGood=diff===0?null:(increaseIsGood?diff>0:diff<0);
+    const color=isGood===null?'var(--text3)':(isGood?'var(--green)':'var(--red)');
+    const trend=diff>0?'증가':diff<0?'감소':'변동없음';
+    el.style.display='block';
+    el.innerHTML='<span style="color:'+color+';font-weight:700">'+arrow+' 작년 '+curMonth+'월 대비 '+pct+'%</span> <span style="color:var(--text4)">('+fmt(Math.abs(diff))+' '+trend+')</span>';
+  } else {
+    el.style.display='none';
+  }
+}
 function num(s){return parseInt(String(s||'0').replace(/[^0-9]/g,''),10)||0;}
 function numf(s){return parseFloat(String(s||'0'))||0;}
 // ── 금액 입력칸 천단위 자동 구분 ──
@@ -6988,7 +7008,12 @@ function renderIncome(){
   document.getElementById('i-sp').value=inc.sp||'';
   formatMoneyInputs();
   document.getElementById('i-sp-note').value=inc.spNote||'';
-  document.getElementById('i-total').textContent=fmt(num(inc.me)+num(inc.sp)+incExtra(inc));
+  const incTotal=num(inc.me)+num(inc.sp)+incExtra(inc);
+  document.getElementById('i-total').textContent=fmt(incTotal);
+  // 작년 같은 달 대비 증감 (수입은 증가가 좋은 신호)
+  const lastYearInc=ls('inc:'+(curYear-1)+'-'+String(curMonth).padStart(2,'0'))||{};
+  const lastYearIncTotal=num(lastYearInc.me)+num(lastYearInc.sp)+incExtra(lastYearInc);
+  renderYoyBadge('i-yoy',incTotal,lastYearIncTotal,true);
   const meLabel=document.getElementById('i-me-label-text');
   const spLabel=document.getElementById('i-sp-label-text');
   if(meLabel&&!document.getElementById('i-me-label-inp'))meLabel.textContent=(ls('inc-label-me')||'👤 본인 급여');
@@ -7473,6 +7498,10 @@ function renderExpense(){
   const total=exps.reduce((a,e)=>a+num(e.amount),0);
   document.getElementById('e-total').textContent=fmt(total);
   document.getElementById('e-count').textContent=exps.length+'건';
+  // 작년 같은 달 대비 증감 (지출은 증가가 나쁜 신호)
+  const lastYearExps=ls('exp:'+(curYear-1)+'-'+String(curMonth).padStart(2,'0'));
+  const lastYearExpTotal=Array.isArray(lastYearExps)?lastYearExps.reduce((a,e)=>a+num(e.amount),0):0;
+  renderYoyBadge('e-yoy',total,lastYearExpTotal,false);
   // 예산형 고정항목에 연결된 지출액 — 홈탭에선 '고정'으로 집계되므로 안내 표시
   const fixedForNote=ls('budget:fixed')||getDefaultFixed();
   const budgetFixedIds=fixedForNote.filter(f=>f.isBudget).map(f=>f.id);
@@ -8637,6 +8666,13 @@ function renderFixed(){
   const activeFixed=fixedAll.filter(f=>isFxActive(f,curYear,curMonth));
   const totalM=activeFixed.reduce((a,f)=>a+fxAmount(f),0);
   document.getElementById('fx-monthly-total').textContent=fmt(totalM);
+  // 작년 같은 달 대비 증감 (고정지출도 증가가 나쁜 신호)
+  const lastYear=curYear-1;
+  const lastYearExpsFx=ls('exp:'+lastYear+'-'+String(curMonth).padStart(2,'0'))||[];
+  const lastYearFxAmount=f=>(f.isTransfer||f.savLink||f.loanLink||f.invLink)?0:(f.isBudget?lastYearExpsFx.filter(e=>e.fixedId===f.id).reduce((s,e)=>s+num(e.amount),0):num(f.amount));
+  const lastYearActiveFixed=fixedAll.filter(f=>isFxActive(f,lastYear,curMonth));
+  const lastYearTotalM=lastYearActiveFixed.reduce((a,f)=>a+lastYearFxAmount(f),0);
+  renderYoyBadge('fx-yoy',totalM,lastYearTotalM,false);
   renderFxCalendar();
 
   // 그룹별 소계 (활성 항목만)
