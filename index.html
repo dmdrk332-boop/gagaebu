@@ -2475,12 +2475,12 @@ const SCEN_LABEL={ '보수':'보수적', '기본':'기본', '낙관':'낙관적'
 let scen='기본', inflOn=false; const INFL=2.5;
 let activeCase=0;
 let cases=[
-  { name:'본인', enabled:true, salary:6000, baseMonthly:150, startAge:34, retireAge:60,
-    alloc:{irp:50,pen:33,isa:17}, allocLock:{irp:false,pen:false,isa:false}, reinvestRefund:true,
+  { name:'본인', enabled:true, salary:5000, baseMonthly:100, startAge:30, retireAge:60,
+    alloc:{irp:50,pen:30,isa:20}, allocLock:{irp:false,pen:false,isa:false}, reinvestRefund:true,
     monthlyChanges:[],
-    lumpsums:[{atAge:35,amount:2500,target:'pen'},{atAge:36,amount:1500,target:'pen'},{atAge:37,amount:5500,target:'pen'}],
+    lumpsums:[],
     isaTransferMode:'auto', isaTransferAge:42, isaTargetGain:400, isaTransferTarget:'pen', isaTransferAmount:0, isaRemainMode:'keep', npsMonthly:0, npsStartAge:65,
-    severances:[], targetMonthly:300, withdrawMode:'swr', withdrawMonthly:0, postReturn:4.0, pensionStartAge:60, emergencyYears:3,
+    severances:[], targetMonthly:200, withdrawMode:'swr', withdrawMonthly:0, postReturn:4.0, pensionStartAge:60, emergencyYears:3,
     bridgeMonthly:0, bridgeCashout:0, bridgeAccount:'irp', bridgeAsset:'mix' }
 ];
 function wifeCaseTemplate(){
@@ -2491,10 +2491,10 @@ function wifeCaseTemplate(){
     bridgeMonthly:0, bridgeCashout:0, bridgeAccount:'irp', bridgeAsset:'mix' };
 }
 let glide=[
-  { fromAge:34, toAge:44, irp:{sp:49,nq:21,schd:0,tdf:30}, pen:{sp:60,nq:40,schd:0}, isa:{sp:70,nq:30,schd:0}, lock:{irp:{},pen:{},isa:{}} },
-  { fromAge:45, toAge:49, irp:{sp:55,nq:15,schd:0,tdf:30}, pen:{sp:75,nq:25,schd:0}, isa:{sp:80,nq:20,schd:0}, lock:{irp:{},pen:{},isa:{}} },
-  { fromAge:50, toAge:54, irp:{sp:45,nq:5,schd:20,tdf:30}, pen:{sp:55,nq:5,schd:40}, isa:{sp:60,nq:0,schd:40}, lock:{irp:{},pen:{},isa:{}} },
-  { fromAge:55, toAge:60, irp:{sp:30,nq:0,schd:40,tdf:30}, pen:{sp:35,nq:0,schd:65}, isa:{sp:40,nq:0,schd:60}, lock:{irp:{},pen:{},isa:{}} },
+  { fromAge:30, toAge:40, irp:{sp:49,nq:21,schd:0,tdf:30}, pen:{sp:60,nq:40,schd:0}, isa:{sp:70,nq:30,schd:0}, lock:{irp:{},pen:{},isa:{}} },
+  { fromAge:41, toAge:45, irp:{sp:55,nq:15,schd:0,tdf:30}, pen:{sp:75,nq:25,schd:0}, isa:{sp:80,nq:20,schd:0}, lock:{irp:{},pen:{},isa:{}} },
+  { fromAge:46, toAge:50, irp:{sp:45,nq:5,schd:20,tdf:30}, pen:{sp:55,nq:5,schd:40}, isa:{sp:60,nq:0,schd:40}, lock:{irp:{},pen:{},isa:{}} },
+  { fromAge:51, toAge:60, irp:{sp:30,nq:0,schd:40,tdf:30}, pen:{sp:35,nq:0,schd:65}, isa:{sp:40,nq:0,schd:60}, lock:{irp:{},pen:{},isa:{}} },
 ];
 // 글라이드패스 모든 계좌가 모든 자산키를 갖도록 정규화 (누락분 0)
 function normalizeGlide(){
