@@ -1131,6 +1131,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     onkeydown="if(event.key==='Enter')submitPinLock()"/>
   <div id="pin-lock-error" style="color:#f87171;font-size:calc(12px * var(--fs,1));margin-top:10px;min-height:18px"></div>
   <button onclick="submitPinLock()" style="margin-top:16px;width:180px;padding:13px;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);border-radius:13px;font-size:calc(14px * var(--fs,1));font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif">확인</button>
+  <button id="pin-lock-bio-btn" onclick="tryBiometricUnlock()" style="display:none;margin-top:10px;width:180px;padding:12px;background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:13px;font-size:calc(13px * var(--fs,1));font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif">🔓 생체인증으로 해제</button>
 </div>
 
 <!-- 지출 전체 검색 오버레이 (모든 달을 대상으로 검색) -->
@@ -5601,6 +5602,10 @@ function checkPinLockOnStart(){
   if(!hasPinLock())return;
   const ov=document.getElementById('pin-lock-overlay'); if(!ov)return;
   ov.style.display='flex';
+  if(hasBiometric()){
+    const bioBtn=document.getElementById('pin-lock-bio-btn'); if(bioBtn)bioBtn.style.display='block';
+    tryBiometricUnlock(); // 자동으로 한 번 시도 — 취소/실패해도 PIN으로 계속 진행 가능
+  }
   setTimeout(()=>{ const inp=document.getElementById('pin-lock-input'); if(inp)inp.focus(); },100);
 }
 async function submitPinLock(){
@@ -5642,6 +5647,7 @@ function removePinLock(){
     sha256Hex(cur).then(hash=>{
       if(hash!==ls('app-pin-hash')){ showAlert('현재 PIN이 일치하지 않아요.'); return; }
       localStorage.removeItem('app-pin-hash');
+      localStorage.removeItem('webauthn-credential'); // PIN 없이 생체인증만 남는 상태 방지
       showToast('PIN 잠금이 해제됐어요');
       renderPinUI();
     });
@@ -5653,10 +5659,88 @@ function resetPinViaCloud(){
   fbAuth.signInWithPopup(provider).then(()=>{
     showConfirm('본인 확인이 완료됐어요. PIN을 초기화할까요?',()=>{
       localStorage.removeItem('app-pin-hash');
+      localStorage.removeItem('webauthn-credential');
       showToast('PIN이 초기화됐어요. 새로 설정해주세요.');
       renderPinUI();
     },{icon:'🔓',okLabel:'초기화'});
   }).catch(()=>{ showAlert('본인 확인에 실패했어요.'); });
+}
+// ── 생체인증 (WebAuthn) — PIN의 보조 잠금해제 수단, 서버 없이 공개키 검증까지 클라이언트에서 처리 ──
+function bufToB64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+function b64ToBuf(b64){ const bin=atob(b64); const bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i); return bytes.buffer; }
+// WebAuthn 서명은 DER(ASN.1) 형식으로 오는데 WebCrypto ECDSA verify는 raw(r||s, 각 32바이트) 형식을 요구해서 변환
+function derToRaw(der){
+  let offset=2; offset++; // 0x30 SEQUENCE, len, 0x02 INTEGER(r)
+  const rLen=der[offset++]; let r=Array.from(der.slice(offset,offset+rLen)); offset+=rLen;
+  offset++; // 0x02 INTEGER(s)
+  const sLen=der[offset++]; let s=Array.from(der.slice(offset,offset+sLen)); offset+=sLen;
+  function fix(buf){ while(buf.length>32&&buf[0]===0)buf=buf.slice(1); while(buf.length<32)buf=[0,...buf]; return buf; }
+  return new Uint8Array([...fix(r),...fix(s)]);
+}
+async function biometricPlatformAvailable(){
+  if(!(window.PublicKeyCredential&&navigator.credentials))return false;
+  try{ return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(); }catch{ return false; }
+}
+function hasBiometric(){ return !!ls('webauthn-credential'); }
+async function setupBiometric(){
+  if(!hasPinLock()){ showAlert('먼저 PIN을 설정해주세요.'); return; }
+  if(!(await biometricPlatformAvailable())){ showAlert('이 기기·브라우저는 생체인증을 지원하지 않아요.'); return; }
+  try{
+    const challenge=crypto.getRandomValues(new Uint8Array(32));
+    const userId=crypto.getRandomValues(new Uint8Array(16));
+    const cred=await navigator.credentials.create({publicKey:{
+      rp:{name:'우리가계부'},
+      user:{id:userId,name:'가계부 사용자',displayName:'가계부 사용자'},
+      challenge,
+      pubKeyCredParams:[{type:'public-key',alg:-7}],
+      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},
+      timeout:60000,
+    }});
+    const pubKeyBuf=cred.response.getPublicKey&&cred.response.getPublicKey();
+    if(!pubKeyBuf){ showAlert('이 브라우저에서는 생체인증 등록이 지원되지 않아요.'); return; }
+    lss('webauthn-credential',{id:bufToB64(cred.rawId),publicKey:bufToB64(pubKeyBuf)});
+    showToast('생체인증이 설정됐어요! ✓');
+    renderPinUI();
+  }catch(e){ console.error('biometric setup failed',e); showAlert('생체인증 등록에 실패했어요.'); }
+}
+function removeBiometric(){
+  localStorage.removeItem('webauthn-credential');
+  showToast('생체인증이 꺼졌어요');
+  renderPinUI();
+}
+async function verifyAssertion(assertion,pubKeyB64){
+  const resp=assertion.response;
+  const authData=new Uint8Array(resp.authenticatorData);
+  const clientDataHash=new Uint8Array(await crypto.subtle.digest('SHA-256',resp.clientDataJSON));
+  const signedData=new Uint8Array(authData.length+clientDataHash.length);
+  signedData.set(authData,0); signedData.set(clientDataHash,authData.length);
+  const key=await crypto.subtle.importKey('spki',b64ToBuf(pubKeyB64),{name:'ECDSA',namedCurve:'P-256'},false,['verify']);
+  const rawSig=derToRaw(new Uint8Array(resp.signature));
+  return crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,rawSig,signedData);
+}
+async function tryBiometricUnlock(){
+  const stored=ls('webauthn-credential');
+  if(!stored)return;
+  const errEl=document.getElementById('pin-lock-error');
+  try{
+    const challenge=crypto.getRandomValues(new Uint8Array(32));
+    const assertion=await navigator.credentials.get({publicKey:{
+      challenge,
+      allowCredentials:[{id:b64ToBuf(stored.id),type:'public-key'}],
+      userVerification:'required',
+      timeout:60000,
+    }});
+    const ok=await verifyAssertion(assertion,stored.publicKey);
+    if(ok){
+      document.getElementById('pin-lock-overlay').style.display='none';
+      if(errEl)errEl.textContent='';
+    } else if(errEl){
+      errEl.textContent='생체인증 확인에 실패했어요';
+    }
+  }catch(e){
+    console.error('biometric unlock failed',e);
+    if(errEl)errEl.textContent='';  // 사용자가 취소한 경우일 수 있어 조용히 무시하고 PIN 입력을 기다림
+  }
 }
 function renderPinUI(){
   const box=document.getElementById('pin-lock-box'); if(!box)return;
@@ -5667,11 +5751,25 @@ function renderPinUI(){
         '<button class="action-btn" onclick="changePinLock()" style="flex:1;background:var(--card2);border:1px solid var(--border2);color:var(--text2)">PIN 변경</button>'+
         '<button class="action-btn" onclick="removePinLock()" style="flex:1;background:var(--card2);border:1px solid var(--border2);color:var(--text2)">PIN 해제</button>'+
       '</div>'+
+      '<div id="pin-bio-section" style="margin-bottom:8px"></div>'+
       (cloudUser?'<button onclick="resetPinViaCloud()" style="width:100%;background:transparent;border:none;color:var(--text3);font-size:calc(11px * var(--fs,1));text-decoration:underline;padding:6px;cursor:pointer;font-family:inherit">PIN을 잊어버렸어요 (Google로 본인 확인)</button>':'');
+    renderBiometricUI();
   } else {
     box.innerHTML=
       '<div style="font-size:calc(12px * var(--fs,1));color:var(--text3);margin-bottom:12px;line-height:1.6">앱을 열 때마다 PIN 입력을 요구해서 다른 사람이 볼 수 없게 해요.</div>'+
       '<button class="action-btn" onclick="setupPinLock()" style="background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);font-weight:700">🔒 PIN 설정</button>';
+  }
+}
+async function renderBiometricUI(){
+  const sec=document.getElementById('pin-bio-section'); if(!sec)return;
+  if(!(await biometricPlatformAvailable())){ sec.innerHTML=''; return; }
+  if(hasBiometric()){
+    sec.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px">'+
+      '<span style="font-size:calc(12px * var(--fs,1));color:var(--text2)">🔓 생체인증 켜짐</span>'+
+      '<button onclick="removeBiometric()" style="background:none;border:none;color:var(--text3);font-size:calc(11px * var(--fs,1));text-decoration:underline;cursor:pointer;font-family:inherit">끄기</button>'+
+    '</div>';
+  } else {
+    sec.innerHTML='<button class="action-btn" onclick="setupBiometric()" style="width:100%;background:var(--card2);border:1px solid var(--border2);color:var(--text2)">🔓 지문·Face ID로 빠른 잠금해제 켜기</button>';
   }
 }
 checkPinLockOnStart();
