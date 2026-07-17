@@ -7525,10 +7525,7 @@ function editExp(id){openExpModal(id);}
 function delExp(id){showConfirm('삭제할까요?',()=>{lss('exp:'+mk(),(ls('exp:'+mk())||[]).filter(e=>e.id!==id));renderExpense();renderHome();},{danger:true,okLabel:'삭제'});}
 
 // ── SAVINGS ───────────────────────────────────────────────────────────────────
-function getDefaultSavingConfigs(){return[
-  {id:'sc1',name:'청아 적금',monthlyAmount:'300000',goal:'22000000',startDate:'2025-09',endDate:'2027-08'},
-  {id:'sc2',name:'승환 적금',monthlyAmount:'300000',goal:'22000000',startDate:'2025-01',endDate:'2026-12'},
-];}
+function getDefaultSavingConfigs(){return[];}
 function renderSavings(){
   const configs=ls('saving-configs')||getDefaultSavingConfigs();
   const totalCumul=configs.reduce((a,cfg)=>a+getSavingCumulative(cfg,curYear,curMonth),0);
@@ -8159,14 +8156,7 @@ function deleteLoan(idx){showConfirm('이 대출을 삭제할까요?',()=>{const
 function toggleLoanExclude(idx){const loans=getLoans();loans[idx].excludeFromExpense=!loans[idx].excludeFromExpense;lss('loans',loans);renderLoans();renderHome();if(homeView==='annual')renderAnnual();}
 
 // ── FIXED ─────────────────────────────────────────────────────────────────────
-function getDefaultFixed(){return[
-  {id:'f1',name:'자동차세',amount:'140000',note:'6월 납부',group:'세금/보험',cat:'traffic'},
-  {id:'f2',name:'재산세',amount:'140000',note:'6월/9월',group:'세금/보험',cat:'home'},
-  {id:'f3',name:'사과보험',amount:'',note:'11월 납부',group:'세금/보험',cat:'fin'},
-  {id:'f4',name:'앤전모임',amount:'200000',note:'5월 2회',group:'모임',cat:'etc'},
-  {id:'f5',name:'부모님(승내)',amount:'300000',note:'월 2회/년',group:'부모님',cat:'etc'},
-  {id:'f6',name:'부모님(경남)',amount:'300000',note:'어머니',group:'부모님',cat:'etc'},
-];}
+function getDefaultFixed(){return[];}
 function getChecks(){return ls('fx-check:'+mk())||{};}
 // 고정지출이 보고 있는 달에 활성화됐는지 (시작년월 이후만)
 function isFxActive(f,y,m){
@@ -9490,11 +9480,7 @@ function holdingLatest(h){
   const last=sorted[sorted.length-1];
   return {cost:cumCost,value:num(last.value)};
 }
-function getDefaultHoldings(){return[
-  {name:'삼성전자',history:[{ym:'2026-04',cost:1000000,value:1040000},{ym:'2026-06',cost:0,value:1185000}]},
-  {name:'S&P 500 ETF',history:[{ym:'2026-05',cost:2000000,value:2060000},{ym:'2026-06',cost:0,value:2240000}]},
-  {name:'비트코인',history:[{ym:'2026-06',cost:800000,value:712000}]}
-];}
+function getDefaultHoldings(){return[];}
 function renderHoldings(){
   let holdings=ls('invest-holdings');
   if((!holdings||!holdings.length)&&!ls('inv-seeded')){holdings=getDefaultHoldings();lss('inv-seeded','1');}
