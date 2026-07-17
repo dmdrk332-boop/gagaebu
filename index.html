@@ -714,9 +714,9 @@ body.dark-mode .arrow-btn{width:34px !important;height:34px !important;border-ra
 /* === ④ 버튼 위계: 1차=라임 / 2차=퍼플 아웃라인 === */
 body.dark-mode .add-btn{background:#B3FF3B !important;border:none !important;color:#0a0a0a !important;font-weight:800 !important;border-radius:99px !important}
 /* 팀 피드백: 탭별 색상 통일 */
-body.dark-mode #page-fixed .top-bar .add-btn{background:#7E62F3 !important;color:#fff !important}
-body.dark-mode #page-expense .top-bar .add-btn{background:#7BA3FF !important;color:#fff !important}
-body.dark-mode #e-list .add-btn{background:#7BA3FF !important;color:#fff !important}
+body.dark-mode #page-fixed .top-bar .add-btn{background:var(--purple-dim) !important;border:1px solid var(--purple-border) !important;color:var(--purple) !important}
+body.dark-mode #page-expense .top-bar .add-btn{background:var(--purple-dim) !important;border:1px solid var(--purple-border) !important;color:var(--purple) !important}
+body.dark-mode #e-list .add-btn{background:var(--purple-dim) !important;border:1px solid var(--purple-border) !important;color:var(--purple) !important}
 body.dark-mode #e-month{color:#7BA3FF !important}
 body.dark-mode .fx-end-date,body.dark-mode .fx-end-date:focus{color:var(--purple) !important}
 body.dark-mode #topbar .tb-action{background:rgba(126,98,243,.16) !important;border:1px solid #7E62F366 !important;color:#9b85f6 !important}
@@ -1132,6 +1132,16 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   <button onclick="submitPinLock()" style="margin-top:16px;width:180px;padding:13px;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);border-radius:13px;font-size:calc(14px * var(--fs,1));font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif">확인</button>
 </div>
 
+<!-- 지출 전체 검색 오버레이 (모든 달을 대상으로 검색) -->
+<div id="exp-search-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:800;flex-direction:column">
+  <div style="display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid var(--border)">
+    <button onclick="closeExpSearch()" style="background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px">‹</button>
+    <input id="exp-search-input" type="text" placeholder="이름·메모·카테고리로 검색 (전체 기간)" oninput="runExpSearch()"
+      style="flex:1;background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:11px 14px;font-size:calc(14px * var(--fs,1));color:var(--text);font-family:'Noto Sans KR',sans-serif"/>
+  </div>
+  <div id="exp-search-results" style="flex:1;overflow-y:auto;padding:12px 16px 30px"></div>
+</div>
+
 <!-- 명세서 이미지 뷰어 오버레이 -->
 <div id="slip-viewer-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:400;align-items:center;justify-content:center;flex-direction:column" onclick="closeSlipViewer()">
   <div style="position:relative;max-width:96vw;max-height:88vh">
@@ -1148,7 +1158,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <button class="subtab active" onclick="switchSub('expense',this)">💸 지출</button>
     <button class="subtab" onclick="switchSub('fixed',this)">📌 고정지출</button>
   </div>
-  <div class="top-bar"><span class="page-title">💸 지출 관리</span><button class="add-btn" onclick="openExpModal()">+ 추가</button></div>
+  <div class="top-bar"><span class="page-title">💸 지출 관리</span><div style="display:flex;gap:6px"><button class="icon-btn" onclick="openExpSearch()" style="font-size:calc(14px * var(--fs,1))">🔍</button><button class="add-btn" onclick="openExpModal()" style="background:var(--purple-dim);border:1px solid var(--purple-border);color:var(--purple)">+ 추가</button></div></div>
   <div class="month-bar">
     <button class="arrow-btn" onclick="changeMonth(-1)">‹</button>
     <div style="text-align:center;cursor:pointer" onclick="openDatePicker()">
@@ -1270,7 +1280,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <button class="subtab" onclick="switchSub('expense',this)">💸 지출</button>
     <button class="subtab active" onclick="switchSub('fixed',this)">📌 고정지출</button>
   </div>
-  <div class="top-bar"><span class="page-title">📌 고정 지출</span><button class="add-btn" onclick="addFixed()">+ 추가</button></div>
+  <div class="top-bar"><span class="page-title">📌 고정 지출</span><button class="add-btn" onclick="addFixed()" style="background:var(--purple-dim);border:1px solid var(--purple-border);color:var(--purple)">+ 추가</button></div>
   <!-- 월 합계 + 그룹 소계 -->
   <div style="margin:0 16px">
     <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:16px">
@@ -7497,7 +7507,7 @@ function renderExpense(){
     ).join('');
   const filtered=expFilter==='all'?exps:exps.filter(e=>e.cat===expFilter);
   const listEl=document.getElementById('e-list');
-  if(filtered.length===0){listEl.innerHTML=emptyState('🌿','아직 지출 내역이 없어요','<button class="add-btn" onclick="openExpModal()">+ 첫 지출 추가</button>');return;}
+  if(filtered.length===0){listEl.innerHTML=emptyState('🌿','아직 지출 내역이 없어요','<button class="add-btn" onclick="openExpModal()" style="background:var(--purple-dim);border:1px solid var(--purple-border);color:var(--purple)">+ 첫 지출 추가</button>');return;}
   const fixedList=ls('budget:fixed')||getDefaultFixed();
   listEl.innerHTML='<div class="card">'+[...filtered].reverse().map(e=>{
     const cat=CAT_MAP[e.cat]||CAT_MAP.etc;
@@ -7509,6 +7519,53 @@ function renderExpense(){
     </div>`;}).join('')+'</div>';
 }
 function setExpFilter(f){expFilter=f;renderExpense();}
+
+// ── 지출 전체 검색 (모든 달을 대상으로) ─────────────────────────────────────────
+function openExpSearch(){
+  document.getElementById('exp-search-overlay').style.display='flex';
+  document.getElementById('exp-search-results').innerHTML='';
+  const inp=document.getElementById('exp-search-input');
+  inp.value='';
+  setTimeout(()=>inp.focus(),60);
+}
+function closeExpSearch(){
+  document.getElementById('exp-search-overlay').style.display='none';
+}
+function runExpSearch(){
+  const q=(document.getElementById('exp-search-input').value||'').trim().toLowerCase();
+  const resultsEl=document.getElementById('exp-search-results');
+  if(!q){resultsEl.innerHTML='';return;}
+  const results=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(!k||k.indexOf('exp:')!==0)continue;
+    const ym=k.slice(4);
+    const arr=ls(k); if(!Array.isArray(arr))continue;
+    arr.forEach(e=>{
+      const cat=CAT_MAP[e.cat]||CAT_MAP.etc;
+      const hay=((e.name||'')+' '+(e.note||'')+' '+(cat.label||'')).toLowerCase();
+      if(hay.includes(q))results.push(Object.assign({},e,{ym}));
+    });
+  }
+  results.sort((a,b)=>(b.ym+b.date).localeCompare(a.ym+a.date)); // 최신순
+  if(!results.length){resultsEl.innerHTML=emptyState('🔍','검색 결과가 없어요','');return;}
+  const capped=results.slice(0,50);
+  resultsEl.innerHTML='<div class="card">'+capped.map(e=>{
+    const cat=CAT_MAP[e.cat]||CAT_MAP.etc;
+    return `<div class="exp-item" onclick="jumpToExpSearchResult('${e.ym}','${e.id}')" style="cursor:pointer">
+      <span class="exp-icon" style="background:${cat.color}22;border:1.5px solid ${cat.color}55">${cat.icon}</span>
+      <div class="exp-info"><div class="exp-name">${e.name}</div><div class="exp-meta">${e.date} · ${cat.label}${e.note?' · '+e.note:''}</div></div>
+      <span class="exp-amount">-${fmt(e.amount)}</span>
+    </div>`;
+  }).join('')+'</div>'+(results.length>50?'<div style="text-align:center;color:var(--text4);font-size:calc(11px * var(--fs,1));padding:10px">결과가 많아 최근 50건만 보여드려요 ('+results.length+'건 검색됨)</div>':'');
+}
+function jumpToExpSearchResult(ym,id){
+  const parts=ym.split('-');
+  curYear=parseInt(parts[0]);curMonth=parseInt(parts[1]);
+  closeExpSearch();
+  switchSub('expense');
+  setTimeout(()=>openExpModal(id),80);
+}
 
 // ── 예산형 고정항목 사용 현황 (지출탭) ──────────────────────────────────────────
 function updateBudgetPreview(){
