@@ -907,6 +907,8 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       </div>
       <div id="h-flow" style="margin-top:16px"></div>
     </div>
+    <!-- 소비 요약 위젯 (가로 스크롤) -->
+    <div id="h-widgets" style="display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 16px 2px;margin-bottom:14px;-webkit-overflow-scrolling:touch"></div>
     <!-- 순자산 플립 카드 (탭하면 총자산 상세) -->
     <div class="flip-card" id="nw-flip" onclick="toggleNwFlip(event)">
       <div class="flip-inner">
@@ -6272,6 +6274,23 @@ function getMonthSavingsPay(configs,y,m){
     return a+(active?num(cfg.monthlyAmount):0)+extraThisMonth;
   },0);
 }
+// 특정 연/월 기준 예금 잔액 (원금 + 그때까지의 추가입금 − 출금) — 적금의 getSavingCumulative()와 같은 역할
+// 시작 전이면 0, 만기 이후는 만기 시점 잔액으로 고정
+function getDepositBalance(d,y,m){
+  if(!d||!d.startDate)return num(d&&d.principal);
+  const[sy,sm]=d.startDate.split('-').map(Number);
+  if(y<sy||(y===sy&&m<sm))return 0; // 아직 시작 전
+  let ty=y,tm=m;
+  if(d.endDate){const[ey,em]=d.endDate.split('-').map(Number);if(y>ey||(y===ey&&m>em)){ty=ey;tm=em;}}
+  const upto=(dateStr)=>{
+    if(!dateStr)return false;
+    const[dy,dm]=dateStr.split('-').map(Number);
+    return (dy<ty)||(dy===ty&&dm<=tm);
+  };
+  const extras=(d.extras||[]).filter(e=>upto(e.date)).reduce((a,e)=>a+num(e.amount),0);
+  const withdrawn=(d.withdrawals||[]).filter(w=>upto(w.date)).reduce((a,w)=>a+num(w.amount),0);
+  return Math.max(0,num(d.principal)+extras-withdrawn);
+}
 // 특정 연/월의 예금 신규 납입액 (그 달 시작된 원금 + 그 달 중도추가입금 − 그 달 중도출금) — 홈탭·연간분석 공용
 function getMonthDepositPay(deps,y,m){
   return (deps||[]).reduce((a,d)=>{
@@ -6374,16 +6393,18 @@ function countUpEl(el){
   requestAnimationFrame(step);
 }
 function runCountUps(){['h-balance','h-networth','h-asset-total','i-total','s-total','s-month-pay','d-total','ln-monthly-total','iv-hold-total'].forEach(id=>countUpEl(document.getElementById(id)));}
-function renderWidgets(totalExp,budgetTotal,netWorth){
+// 홈 소비 요약 위젯 — 수입 대비 지출 비율 / 알뜰소비 지수
+// (순자산은 아래 전용 플립카드가 따로 있으므로 여기서는 다루지 않음)
+function renderWidgets(totalExp,incomeTotal){
   const el=document.getElementById('h-widgets');if(!el)return;
-  const bpct=budgetTotal>0?Math.min(100,Math.round(totalExp/budgetTotal*100)):0;
-  const savIdx=budgetTotal>0?Math.max(0,Math.min(100,Math.round((1-totalExp/budgetTotal)*100))):89;
-  const ring=(pct,col)=>{const r=20,c=2*Math.PI*r,off=c*(1-pct/100);return '<svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg)"><circle cx="26" cy="26" r="20" fill="none" stroke="#262626" stroke-width="5"/><circle cx="26" cy="26" r="20" fill="none" stroke="'+col+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg>';};
-  const card=(tag,inner,onclick)=>'<div onclick="'+onclick+'" style="scroll-snap-align:start;flex:none;width:150px;background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:15px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 8px 22px rgba(0,0,0,.3)"><div style="font-family:Caveat,cursive;font-size:calc(15px * var(--fs,1));color:#B3FF3B;line-height:1;margin-bottom:9px">'+tag+'</div>'+inner+'</div>';
-  const w1=card('budget',  '<div style="display:flex;align-items:center;gap:10px"><div style="position:relative;width:52px;height:52px;flex:none">'+ring(bpct,'#7E62F3')+'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:calc(13px * var(--fs,1));font-weight:800;color:#fff">'+bpct+'%</div></div><div><div style="font-size:calc(11px * var(--fs,1));color:#8a8a8f">예산 사용</div><div style="font-size:calc(13px * var(--fs,1));font-weight:800;color:#fff">'+fmt(totalExp)+'</div></div></div>',"switchMain('expense')");
-  const w2=card('thrifty', '<div style="display:flex;align-items:center;gap:10px"><div style="position:relative;width:52px;height:52px;flex:none">'+ring(savIdx,'#B3FF3B')+'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:calc(13px * var(--fs,1));font-weight:800;color:#B3FF3B">'+savIdx+'</div></div><div><div style="font-size:calc(11px * var(--fs,1));color:#8a8a8f">알뜰소비 지수</div><div style="font-size:calc(13px * var(--fs,1));font-weight:800;color:#B3FF3B">'+(savIdx>=70?'알뜰 소비':'주의 필요')+'</div></div></div>',"switchMain('expense')");
-  const w3=card('networth','<div style="font-size:calc(11px * var(--fs,1));color:#8a8a8f;margin-bottom:4px">순자산</div><div style="font-size:calc(20px * var(--fs,1));font-weight:900;letter-spacing:-.03em;color:'+(netWorth<0?'#7BA3FF':'#fff')+'">'+fmt(netWorth)+'</div><div style="font-size:calc(11px * var(--fs,1));font-weight:700;color:#FF5B97;margin-top:6px">자산 보기 ›</div>',"switchMain('saving')");
-  el.innerHTML=w1+w2+w3;
+  const hasIncome=incomeTotal>0;
+  const bpct=hasIncome?Math.min(100,Math.round(totalExp/incomeTotal*100)):0;
+  const savIdx=hasIncome?Math.max(0,Math.min(100,Math.round((1-totalExp/incomeTotal)*100))):0;
+  const ring=(pct,col)=>{const r=20,c=2*Math.PI*r,off=c*(1-pct/100);return '<svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg)"><circle cx="26" cy="26" r="20" fill="none" stroke="var(--card2)" stroke-width="5"/><circle cx="26" cy="26" r="20" fill="none" stroke="'+col+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg>';};
+  const card=(tag,inner)=>'<div onclick="switchSub(\'expense\')" style="scroll-snap-align:start;flex:none;width:158px;background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:15px;cursor:pointer"><div style="font-size:calc(10px * var(--fs,1));font-weight:700;letter-spacing:.06em;color:var(--text3);line-height:1;margin-bottom:9px">'+tag+'</div>'+inner+'</div>';
+  const w1=card('지출 비율','<div style="display:flex;align-items:center;gap:10px"><div style="position:relative;width:52px;height:52px;flex:none">'+ring(bpct,'var(--purple)')+'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:calc(13px * var(--fs,1));font-weight:800;color:var(--text)">'+(hasIncome?bpct+'%':'—')+'</div></div><div style="min-width:0"><div style="font-size:calc(11px * var(--fs,1));color:var(--text3)">수입 대비 지출</div><div style="font-size:calc(13px * var(--fs,1));font-weight:800;color:var(--text)">'+fmt(totalExp)+'</div></div></div>');
+  const w2=card('알뜰소비','<div style="display:flex;align-items:center;gap:10px"><div style="position:relative;width:52px;height:52px;flex:none">'+ring(savIdx,'var(--green)')+'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:calc(13px * var(--fs,1));font-weight:800;color:var(--green)">'+(hasIncome?savIdx:'—')+'</div></div><div style="min-width:0"><div style="font-size:calc(11px * var(--fs,1));color:var(--text3)">알뜰소비 지수</div><div style="font-size:calc(13px * var(--fs,1));font-weight:800;color:var(--green)">'+(hasIncome?(savIdx>=70?'알뜰 소비':'주의 필요'):'수입 입력 전')+'</div></div></div>');
+  el.innerHTML=w1+w2;
 }
 
 // 다가오는 고정지출 자동이체일(7일 이내, 미확인분만) + 적금·예금 만기(이번달/다음달) 배너
@@ -6537,7 +6558,7 @@ function renderHome(){
   const configs_=ls('saving-configs')||getDefaultSavingConfigs();
   const savTotal=configs_.reduce((a,cfg)=>a+getSavingCumulative(cfg,curYear,curMonth),0);
   const deps=ls('deposit-configs')||[];
-  const depTotal=deps.reduce((a,d)=>a+num(d.principal),0);
+  const depTotal=deps.reduce((a,d)=>a+getDepositBalance(d,curYear,curMonth),0);
   const holdings=ls('invest-holdings')||[];
   const invTotal=holdings.reduce((a,h)=>{
     if(h.history&&h.history.length>0){
@@ -6557,7 +6578,7 @@ function renderHome(){
     return a+curBal;
   },0);
   const netWorth=assetTotal-debtTotal;
-  renderWidgets(totalExp,totalInc,netWorth);
+  renderWidgets(totalExp,totalInc);
   const nwEl=document.getElementById('h-networth');
   nwEl.textContent=(netWorth>=0?'':'-')+fmt(Math.abs(netWorth)).replace('-','');
   nwEl.style.color=netWorth>=0?'var(--blue)':'var(--minus)';
@@ -8330,6 +8351,18 @@ function calcSavingInterest(cfg){
     if(compound){interest+=amt*(Math.pow(1+i,held)-1);}
     else{interest+=amt*i*held;}
   });
+  // 중도출금 — 뺀 시점부터 만기까지 남은 기간만큼 이자에서 차감 (그 돈은 더 이상 이자를 못 버니까)
+  (cfg.withdrawals||[]).forEach(w=>{
+    if(!w.date)return;
+    const amt=num(w.amount);
+    if(!amt)return;
+    const[wy,wm]=w.date.split('-').map(Number);
+    const k=(wy-sy)*12+(wm-sm)+1;
+    const held=n-k+1;
+    if(held<=0)return;
+    if(compound){interest-=amt*(Math.pow(1+i,held)-1);}
+    else{interest-=amt*i*held;}
+  });
   return Math.round(Math.max(0,interest));
 }
 
@@ -8368,7 +8401,7 @@ function calcDepositInterest(d){
 }
 function renderDeposits(){
   const deps=ls('deposit-configs')||[];
-  const total=deps.reduce((a,d)=>a+num(d.principal),0);
+  const total=deps.reduce((a,d)=>a+getDepositBalance(d,curYear,curMonth),0);
   const el=document.getElementById('d-total');
   if(el)el.textContent=fmt(total);
   const listEl=document.getElementById('d-list');
@@ -8379,7 +8412,9 @@ function renderDeposits(){
     const taxRate=numf(d.taxRate!=null?d.taxRate:15.4);
     const tax=Math.round(si*taxRate/100);
     const afterTax=si-tax;
-    const total=num(d.principal)+afterTax;
+    // 만기 수령액은 만기 시점 잔액(추가입금·중도출금 반영) 기준
+    const maturityPrincipal=d.endDate?(()=>{const[ey,em]=d.endDate.split('-').map(Number);return getDepositBalance(d,ey,em);})():num(d.principal);
+    const total=maturityPrincipal+afterTax;
     const pct=d.startDate&&d.endDate?(()=>{
       const now=new Date();
       const[sy,sm]=d.startDate.split('-').map(Number);
@@ -8423,7 +8458,7 @@ function renderDeposits(){
       '<div><div style="font-size:calc(10px * var(--fs,1));color:var(--text3);margin-bottom:4px">🏁 만기일</div>'+
       '<button onclick="openMonthPickerFor(\''+d.endDate+'\',\'deposit\','+i+',\'endDate\')" style="background:transparent;border:none;border-bottom:1px solid var(--border2);padding-bottom:2px;color:var(--text);font-size:calc(13px * var(--fs,1));font-weight:600;font-family:\'Noto Sans KR\',sans-serif;cursor:pointer;text-align:left;width:100%">'+(d.endDate?fmtMonthDisplay(d.endDate):'선택')+'</button></div></div>'+
       '<div style="background:var(--card2);border-radius:8px;padding:10px;border:1px solid var(--border);margin-bottom:4px">'+
-      '<div style="display:flex;justify-content:space-between;font-size:calc(12px * var(--fs,1));margin-bottom:4px"><span style="color:var(--text2)">원금</span><span style="color:#3E3E3E;font-weight:700">'+fmt(num(d.principal))+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:calc(12px * var(--fs,1));margin-bottom:4px"><span style="color:var(--text2)">'+(((d.extras||[]).length||(d.withdrawals||[]).length)?'납입 원금 (추가·출금 반영)':'원금')+'</span><span style="color:#3E3E3E;font-weight:700">'+fmt(getDepositBalance(d,curYear,curMonth))+'</span></div>'+
       intH+progH+'</div>'+
       '<div style="border-top:1px solid var(--border2);padding-top:10px;margin-top:10px">'+
       '<div style="font-size:calc(11px * var(--fs,1));font-weight:600;color:var(--text2);margin-bottom:8px">➕ 중도 추가입금</div>'+
