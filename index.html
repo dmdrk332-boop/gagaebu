@@ -6578,7 +6578,9 @@ function renderHome(){
     return a+curBal;
   },0);
   const netWorth=assetTotal-debtTotal;
-  renderWidgets(totalExp,totalInc);
+  // 위젯의 "지출 비율"은 예산형 고정지출에 연동된 지출까지 포함한 실제 총 소비 기준
+  // (히어로 카드의 totalExp는 고정 항목과의 이중집계를 피하려고 그 부분을 일부러 빼둔 값이라 여기 그대로 쓰면 과소평가됨)
+  renderWidgets(totalExp+totalFixed,totalInc);
   const nwEl=document.getElementById('h-networth');
   nwEl.textContent=(netWorth>=0?'':'-')+fmt(Math.abs(netWorth)).replace('-','');
   nwEl.style.color=netWorth>=0?'var(--blue)':'var(--minus)';
