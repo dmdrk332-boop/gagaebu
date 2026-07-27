@@ -80,6 +80,10 @@ body.light-mode #onboard{
   --ob-accent:var(--accent);--ob-accent-dim:var(--accent-dim);--ob-accent-border:var(--accent-border);
   --ob-purple-dim:var(--purple-dim);--ob-purple-border:var(--purple-border);--ob-purple-shadow:var(--purple-dim);--ob-purple2:var(--accent2);
 }
+/* 투자 탭 슬라이더·그래프 전용 색상 토큰 — 다크 기본값은 기존 값 그대로, 라이트에서만 앱 팔레트로 교체
+   (Chart.js가 getComputedStyle(body)로 읽어가므로 body 스코프에 둠) */
+body{--iv-lime:#B3FF3B;--iv-gold:#FFC95B;--iv-green:#22c55e;}
+body.light-mode{--iv-lime:var(--accent);--iv-gold:#E0A93C;--iv-green:#22c55e;}
 /* 퀢직연금 포트폴리오 시뮬레이터(#pf-root)는 자체 색상토큰을 써서 따로 오버라이드 필요 */
 body.light-mode #pf-root{
   --bg:#E9F3ED;--bg2:#E0EDE5;--card:#FBF8F2;--card2:#F3EEE4;
@@ -511,9 +515,7 @@ body.dark-mode #tb-name2{color:#B3FF3B}
 /* === 투자원칙 시뮬레이터: 퍼플 → 그린(라이트 팔레트 통일, 3색 유지) === */
 body.light-mode .sim-toggle{border-color:var(--accent-border) !important;background:var(--accent-dim) !important;color:var(--accent) !important}
 body.light-mode .sim-toggle.on{background:var(--accent) !important;color:#fff !important}
-body.light-mode .sim-slider,
-body.light-mode .sim-srow input[type=range]{accent-color:var(--blue) !important}
-body.light-mode .sim-srow .sim-sval{color:var(--blue) !important}
+body.light-mode .sim-slider{accent-color:var(--blue) !important}
 body.light-mode .sim-seg button.sel{background:var(--accent) !important;color:#fff !important;border-color:var(--accent) !important}
 body.light-mode .sim-chk.on .box{background:var(--accent) !important;border-color:var(--accent) !important;color:#fff !important}
 body.light-mode .sim-run{background:var(--accent) !important;color:#fff !important}
@@ -593,10 +595,11 @@ body.dark-mode .sim-slider{accent-color:#B3FF3B}
 .sim-srow{margin-bottom:11px}
 .sim-srow .sim-shead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
 .sim-srow .sim-slabel{font-size:calc(11px * var(--fs,1));color:#8a8a85;font-weight:600}
-.sim-srow .sim-sval{font-size:calc(13px * var(--fs,1));font-weight:800;color:#9b85f6}
-body.dark-mode .sim-srow .sim-sval{color:#B3FF3B}
-.sim-srow input[type=range]{width:100%;accent-color:#9b85f6;height:5px}
-body.dark-mode .sim-srow input[type=range]{accent-color:#B3FF3B}
+/* 같은 카드 안의 슬라이더끼리 구분되도록 --sr-c를 JS(colorizeSimSliders)가 순번대로 지정 */
+.sim-srow .sim-sval{font-size:calc(13px * var(--fs,1));font-weight:800;color:var(--sr-c,var(--sr-1))}
+.sim-srow input[type=range]{width:100%;accent-color:var(--sr-c,var(--sr-1));height:5px}
+#page-invest-principle{--sr-1:#B3FF3B;--sr-2:#FF5B97;--sr-3:#9b85f6;--sr-4:#7BA3FF}
+body.light-mode #page-invest-principle{--sr-1:var(--accent);--sr-2:var(--blue);--sr-3:var(--accent2);--sr-4:var(--minus)}
 .sim-seg{display:flex;gap:5px;flex:1}
 .sim-seg button{flex:1;padding:7px 4px;border-radius:7px;border:1px solid var(--border2);background:var(--card);color:#8a8a85;font-size:calc(11px * var(--fs,1));font-weight:700;font-family:inherit;cursor:pointer}
 .sim-seg button.sel{background:#9b85f6;color:#fff;border-color:#9b85f6}
@@ -700,20 +703,8 @@ body.dark-mode #ln-monthly-total,
 body.dark-mode #iv-hold-total,
 body.dark-mode #iv-hero-total{font-weight:900 !important;letter-spacing:-.03em !important;font-variant-numeric:tabular-nums}
 
-/* === 슬라이더 라임 accent === */
-body.dark-mode input[type=range]{accent-color:#B3FF3B !important}
 input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 input[type=number]{-moz-appearance:textfield}
-/* === 투자 슬라이더 개별 색상 구분 === */
-body.dark-mode #iv-monthly{accent-color:#B3FF3B !important}
-body.dark-mode #iv-years{accent-color:#FF5B97 !important}
-body.dark-mode #iv-rate{accent-color:#9b85f6 !important}
-body.dark-mode #iv-inflation{accent-color:#7BA3FF !important}
-body.dark-mode #iv-deposit-rate{accent-color:#FFC95B !important}
-body.dark-mode #irp-m-monthly{accent-color:#B3FF3B !important}
-body.dark-mode #irp-m-years{accent-color:#FF5B97 !important}
-body.dark-mode #irp-m-rate{accent-color:#9b85f6 !important}
-body.dark-mode #irp-m-inflation{accent-color:#7BA3FF !important}
 /* === ③ 월 이동 바 알약 === */
 body.dark-mode .month-bar{background:#141414 !important;border:1px solid rgba(255,255,255,.07);border-radius:99px;margin:8px 16px 14px;padding:6px 10px;gap:0 !important;justify-content:space-between}
 body.dark-mode .month-name{color:#B3FF3B !important}
@@ -1410,24 +1401,24 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   <!-- 슬라이더들 -->
   <div style="margin:0 16px">
     <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:8px">
-      <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:6px;font-weight:600">💵 월 투자금액 <span style="font-size:calc(8.5px * var(--fs,1));color:#9b85f6">· 금액 꾹 눌러 직접입력</span></div>
+      <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:6px;font-weight:600">💵 월 투자금액 <span style="font-size:calc(8.5px * var(--fs,1));color:var(--accent2)">· 금액 꾹 눌러 직접입력</span></div>
       <div style="display:flex;align-items:center;gap:8px">
-        <input type="range" id="iv-monthly" min="5" max="300" value="50" step="5" oninput="ivCalc()" style="flex:1;accent-color:#3E3E3E"/>
-        <span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:#B3FF3B;min-width:55px;text-align:right" id="iv-sv-monthly">50만원</span>
+        <input type="range" id="iv-monthly" min="5" max="300" value="50" step="5" oninput="ivCalc()" style="flex:1;accent-color:var(--iv-lime)"/>
+        <span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--iv-lime);min-width:55px;text-align:right" id="iv-sv-monthly">50만원</span>
       </div>
     </div>
     <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:8px">
       <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:6px;font-weight:600">📅 투자 기간</div>
       <div style="display:flex;align-items:center;gap:8px">
-        <input type="range" id="iv-years" min="1" max="40" value="20" step="1" oninput="ivCalc()" style="flex:1;accent-color:#3E3E3E"/>
-        <span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:#FF5B97;min-width:55px;text-align:right" id="iv-sv-years">20년</span>
+        <input type="range" id="iv-years" min="1" max="40" value="20" step="1" oninput="ivCalc()" style="flex:1;accent-color:var(--blue)"/>
+        <span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--blue);min-width:55px;text-align:right" id="iv-sv-years">20년</span>
       </div>
     </div>
     <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:8px">
       <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:6px;font-weight:600">📊 예상 연수익률</div>
       <div style="display:flex;align-items:center;gap:8px">
-        <input type="range" id="iv-rate" min="1" max="25" value="10.5" step="0.5" oninput="ivCalc()" style="flex:1;accent-color:#3E3E3E"/>
-        <span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:#9b85f6;min-width:55px;text-align:right" id="iv-sv-rate">10.5%</span>
+        <input type="range" id="iv-rate" min="1" max="25" value="10.5" step="0.5" oninput="ivCalc()" style="flex:1;accent-color:var(--accent2)"/>
+        <span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--accent2);min-width:55px;text-align:right" id="iv-sv-rate">10.5%</span>
       </div>
     </div>
 
@@ -1441,8 +1432,8 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       </div>
       <div id="iv-inf-slider" style="display:none;margin-top:8px">
         <div style="display:flex;align-items:center;gap:8px">
-          <input type="range" id="iv-inflation" min="0.5" max="6" value="2.5" step="0.5" oninput="ivCalc()" style="flex:1;accent-color:#d97706"/>
-          <span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:#7BA3FF;min-width:40px;text-align:right" id="iv-sv-inflation">2.5%</span>
+          <input type="range" id="iv-inflation" min="0.5" max="6" value="2.5" step="0.5" oninput="ivCalc()" style="flex:1;accent-color:var(--minus)"/>
+          <span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--minus);min-width:40px;text-align:right" id="iv-sv-inflation">2.5%</span>
         </div>
       </div>
     </div>
@@ -1451,8 +1442,8 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div id="iv-deposit-card" style="display:none;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:8px">
       <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:6px;font-weight:600">🏦 예금 금리 (비교용)</div>
       <div style="display:flex;align-items:center;gap:8px">
-        <input type="range" id="iv-deposit-rate" min="0.5" max="8" value="3.5" step="0.1" oninput="ivCalc()" style="flex:1;accent-color:#d97706"/>
-        <span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:#FFC95B;min-width:40px;text-align:right" id="iv-sv-deposit">3.5%</span>
+        <input type="range" id="iv-deposit-rate" min="0.5" max="8" value="3.5" step="0.1" oninput="ivCalc()" style="flex:1;accent-color:var(--iv-gold)"/>
+        <span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--iv-gold);min-width:40px;text-align:right" id="iv-sv-deposit">3.5%</span>
       </div>
     </div>
   </div>
@@ -1499,12 +1490,12 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   <!-- ═══════════════ 이론 기반 시뮬레이터 ═══════════════ -->
   <div style="margin:14px 16px 12px">
     <span style="font-size:calc(15px * var(--fs,1));font-weight:800;color:#3E3E3E">🧮 은퇴 이론 시뮬레이터</span>
-    <div style="font-size:calc(11.5px * var(--fs,1));color:#9a9a95;margin-top:5px;line-height:1.6">은퇴 준비가 처음이어도 괜찮아요. 아래 설정을 채우면, 각 이론이 <b>내 숫자</b>로 바뀌어 나와요. 각 계산기엔 <b style="color:#9b85f6">💡 쉽게 이해하기</b> 설명과 <b style="color:#FF5B97">📚 객관적 근거</b>가 있어요.</div>
+    <div style="font-size:calc(11.5px * var(--fs,1));color:#9a9a95;margin-top:5px;line-height:1.6">은퇴 준비가 처음이어도 괜찮아요. 아래 설정을 채우면, 각 이론이 <b>내 숫자</b>로 바뀌어 나와요. 각 계산기엔 <b style="color:var(--accent2)">💡 쉽게 이해하기</b> 설명과 <b style="color:#FF5B97">📚 객관적 근거</b>가 있어요.</div>
   </div>
 
   <!-- ⚙️ 공통 설정 패널 -->
-  <div style="margin:0 16px 16px;background:linear-gradient(135deg,rgba(126,98,243,.12),rgba(255,91,151,.08));border:1px solid var(--border2);border-radius:16px;padding:16px">
-    <div style="font-size:calc(13px * var(--fs,1));font-weight:800;color:#3E3E3E;margin-bottom:3px">⚙️ 내 은퇴 설정 <span style="font-size:calc(9px * var(--fs,1));color:#9b85f6;font-weight:600">(모든 계산기에 공통 적용)</span></div>
+  <div style="margin:0 16px 16px;background:var(--accent-dim);border:1px solid var(--border2);border-radius:16px;padding:16px">
+    <div style="font-size:calc(13px * var(--fs,1));font-weight:800;color:#3E3E3E;margin-bottom:3px">⚙️ 내 은퇴 설정 <span style="font-size:calc(9px * var(--fs,1));color:var(--accent2);font-weight:600">(모든 계산기에 공통 적용)</span></div>
     <div style="font-size:calc(10.5px * var(--fs,1));color:#8a8a85;margin-bottom:12px;line-height:1.55">지금 나이와 은퇴 예정 나이, 몇 살까지 살 거라 볼지를 정해요. 빈칸을 누르면 숫자를 바꿀 수 있어요.</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
       <div style="background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:10px">
@@ -1517,7 +1508,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       </div>
       <div style="background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:10px">
         <div style="font-size:calc(9.5px * var(--fs,1));color:#9a9a95;margin-bottom:3px;font-weight:600">🕊️ 예상 수명</div>
-        <div style="display:flex;align-items:baseline;gap:2px"><input type="number" id="rt-life" value="90" step="1" oninput="recalcAll()" style="width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:calc(17px * var(--fs,1));font-weight:800;color:#9b85f6;font-family:inherit;padding:2px 0;text-align:right;outline:none;min-width:0"/><span style="font-size:calc(11px * var(--fs,1));color:#9a9a95;font-weight:700">세</span></div>
+        <div style="display:flex;align-items:baseline;gap:2px"><input type="number" id="rt-life" value="90" step="1" oninput="recalcAll()" style="width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:calc(17px * var(--fs,1));font-weight:800;color:var(--accent2);font-family:inherit;padding:2px 0;text-align:right;outline:none;min-width:0"/><span style="font-size:calc(11px * var(--fs,1));color:#9a9a95;font-weight:700">세</span></div>
       </div>
     </div>
     <div id="rt-summary" style="background:rgba(0,0,0,.05);border-radius:10px;padding:10px 12px;font-size:calc(11px * var(--fs,1));color:#3E3E3E;line-height:1.6;margin-bottom:12px"></div>
@@ -1528,13 +1519,13 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
           <div style="font-size:calc(11px * var(--fs,1));color:#3E3E3E;font-weight:700">💰 총 은퇴자산 통일</div>
           <div style="font-size:calc(9px * var(--fs,1));color:#9a9a95;margin-top:1px">켜면 아래 ②버킷·③가드레일의 총자산이 이 값으로 고정돼요</div>
         </div>
-        <div id="rt-unify-toggle" onclick="toggleUnify()" style="width:38px;height:20px;background:#9b85f6;border-radius:10px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0">
+        <div id="rt-unify-toggle" onclick="toggleUnify()" style="width:38px;height:20px;background:var(--accent2);border-radius:10px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0">
           <div id="rt-unify-thumb" style="width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;left:20px;transition:left .2s"></div>
         </div>
       </div>
       <div id="rt-total-row" style="background:rgba(155,133,246,.08);border-radius:9px;padding:9px 11px">
         <div style="font-size:calc(9.5px * var(--fs,1));color:#9a9a95;font-weight:600;margin-bottom:2px">총 은퇴자산 (모은 돈 전체)</div>
-        <div style="display:flex;align-items:center;gap:6px"><input type="number" id="rt-total" value="60000" step="5" oninput="applyUnify();recalcAll()" style="flex:1;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:calc(18px * var(--fs,1));font-weight:800;color:#9b85f6;font-family:inherit;padding:2px 0;text-align:right;outline:none;min-width:0"/><span style="font-size:calc(12px * var(--fs,1));color:#9a9a95;font-weight:700">만원</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><input type="number" id="rt-total" value="60000" step="5" oninput="applyUnify();recalcAll()" style="flex:1;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:calc(18px * var(--fs,1));font-weight:800;color:var(--accent2);font-family:inherit;padding:2px 0;text-align:right;outline:none;min-width:0"/><span style="font-size:calc(12px * var(--fs,1));color:#9a9a95;font-weight:700">만원</span></div>
       </div>
     </div>
     <!-- 물가상승률 토글 -->
@@ -1549,8 +1540,8 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
         </div>
       </div>
       <div id="rt-infl-row" style="display:none;margin-top:10px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:calc(9.5px * var(--fs,1));color:#9a9a95;font-weight:600">연 물가상승률</span><span style="font-size:calc(12px * var(--fs,1));font-weight:800;color:#7BA3FF" id="rt-infl-lbl">2.5%</span></div>
-        <input type="range" id="rt-infl" min="1" max="6" value="2.5" step="0.5" oninput="recalcAll()" style="width:100%;accent-color:#7BA3FF"/>
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:calc(9.5px * var(--fs,1));color:#9a9a95;font-weight:600">연 물가상승률</span><span style="font-size:calc(12px * var(--fs,1));font-weight:800;color:var(--minus)" id="rt-infl-lbl">2.5%</span></div>
+        <input type="range" id="rt-infl" min="1" max="6" value="2.5" step="0.5" oninput="recalcAll()" style="width:100%;accent-color:var(--minus)"/>
       </div>
     </div>
   </div>
@@ -1561,7 +1552,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:10px">"얼마를 모아야 평생 빼 쓸 수 있나"를 계산 <span id="swr-infl-badge"></span></div>
 
     <div style="background:rgba(155,133,246,.08);border-radius:10px;padding:11px 12px;margin-bottom:12px">
-      <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:#9b85f6;margin-bottom:4px">💡 쉽게 이해하기</div>
+      <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:var(--accent2);margin-bottom:4px">💡 쉽게 이해하기</div>
       <div style="font-size:calc(11px * var(--fs,1));color:#8a8a85;line-height:1.7">은퇴하면 월급이 없으니 <b>모아둔 돈에서 조금씩 꺼내</b> 살아요. 그런데 너무 많이 꺼내면 돈이 일찍 바닥나요. 연구로 검증된 "안전한 비율"이 <b>3~4%</b>예요. 예를 들어 1년에 3,000만원이 필요하면, 그 25배인 <b>7.5억원</b>이 있으면 4%씩 꺼내 평생 쓸 수 있다는 뜻이에요. 한국은 오래 사니까 더 보수적인 <b>3~3.5%</b>를 권해요.</div>
     </div>
 
@@ -1606,12 +1597,12 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:10px">은퇴자산을 3개 바구니로 나눠 담기 <span id="bk-infl-badge"></span></div>
 
     <div style="background:rgba(155,133,246,.08);border-radius:10px;padding:11px 12px;margin-bottom:12px">
-      <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:#9b85f6;margin-bottom:4px">💡 쉽게 이해하기</div>
+      <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:var(--accent2);margin-bottom:4px">💡 쉽게 이해하기</div>
       <div style="font-size:calc(11px * var(--fs,1));color:#8a8a85;line-height:1.7">돈을 한 군데 두면, 주식이 폭락했을 때 생활비 때문에 <b>싸게 팔아야</b> 하는 불상사가 생겨요. 그래서 돈을 <b>3개 바구니</b>로 나눠요. ①당장 쓸 현금(2년치) ②몇 년 뒤 쓸 안전한 돈(채권·배당) ③멀리 두고 키울 돈(주식). 폭락장에도 ①②로 버티니, ③주식을 헐값에 안 팔아도 돼요. 마음이 편해지는 게 핵심이에요.</div>
     </div>
 
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:8px">
-      <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:4px;font-weight:600">💰 총 은퇴자산 <span id="bk-lock" style="font-size:calc(8.5px * var(--fs,1));color:#9b85f6">· 🔒 상단 총자산과 통일됨</span></div>
+      <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:4px;font-weight:600">💰 총 은퇴자산 <span id="bk-lock" style="font-size:calc(8.5px * var(--fs,1));color:var(--accent2)">· 🔒 상단 총자산과 통일됨</span></div>
       <div style="display:flex;align-items:center;gap:6px">
         <input type="number" id="bk-total" value="60000" step="5" oninput="bucketCalc()" style="flex:1;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:calc(18px * var(--fs,1));font-weight:800;color:var(--accent);font-family:inherit;padding:3px 0;text-align:right;outline:none;min-width:0"/>
         <span style="font-size:calc(13px * var(--fs,1));color:#9a9a95;font-weight:700">만원</span>
@@ -1619,8 +1610,8 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     </div>
 
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px"><span style="font-size:calc(10px * var(--fs,1));color:#9a9a95;font-weight:600">📤 연 생활비 인출액 <span style="font-size:calc(8.5px * var(--fs,1));color:#9b85f6">· 금액 꾹 눌러 직접입력</span></span><span style="font-size:calc(17px * var(--fs,1));font-weight:800;color:#7BA3FF" id="bk-annual-lbl">2,520만원</span></div>
-      <input type="range" id="bk-annual" min="600" max="6000" value="2520" step="25" oninput="bucketCalc()" style="width:100%;accent-color:#7BA3FF"/>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px"><span style="font-size:calc(10px * var(--fs,1));color:#9a9a95;font-weight:600">📤 연 생활비 인출액 <span style="font-size:calc(8.5px * var(--fs,1));color:var(--accent2)">· 금액 꾹 눌러 직접입력</span></span><span style="font-size:calc(17px * var(--fs,1));font-weight:800;color:var(--minus)" id="bk-annual-lbl">2,520만원</span></div>
+      <input type="range" id="bk-annual" min="600" max="6000" value="2520" step="25" oninput="bucketCalc()" style="width:100%;accent-color:var(--minus)"/>
     </div>
 
     <div id="bk-grid" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -1641,12 +1632,12 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:10px">시장 따라 인출액을 늘리고 줄이는 안전장치 <span style="font-size:calc(8.5px * var(--fs,1));color:#9a9a95">· 현재 평가액 기준이라 물가반영 ➖</span></div>
 
     <div style="background:rgba(155,133,246,.08);border-radius:10px;padding:11px 12px;margin-bottom:12px">
-      <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:#9b85f6;margin-bottom:4px">💡 쉽게 이해하기</div>
+      <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:var(--accent2);margin-bottom:4px">💡 쉽게 이해하기</div>
       <div style="font-size:calc(11px * var(--fs,1));color:#8a8a85;line-height:1.7">매년 똑같은 금액을 꺼내면, 폭락한 해엔 자산이 더 빨리 줄어요. <b>가드레일</b>은 도로의 난간처럼 양쪽에 선을 그어둬요. 자산이 많이 줄면 그해 인출을 <b>10% 줄이고</b>, 많이 불면 <b>10% 늘려요</b>. 이렇게 시장에 맞춰 유연하게 빼 쓰면, 고정 인출보다 돈이 더 오래가요. 아래 "시장 시뮬" 막대를 좌우로 움직여 폭락·급등 상황을 체험해보세요.</div>
     </div>
 
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:8px">
-      <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:4px;font-weight:600">💰 현재 포트폴리오 평가액 <span id="gr-lock" style="font-size:calc(8.5px * var(--fs,1));color:#9b85f6">· 🔒 상단 총자산과 통일됨</span></div>
+      <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:4px;font-weight:600">💰 현재 포트폴리오 평가액 <span id="gr-lock" style="font-size:calc(8.5px * var(--fs,1));color:var(--accent2)">· 🔒 상단 총자산과 통일됨</span></div>
       <div style="display:flex;align-items:center;gap:6px">
         <input type="number" id="gr-asset" value="60000" step="5" oninput="guardCalc()" style="flex:1;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:calc(18px * var(--fs,1));font-weight:800;color:var(--accent);font-family:inherit;padding:3px 0;text-align:right;outline:none;min-width:0"/>
         <span style="font-size:calc(13px * var(--fs,1));color:#9a9a95;font-weight:700">만원</span>
@@ -1654,13 +1645,13 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     </div>
 
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:calc(10px * var(--fs,1));color:#9a9a95;font-weight:600">🎯 초기 인출률</span><span style="font-size:calc(12px * var(--fs,1));font-weight:700;color:#9b85f6" id="gr-rate-lbl">5.0%</span></div>
-      <input type="range" id="gr-rate" min="3" max="6" value="5" step="0.1" oninput="guardCalc()" style="width:100%;accent-color:#9b85f6"/>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:calc(10px * var(--fs,1));color:#9a9a95;font-weight:600">🎯 초기 인출률</span><span style="font-size:calc(12px * var(--fs,1));font-weight:700;color:var(--accent2)" id="gr-rate-lbl">5.0%</span></div>
+      <input type="range" id="gr-rate" min="3" max="6" value="5" step="0.1" oninput="guardCalc()" style="width:100%;accent-color:var(--accent2)"/>
     </div>
 
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:calc(10px * var(--fs,1));color:#9a9a95;font-weight:600">📉 현재 평가액 변동 (시장 시뮬)</span><span style="font-size:calc(12px * var(--fs,1));font-weight:700;color:#FF5B97" id="gr-shift-lbl">0%</span></div>
-      <input type="range" id="gr-shift" min="-50" max="60" value="0" step="5" oninput="guardCalc()" style="width:100%;accent-color:#FF5B97"/>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:calc(10px * var(--fs,1));color:#9a9a95;font-weight:600">📉 현재 평가액 변동 (시장 시뮬)</span><span style="font-size:calc(12px * var(--fs,1));font-weight:700;color:var(--blue)" id="gr-shift-lbl">0%</span></div>
+      <input type="range" id="gr-shift" min="-50" max="60" value="0" step="5" oninput="guardCalc()" style="width:100%;accent-color:var(--blue)"/>
     </div>
 
     <div id="gr-result"></div>
@@ -1681,7 +1672,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:10px">연 7.2% 가산 · 최대 5년 · 손익분기 나이</div>
 
     <div style="background:rgba(155,133,246,.08);border-radius:10px;padding:11px 12px;margin-bottom:12px">
-      <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:#9b85f6;margin-bottom:4px">💡 쉽게 이해하기</div>
+      <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:var(--accent2);margin-bottom:4px">💡 쉽게 이해하기</div>
       <div style="font-size:calc(11px * var(--fs,1));color:#8a8a85;line-height:1.7">국민연금은 받는 시기를 <b>늦출수록</b> 매달 더 많이 줘요(1년 미루면 +7.2%, 5년 미루면 +36%). 대신 미룬 기간엔 못 받죠. 그래서 <b>오래 살수록 이득</b>이에요. "손익분기 나이"는 늦게 받기 시작해서 그동안 못 받은 걸 다 따라잡는 나이예요. 보통 <b>80세 안팎</b>이라, 건강해서 오래 살 것 같으면 미루는 게 유리해요.</div>
     </div>
 
@@ -1694,8 +1685,8 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     </div>
 
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:calc(10px * var(--fs,1));color:#9a9a95;font-weight:600">⏳ 연기 기간</span><span style="font-size:calc(12px * var(--fs,1));font-weight:700;color:#9b85f6" id="nps-yr-lbl">5년</span></div>
-      <input type="range" id="nps-yr" min="1" max="5" value="5" step="1" oninput="npsCalc()" style="width:100%;accent-color:#9b85f6"/>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:calc(10px * var(--fs,1));color:#9a9a95;font-weight:600">⏳ 연기 기간</span><span style="font-size:calc(12px * var(--fs,1));font-weight:700;color:var(--accent2)" id="nps-yr-lbl">5년</span></div>
+      <input type="range" id="nps-yr" min="1" max="5" value="5" step="1" oninput="npsCalc()" style="width:100%;accent-color:var(--accent2)"/>
     </div>
 
     <div id="nps-result"></div>
@@ -1731,7 +1722,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:8px">
       <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:4px;font-weight:600">💵 연 금융소득 (이자+배당, 100% 반영)</div>
       <div style="display:flex;align-items:center;gap:6px">
-        <input type="number" id="hic-fin" value="300" step="5" oninput="hicCalc()" style="flex:1;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:calc(18px * var(--fs,1));font-weight:800;color:#9b85f6;font-family:inherit;padding:3px 0;text-align:right;outline:none;min-width:0"/>
+        <input type="number" id="hic-fin" value="300" step="5" oninput="hicCalc()" style="flex:1;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:calc(18px * var(--fs,1));font-weight:800;color:var(--accent2);font-family:inherit;padding:3px 0;text-align:right;outline:none;min-width:0"/>
         <span style="font-size:calc(13px * var(--fs,1));color:#9a9a95;font-weight:700">만원</span>
       </div>
     </div>
@@ -1764,14 +1755,14 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:10px">확정소득으로 최소생활 보장 · 나머지는 성장투자 <span id="fl-infl-badge"></span></div>
 
     <div style="background:rgba(155,133,246,.08);border-radius:10px;padding:11px 12px;margin-bottom:12px">
-      <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:#9b85f6;margin-bottom:4px">💡 쉽게 이해하기</div>
+      <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:var(--accent2);margin-bottom:4px">💡 쉽게 이해하기</div>
       <div style="font-size:calc(11px * var(--fs,1));color:#8a8a85;line-height:1.7">집을 지을 때 <b>바닥(Floor)</b>부터 튼튼히 깔죠. 은퇴도 똑같아요. 죽을 때까지 <b>꼬박꼬박 나오는 돈</b>(국민연금+주택연금)으로 최소 생활비를 먼저 채워요. 이 바닥이 있으면 주식이 폭락해도 굶을 일이 없어요. 그 위에 남는 돈(<b>Upside</b>)만 주식에 넣어 마음 편히 굴려요. 아래에서 내 확정소득이 최소 생활비를 몇 % 채우는지, 모자라면 얼마가 더 필요한지 계산해줘요.</div>
     </div>
 
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><span style="font-size:calc(10px * var(--fs,1));color:#9a9a95;font-weight:600">🛟 월 최소 생활비 (지금 기준)</span><span style="font-size:calc(15px * var(--fs,1));font-weight:800;color:#7BA3FF" id="fl-floor-lbl">200만원</span></div>
-      <input type="range" id="fl-floor" min="100" max="400" value="200" step="5" oninput="floorCalc()" style="width:100%;accent-color:#7BA3FF"/>
-      <div id="fl-floor-infl" style="font-size:calc(9px * var(--fs,1));color:#7BA3FF;margin-top:4px;display:none"></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><span style="font-size:calc(10px * var(--fs,1));color:#9a9a95;font-weight:600">🛟 월 최소 생활비 (지금 기준)</span><span style="font-size:calc(15px * var(--fs,1));font-weight:800;color:var(--minus)" id="fl-floor-lbl">200만원</span></div>
+      <input type="range" id="fl-floor" min="100" max="400" value="200" step="5" oninput="floorCalc()" style="width:100%;accent-color:var(--minus)"/>
+      <div id="fl-floor-infl" style="font-size:calc(9px * var(--fs,1));color:var(--minus);margin-top:4px;display:none"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px">
@@ -1780,7 +1771,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       </div>
       <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px">
         <div style="font-size:calc(9.5px * var(--fs,1));color:#9a9a95;margin-bottom:3px;font-weight:600">🏠 주택/즉시연금/월</div>
-        <input type="number" id="fl-house" value="80" step="5" oninput="floorCalc()" style="width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:calc(15px * var(--fs,1));font-weight:800;color:#9b85f6;font-family:inherit;padding:2px 0;text-align:right;outline:none;min-width:0"/>
+        <input type="number" id="fl-house" value="80" step="5" oninput="floorCalc()" style="width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:calc(15px * var(--fs,1));font-weight:800;color:var(--accent2);font-family:inherit;padding:2px 0;text-align:right;outline:none;min-width:0"/>
       </div>
     </div>
     <div id="fl-result"></div>
@@ -1801,7 +1792,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:10px">수익은 낮지만 낙폭(MDD)이 절반 — 실측 백테스트</div>
 
     <div style="background:rgba(155,133,246,.08);border-radius:10px;padding:11px 12px;margin-bottom:12px">
-      <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:#9b85f6;margin-bottom:4px">💡 쉽게 이해하기</div>
+      <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:var(--accent2);margin-bottom:4px">💡 쉽게 이해하기</div>
       <div style="font-size:calc(11px * var(--fs,1));color:#8a8a85;line-height:1.7">은퇴가 가까우면 "많이 버는 것"보다 "<b>크게 안 잃는 것</b>"이 더 중요해요. 한 번 반토막 나면 회복에 오래 걸리거든요. <b>올웨더</b>는 주식·채권·금을 골고루 섞어, 수익은 조금 양보하는 대신 <b>폭락 충격을 절반</b>으로 줄여요. 아래 숫자에서 "최대낙폭"을 비교해보세요.</div>
     </div>
 
@@ -1831,26 +1822,26 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   <div class="inv-sec" data-sec="isa" style="display:none">
   <div style="margin:14px 16px 12px"><span style="font-size:calc(13px * var(--fs,1));font-weight:700;color:#3E3E3E">🏦 ISA 절세 시뮬레이션</span></div>
   <div style="margin:0 16px 12px;background:rgba(155,133,246,.08);border-radius:12px;padding:12px 13px">
-    <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:#9b85f6;margin-bottom:4px">💡 쉽게 이해하기</div>
+    <div style="font-size:calc(11px * var(--fs,1));font-weight:800;color:var(--accent2);margin-bottom:4px">💡 쉽게 이해하기</div>
     <div style="font-size:calc(11px * var(--fs,1));color:#8a8a85;line-height:1.7">ISA는 ‘세금 우대 바구니’예요. 이 안에서 번 이자·배당 수익은 <b>일반형 200만원, 서민형 400만원까지 세금 0원</b>, 초과분도 <b>9.9%</b>만 떼요(일반계좌는 15.4%). 아래에서 내 절세액을 계산해봐요.</div>
   </div>
   <div id="isa-type-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 16px 12px">
-    <div class="isa-tbtn" data-t="general" onclick="isaSetType('general')" style="border:1.5px solid #9b85f6;background:rgba(155,133,246,.14);border-radius:12px;padding:12px;cursor:pointer;text-align:center"><div style="font-size:calc(13px * var(--fs,1));font-weight:800;color:#9b85f6">일반형</div><div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-top:2px">비과세 200만원</div></div>
+    <div class="isa-tbtn" data-t="general" onclick="isaSetType('general')" style="border:1.5px solid var(--accent2);background:rgba(155,133,246,.14);border-radius:12px;padding:12px;cursor:pointer;text-align:center"><div style="font-size:calc(13px * var(--fs,1));font-weight:800;color:var(--accent2)">일반형</div><div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-top:2px">비과세 200만원</div></div>
     <div class="isa-tbtn" data-t="low" onclick="isaSetType('low')" style="border:1px solid var(--border);background:var(--card2);border-radius:12px;padding:12px;cursor:pointer;text-align:center"><div style="font-size:calc(13px * var(--fs,1));font-weight:800;color:var(--text3)">서민형</div><div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-top:2px">비과세 400만원</div></div>
   </div>
   <div id="isa-limit-info" style="margin:0 16px 12px"></div>
   <div style="margin:0 16px">
     <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:8px">
-      <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:6px;font-weight:600">💵 월 납입액 <span style="font-size:calc(8.5px * var(--fs,1));color:#9b85f6">· 연 2,000만원 한도</span></div>
-      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="isa-monthly" min="10" max="165" value="50" step="5" oninput="isaCalc()" style="flex:1;accent-color:#9b85f6"/><span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:#9b85f6;min-width:55px;text-align:right" id="isa-sv-monthly">50만원</span></div>
+      <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:6px;font-weight:600">💵 월 납입액 <span style="font-size:calc(8.5px * var(--fs,1));color:var(--accent2)">· 연 2,000만원 한도</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="isa-monthly" min="10" max="165" value="50" step="5" oninput="isaCalc()" style="flex:1;accent-color:var(--accent2)"/><span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--accent2);min-width:55px;text-align:right" id="isa-sv-monthly">50만원</span></div>
     </div>
     <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:8px">
       <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:6px;font-weight:600">📅 투자 기간</div>
-      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="isa-years" min="1" max="20" value="10" step="1" oninput="isaCalc()" style="flex:1;accent-color:#FF5B97"/><span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:#FF5B97;min-width:55px;text-align:right" id="isa-sv-years">10년</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="isa-years" min="1" max="20" value="10" step="1" oninput="isaCalc()" style="flex:1;accent-color:var(--blue)"/><span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--blue);min-width:55px;text-align:right" id="isa-sv-years">10년</span></div>
     </div>
     <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:10px">
       <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:6px;font-weight:600">📊 예상 연수익률</div>
-      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="isa-rate" min="1" max="12" value="5" step="0.5" oninput="isaCalc()" style="flex:1;accent-color:#22c55e"/><span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:#22c55e;min-width:55px;text-align:right" id="isa-sv-rate">5.0%</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="isa-rate" min="1" max="12" value="5" step="0.5" oninput="isaCalc()" style="flex:1;accent-color:var(--iv-green)"/><span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--iv-green);min-width:55px;text-align:right" id="isa-sv-rate">5.0%</span></div>
     </div>
   </div>
   <div id="isa-result" style="margin:0 16px"></div>
@@ -1887,7 +1878,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   <div style="margin:0 16px">
     <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:10px">
       <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:6px;font-weight:600">💰 연 납입액 (연금저축+IRP 합산) <span style="font-size:calc(8.5px * var(--fs,1));color:#22c55e">· 최대 1,800만 / 공제는 900만까지</span></div>
-      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="irp-pay" min="0" max="1800" value="900" step="10" oninput="irpCalc()" style="flex:1;accent-color:#22c55e"/><span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:#22c55e;min-width:60px;text-align:right" id="irp-sv-pay">900만원</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="irp-pay" min="0" max="1800" value="900" step="10" oninput="irpCalc()" style="flex:1;accent-color:var(--iv-green)"/><span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--iv-green);min-width:60px;text-align:right" id="irp-sv-pay">900만원</span></div>
     </div>
   </div>
   <div id="irp-result" style="margin:0 16px"></div>
@@ -1915,11 +1906,11 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:11px;line-height:1.6">만 55세 이후 연금으로 받으면 낮은 연금소득세율, 연 1,500만원 초과 시 분리과세(16.5%) 또는 종합과세 선택이에요.</div>
     <div style="background:var(--card2);border-radius:10px;padding:11px;margin-bottom:8px">
       <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:6px;font-weight:600">🎂 연금 개시 나이</div>
-      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="irp-age" min="55" max="90" value="65" step="1" oninput="irpPensionCalc()" style="flex:1;accent-color:#9b85f6"/><span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:#9b85f6;min-width:48px;text-align:right" id="irp-sv-age">65세</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="irp-age" min="55" max="90" value="65" step="1" oninput="irpPensionCalc()" style="flex:1;accent-color:var(--accent2)"/><span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--accent2);min-width:48px;text-align:right" id="irp-sv-age">65세</span></div>
     </div>
     <div style="background:var(--card2);border-radius:10px;padding:11px;margin-bottom:10px">
       <div style="font-size:calc(10px * var(--fs,1));color:#9a9a95;margin-bottom:6px;font-weight:600">💸 월 수급액</div>
-      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="irp-recv" min="20" max="500" value="100" step="10" oninput="irpPensionCalc()" style="flex:1;accent-color:#22c55e"/><span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:#22c55e;min-width:55px;text-align:right" id="irp-sv-recv">100만원</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><input type="range" id="irp-recv" min="20" max="500" value="100" step="10" oninput="irpPensionCalc()" style="flex:1;accent-color:var(--iv-green)"/><span style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--iv-green);min-width:55px;text-align:right" id="irp-sv-recv">100만원</span></div>
     </div>
     <div id="irp-pension-result"></div>
   </div>
@@ -1939,10 +1930,10 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       </label>
       <div id="irp-split-body" style="display:none;margin-top:11px">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-          <div style="background:var(--card);border:1px solid var(--border2);border-radius:9px;padding:9px"><div style="font-size:calc(9px * var(--fs,1));color:#9a9a95;margin-bottom:3px;font-weight:600">🎂 연금 개시 나이</div><div style="display:flex;align-items:baseline;gap:2px"><input type="number" id="irp-split-start" value="65" step="1" oninput="irpBasisCalc()" style="width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:calc(16px * var(--fs,1));font-weight:800;color:#9b85f6;font-family:inherit;text-align:right;outline:none;min-width:0"/><span style="font-size:calc(10px * var(--fs,1));color:#9a9a95;font-weight:700">세</span></div></div>
+          <div style="background:var(--card);border:1px solid var(--border2);border-radius:9px;padding:9px"><div style="font-size:calc(9px * var(--fs,1));color:#9a9a95;margin-bottom:3px;font-weight:600">🎂 연금 개시 나이</div><div style="display:flex;align-items:baseline;gap:2px"><input type="number" id="irp-split-start" value="65" step="1" oninput="irpBasisCalc()" style="width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:calc(16px * var(--fs,1));font-weight:800;color:var(--accent2);font-family:inherit;text-align:right;outline:none;min-width:0"/><span style="font-size:calc(10px * var(--fs,1));color:#9a9a95;font-weight:700">세</span></div></div>
           <div style="background:var(--card);border:1px solid var(--border2);border-radius:9px;padding:9px"><div style="font-size:calc(9px * var(--fs,1));color:#9a9a95;margin-bottom:3px;font-weight:600">🕊️ 예상 수급 기한</div><div style="display:flex;align-items:baseline;gap:2px"><input type="number" id="irp-split-end" value="90" step="1" oninput="irpBasisCalc()" style="width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border2);font-size:calc(16px * var(--fs,1));font-weight:800;color:#FF5B97;font-family:inherit;text-align:right;outline:none;min-width:0"/><span style="font-size:calc(10px * var(--fs,1));color:#9a9a95;font-weight:700">세</span></div></div>
         </div>
-        <div style="background:rgba(34,197,94,.06);border:1px solid var(--border2);border-radius:9px;padding:9px 11px;margin-bottom:10px"><div style="font-size:calc(9px * var(--fs,1));color:#9a9a95;margin-bottom:3px;font-weight:600">🏦 수령기간 중 안전자산(채권 등) 기대수익률 <span style="font-size:calc(8px * var(--fs,1));color:#22c55e">· 남은 원금 재투자</span></div><div style="display:flex;align-items:center;gap:8px"><input type="range" id="irp-safe-rate" min="0" max="6" value="3" step="0.5" oninput="irpBasisCalc()" style="flex:1;accent-color:#22c55e"/><span id="irp-sv-safe" style="font-size:calc(14px * var(--fs,1));font-weight:800;color:#22c55e;min-width:46px;text-align:right">3.0%</span></div></div>
+        <div style="background:rgba(34,197,94,.06);border:1px solid var(--border2);border-radius:9px;padding:9px 11px;margin-bottom:10px"><div style="font-size:calc(9px * var(--fs,1));color:#9a9a95;margin-bottom:3px;font-weight:600">🏦 수령기간 중 안전자산(채권 등) 기대수익률 <span style="font-size:calc(8px * var(--fs,1));color:var(--iv-green)">· 남은 원금 재투자</span></div><div style="display:flex;align-items:center;gap:8px"><input type="range" id="irp-safe-rate" min="0" max="6" value="3" step="0.5" oninput="irpBasisCalc()" style="flex:1;accent-color:var(--iv-green)"/><span id="irp-sv-safe" style="font-size:calc(14px * var(--fs,1));font-weight:800;color:var(--iv-green);min-width:46px;text-align:right">3.0%</span></div></div>
         <div id="irp-split-result"></div>
       </div>
     </div>
@@ -2599,6 +2590,8 @@ function creditRate(s){ return s<=5500?0.165:0.132; }
 function fmt(w){ if(typeof w==='string')w=parseFloat(w.replace(/,/g,'')); if(!w||!isFinite(w))return'0원'; if(w>=1e8){const e=w/1e8;return(e>=10?Math.round(e):e.toFixed(1))+'억원';} if(w>=1e4)return Math.round(w/1e4).toLocaleString()+'만원'; return Math.round(w).toLocaleString()+'원'; }
 function fmtS(w){ if(typeof w==='string')w=parseFloat(w.replace(/,/g,'')); if(!w||!isFinite(w))return'0'; if(w>=1e8){const e=w/1e8;return(e>=10?Math.round(e):e.toFixed(1))+'억';} if(w>=1e4)return Math.round(w/1e4).toLocaleString()+'만'; return Math.round(w).toLocaleString(); }
 function manToWon(m){ return m*10000; }
+// 캔버스(Chart.js)는 CSS 변수를 못 읽으므로 실제 계산값을 꺼내 씀
+function cssv(name,fallback){ const v=getComputedStyle(document.body).getPropertyValue(name).trim(); return v||fallback; }
 
 function glideForAge(age){ for(const b of glide){ if(age>=b.fromAge&&age<=b.toAge)return b; } if(glide.length&&age<glide[0].fromAge)return glide[0]; return glide[glide.length-1]; }
 function blendRate(w,scKey){ scKey=scKey||scen; let t=0,s=0; for(const k in w){ t+=w[k]*rateOf(scKey,k); s+=w[k]; } return s>0?t/s/100:0; }
@@ -3363,8 +3356,8 @@ function buildBracketChart(idx,bs){
   gpCharts[idx]=new Chart(cv,{type:'line',data:{labels,datasets:ds},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmtS(c.parsed.y)}}},
-      scales:{x:{ticks:{color:'#5a5a5f',font:{size:8},maxTicksLimit:6},grid:{display:false},border:{display:false}},
-        y:{ticks:{color:'#5a5a5f',font:{size:8},maxTicksLimit:4,callback:v=>fmtS(v)},grid:{color:'rgba(255,255,255,.03)'},border:{display:false}}}}});
+      scales:{x:{ticks:{color:cssv('--text4','#5a5a5f'),font:{size:8},maxTicksLimit:6},grid:{display:false},border:{display:false}},
+        y:{ticks:{color:cssv('--text4','#5a5a5f'),font:{size:8},maxTicksLimit:4,callback:v=>fmtS(v)},grid:{color:cssv('--border','#262626')},border:{display:false}}}}});
 }
 // ══════════════════════════════════════════════════════════════════
 // 특정시기 자산매도·재배치 — 글라이드패스와 동일한 슬라이더+잠금 UI로 재구현
@@ -3952,8 +3945,8 @@ function renderChart(merged,baseCase){
   mainChart=new Chart(ctx,{type:'bar',data:{labels,datasets:ds},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmtS(c.parsed.y),footer:items=>' 합계: '+fmtS(items.reduce((a,b)=>a+b.parsed.y,0))}}},
-      scales:{x:{stacked:true,ticks:{color:'#7d7d82',font:{size:9},maxTicksLimit:8},grid:{color:'rgba(255,255,255,.04)'},border:{display:false}},
-        y:{stacked:true,ticks:{color:'#7d7d82',font:{size:9},callback:v=>fmtS(v)},grid:{color:'rgba(255,255,255,.04)'},border:{display:false}}}}});
+      scales:{x:{stacked:true,ticks:{color:cssv('--text3','#7d7d82'),font:{size:9},maxTicksLimit:8},grid:{color:cssv('--border','#262626')},border:{display:false}},
+        y:{stacked:true,ticks:{color:cssv('--text3','#7d7d82'),font:{size:9},callback:v=>fmtS(v)},grid:{color:cssv('--border','#262626')},border:{display:false}}}}});
 }
 
 function renderTable(merged,baseCase){
@@ -4175,19 +4168,19 @@ function renderRetProjection(m){
       const balData=pj.rows.map(r=>Math.round(r.balance/100000000*10)/10); // 억
       const liveData=pj.rows.map(r=>r.monthlyLiving);
       const ds=[
-        {label:'자산잔액(억)',data:balData,borderColor:'#9b85f6',backgroundColor:'rgba(155,133,246,.12)',borderWidth:2,fill:true,tension:.25,pointRadius:0,yAxisID:'y'},
+        {label:'자산잔액(억)',data:balData,borderColor:'var(--accent2)',backgroundColor:'rgba(155,133,246,.12)',borderWidth:2,fill:true,tension:.25,pointRadius:0,yAxisID:'y'},
         {label:'월 생활비-명목(만)',data:liveData,borderColor:'#f59e0b',borderWidth:1.4,fill:false,tension:.25,pointRadius:0,yAxisID:'y1',borderDash:[4,3]},
       ];
       const annotations=[];
       retProjChart=new Chart(cv,{type:'line',data:{labels,datasets:ds},
         options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-          plugins:{legend:{labels:{color:'#9a9aa5',font:{size:9},boxWidth:10}},
+          plugins:{legend:{labels:{color:cssv('--text2','#9a9aa5'),font:{size:9},boxWidth:10}},
             tooltip:{callbacks:{title:(t)=>t[0].label+'세',
               label:(c)=>c.dataset.label.includes('억')?`자산 ${c.raw}억`:`월생활비(명목) ${c.raw}만 — 실질구매력은 거의 동일`}}},
           scales:{
-            x:{ticks:{color:'#6a6a72',font:{size:8},maxTicksLimit:10},grid:{display:false}},
-            y:{position:'left',ticks:{color:'#9b85f6',font:{size:8},callback:v=>v+'억'},grid:{color:'rgba(60,60,68,.3)'},beginAtZero:true},
-            y1:{position:'right',ticks:{color:'#f59e0b',font:{size:8},callback:v=>v+'만'},grid:{display:false},beginAtZero:true}
+            x:{ticks:{color:cssv('--text3','#6a6a72'),font:{size:8},maxTicksLimit:10},grid:{display:false}},
+            y:{position:'left',ticks:{color:cssv('--accent2','#9b85f6'),font:{size:8},callback:v=>v+'억'},grid:{color:cssv('--border','#262626')},beginAtZero:true},
+            y1:{position:'right',ticks:{color:cssv('--iv-gold','#FFC95B'),font:{size:8},callback:v=>v+'만'},grid:{display:false},beginAtZero:true}
           }}});
       // 소멸 지점 세로선 강조: 데이터 0 지점은 이미 fill로 보임
     }
@@ -4230,7 +4223,7 @@ function renderRetirement(m){
 
   // ── 0) 한눈 요약 ──
   document.getElementById('retSummary').innerHTML=`
-    <div class="box" style="border-color:rgba(126,98,243,.3);background:linear-gradient(135deg,rgba(126,98,243,.08),rgba(34,197,94,.05))">
+    <div class="box" style="border-color:rgba(126,98,243,.3);background:var(--accent-dim)">
       <div class="box-t">📋 한눈에 보는 내 노후 (요약)</div>
       <div class="sum-grid">
         <div class="sum-cell"><div class="sum-l">은퇴 시점 자산</div><div class="sum-v" style="color:var(--accent2)">${fmt(total)}</div>${inflOn?`<div class="sum-r">실질 ${fmt(totalReal)}</div>`:''}</div>
@@ -4535,7 +4528,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
   </div>
   <div class="inv-sec" data-sec="withdraw" style="display:block">
   <!-- 인트로 -->
-  <div style="margin:0 16px 14px;background:linear-gradient(135deg,rgba(126,98,243,.10),rgba(255,91,151,.07));border:1px solid var(--border2);border-radius:16px;padding:16px">
+  <div style="margin:0 16px 14px;background:var(--accent-dim);border:1px solid var(--border2);border-radius:16px;padding:16px">
     <div style="font-size:calc(14px * var(--fs,1));font-weight:800;color:#3E3E3E;margin-bottom:6px">📤 모은 돈을 어떻게 빼 쓸까 — 인출 전략</div>
     <div style="font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.7">퇴직금·연금을 한 번에 다 쓰면 오래 못 가고, 너무 아끼면 삶의 질이 떨어져요. <b>"얼마를·어떤 순서로·어떤 방식으로"</b> 빼느냐가 노후 30년의 성패를 가릅니다. 세계 최고 연구기관(Morningstar·Vanguard)의 최신 연구를 한국 현실에 맞춰 정리했어요.</div>
   </div>
@@ -4546,7 +4539,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">📊</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">① 얼마나 빼 쓸까 — 안전 인출률</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">4% 룰(Bengen 1994) · Morningstar 2025 최신 연구</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">4% 룰(Bengen 1994) · Morningstar 2025 최신 연구</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -4555,13 +4548,13 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       윌리엄 벵겐(William Bengen)이 1994년 발표한 규칙. 은퇴 첫해 자산의 4%를 빼고 이후 물가상승률만 반영하면 30년간 자산이 버틴다는 연구예요. 역산하면 <b>연 생활비 × 25배</b>가 목표 자산.<br><br>
       <b style="color:#3E3E3E">2025년 최신 연구는 다르게 말해요</b><br>
       <span class="pr-src">출처: Morningstar State of Retirement Income 2025 (2025.12)</span><br>
-      30년 은퇴·90% 성공확률 기준 <b style="color:#9b85f6">안전 인출률은 3.9%</b>로 하향됐어요(주식 30~50% 혼합 기준). 연구진은 주식 비중이 높을수록 변동성 때문에 오히려 안전 인출률이 낮아진다고 봤습니다.<br>
+      30년 은퇴·90% 성공확률 기준 <b style="color:var(--accent2)">안전 인출률은 3.9%</b>로 하향됐어요(주식 30~50% 혼합 기준). 연구진은 주식 비중이 높을수록 변동성 때문에 오히려 안전 인출률이 낮아진다고 봤습니다.<br>
       <table class="pr-tbl">
         <tr><th>연도</th><th>안전 인출률</th><th>배경</th></tr>
         <tr><td>2022</td><td>3.8%</td><td>—</td></tr>
         <tr><td>2023</td><td>4.0%</td><td>채권금리 상승</td></tr>
         <tr><td>2024</td><td>3.7%</td><td>주가 고평가</td></tr>
-        <tr><td><b>2025</b></td><td><b style="color:#9b85f6">3.9%</b></td><td>기대수익률 상향</td></tr>
+        <tr><td><b>2025</b></td><td><b style="color:var(--accent2)">3.9%</b></td><td>기대수익률 상향</td></tr>
       </table>
       <b style="color:#3E3E3E">🇰🇷 한국은 3.0~3.5% 권장</b><br>
       한국은 기대수명이 약 84세로 길고(은퇴기 30년 초과 가능), KOSPI 장기수익률이 미국보다 낮아요. 글로벌 분산(미국 ETF 포함) 전제로 3.5%가 현실적입니다.
@@ -4576,7 +4569,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <table class="pr-tbl" style="margin-top:10px">
         <tr><th>인출률</th><th>필요자산<br>(연2,500만)</th><th>안전도</th><th>한국 적용</th></tr>
         <tr><td>3.0%</td><td>8.3억</td><td>매우 안전</td><td>100세 대비·보수적</td></tr>
-        <tr><td style="color:#9b85f6;font-weight:700">3.5%</td><td style="color:#9b85f6;font-weight:700">7.1억</td><td style="color:#9b85f6;font-weight:700">권장</td><td>기대수명 84세 표준</td></tr>
+        <tr><td style="color:var(--accent2);font-weight:700">3.5%</td><td style="color:var(--accent2);font-weight:700">7.1억</td><td style="color:var(--accent2);font-weight:700">권장</td><td>기대수명 84세 표준</td></tr>
         <tr><td>4.0%</td><td>6.3억</td><td>표준</td><td>미국 기준·주의</td></tr>
         <tr><td>5.2%</td><td>4.8억</td><td>가드레일 최대</td><td>유연조절 전제</td></tr>
       </table>
@@ -4599,7 +4592,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">🚧</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">② 가드레일 전략 — 시장에 따라 조절</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">Guyton-Klinger (2006) · 상·하한선 자동조절</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">Guyton-Klinger (2006) · 상·하한선 자동조절</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -4640,7 +4633,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">🎚️</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">③ 뱅가드 동적 지출 — 천장과 바닥</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">Vanguard Dynamic Spending · 충격 완충</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">Vanguard Dynamic Spending · 충격 완충</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -4667,7 +4660,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">⚡</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">④ 수익률 순서 위험 — 은퇴 초반의 함정</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">Sequence of Returns Risk · 가장 중요한 개념</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">Sequence of Returns Risk · 가장 중요한 개념</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -4704,7 +4697,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">🪜</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">⑤ 한국형 인출 순서 5단계</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">세금 적은 계좌부터 · 절세 계좌는 최후에</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">세금 적은 계좌부터 · 절세 계좌는 최후에</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -4716,7 +4709,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
         <tr><td><b>2</b></td><td>ISA 만기</td><td>비과세 200만(서민형 400만)<br>활용 후 연금저축 전환</td></tr>
         <tr><td><b>3</b></td><td>주식·ETF<br>(일반계좌)</td><td>손실 상계 후 매도<br>금융소득 2천만↓ 유지 핵심</td></tr>
         <tr><td><b>4</b></td><td>연금저축<br>(55세+)</td><td>연금소득세 3.3~5.5%<br>종신형 일괄 3%(2026 신설)</td></tr>
-        <tr><td><b style="color:#9b85f6">5</b></td><td><b style="color:#9b85f6">IRP</b><br>(최후)</td><td>퇴직소득세 감면+저율과세<br>가장 마지막에 인출</td></tr>
+        <tr><td><b style="color:var(--accent2)">5</b></td><td><b style="color:var(--accent2)">IRP</b><br>(최후)</td><td>퇴직소득세 감면+저율과세<br>가장 마지막에 인출</td></tr>
       </table>
     </div>
   </div>
@@ -4763,7 +4756,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">🛟</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">⑦ 흔들리지 않는 소득 만들기</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">국민연금 연기 · 플로어-업사이드(Merton-Bodie)</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">국민연금 연기 · 플로어-업사이드(Merton-Bodie)</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -4775,7 +4768,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="background:var(--card2);border-radius:9px;padding:11px;margin:9px 0">
         <div style="font-size:calc(9.5px * var(--fs,1));color:#9a9a95;font-weight:700;margin-bottom:8px">🏗️ 2층 구조</div>
         <div style="display:flex;flex-direction:column;gap:4px">
-          <div style="background:linear-gradient(90deg,#9b85f6,#FF5B97);border-radius:6px 6px 0 0;padding:8px 10px;text-align:center;font-size:calc(9.5px * var(--fs,1));color:#fff;font-weight:700">⬆️ Upside · 잉여자산 = 자유로운 성장 투자 (주식)</div>
+          <div style="background:linear-gradient(90deg,var(--accent2),#FF5B97);border-radius:6px 6px 0 0;padding:8px 10px;text-align:center;font-size:calc(9.5px * var(--fs,1));color:#fff;font-weight:700">⬆️ Upside · 잉여자산 = 자유로운 성장 투자 (주식)</div>
           <div style="background:rgba(34,197,94,.85);border-radius:0 0 6px 6px;padding:10px;text-align:center;font-size:calc(9.5px * var(--fs,1));color:#0a3d20;font-weight:800">🛟 Floor · 국민연금+주택연금 = 죽을 때까지 확정소득</div>
         </div>
         <div style="font-size:calc(8.5px * var(--fs,1));color:#9a9a95;margin-top:6px">바닥(Floor)이 튼튼하면 위층(Upside)이 흔들려도 기본 생활은 안전해요.</div>
@@ -4802,7 +4795,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
   </div><!-- /withdraw -->
   <div class="inv-sec" data-sec="alloc" style="display:none">
   <!-- 인트로 -->
-  <div style="margin:0 16px 14px;background:linear-gradient(135deg,rgba(126,98,243,.10),rgba(255,91,151,.07));border:1px solid var(--border2);border-radius:16px;padding:16px">
+  <div style="margin:0 16px 14px;background:var(--accent-dim);border:1px solid var(--border2);border-radius:16px;padding:16px">
     <div style="font-size:calc(14px * var(--fs,1));font-weight:800;color:#3E3E3E;margin-bottom:6px">🥧 어떻게 나눠 담을까 — 자산 배분</div>
     <div style="font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.7">"계란을 한 바구니에 담지 말라"는 격언 그대로예요. <b>주식·채권·현금</b>을 나이와 시기에 맞춰 적절히 섞으면, 큰 폭락에도 무너지지 않으면서 장기 성장을 누릴 수 있어요. 뱅가드의 생애주기 연구를 기반으로 정리했습니다.</div>
   </div>
@@ -4813,7 +4806,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">📉</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">① 나이별 배분 — 글라이드 패스</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">Vanguard Target-Date Glide Path · 110−나이 법칙</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">Vanguard Target-Date Glide Path · 110−나이 법칙</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -4823,7 +4816,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <span class="pr-src">출처: Vanguard Target-Date Research 2025 · 최종 배분 주식30/채권70(72세)</span>
       <table class="pr-tbl">
         <tr><th>연령대</th><th>주식</th><th>안전자산</th><th>주요 변화</th></tr>
-        <tr><td>25~35세</td><td style="color:#9b85f6;font-weight:700">90%</td><td>10%</td><td>S&P500·나스닥 성장</td></tr>
+        <tr><td>25~35세</td><td style="color:var(--accent2);font-weight:700">90%</td><td>10%</td><td>S&P500·나스닥 성장</td></tr>
         <tr><td>36~45세</td><td>80%</td><td>20%</td><td>선진국 분산 추가</td></tr>
         <tr><td>46~55세</td><td>65~70%</td><td>30~35%</td><td>채권·배당ETF 편입</td></tr>
         <tr><td>56~60세</td><td>55~60%</td><td>40~45%</td><td>IRP 내 주식 유지</td></tr>
@@ -4834,10 +4827,10 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="background:var(--card2);border-radius:9px;padding:11px;margin:9px 0">
         <div style="font-size:calc(9.5px * var(--fs,1));color:#9a9a95;font-weight:700;margin-bottom:8px">📊 나이별 주식 vs 안전자산 (왼쪽 보라=주식)</div>
         <div style="display:flex;flex-direction:column;gap:7px">
-          <div style="display:flex;align-items:center;gap:7px"><span style="font-size:calc(9px * var(--fs,1));color:#8a8a85;width:34px">30대</span><div style="flex:1;display:flex;height:15px;border-radius:5px;overflow:hidden"><div style="width:85%;background:#9b85f6;display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">주식 85</div><div style="width:15%;background:#FF5B97;display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">15</div></div></div>
-          <div style="display:flex;align-items:center;gap:7px"><span style="font-size:calc(9px * var(--fs,1));color:#8a8a85;width:34px">50대</span><div style="flex:1;display:flex;height:15px;border-radius:5px;overflow:hidden"><div style="width:65%;background:#9b85f6;display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">주식 65</div><div style="width:35%;background:#FF5B97;display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">35</div></div></div>
-          <div style="display:flex;align-items:center;gap:7px"><span style="font-size:calc(9px * var(--fs,1));color:#8a8a85;width:34px">60대</span><div style="flex:1;display:flex;height:15px;border-radius:5px;overflow:hidden"><div style="width:50%;background:#9b85f6;display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">50</div><div style="width:50%;background:#FF5B97;display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">50</div></div></div>
-          <div style="display:flex;align-items:center;gap:7px"><span style="font-size:calc(9px * var(--fs,1));color:#8a8a85;width:34px">70대+</span><div style="flex:1;display:flex;height:15px;border-radius:5px;overflow:hidden"><div style="width:28%;background:#9b85f6;display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">28</div><div style="width:72%;background:#FF5B97;display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">72</div></div></div>
+          <div style="display:flex;align-items:center;gap:7px"><span style="font-size:calc(9px * var(--fs,1));color:#8a8a85;width:34px">30대</span><div style="flex:1;display:flex;height:15px;border-radius:5px;overflow:hidden"><div style="width:85%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">주식 85</div><div style="width:15%;background:#FF5B97;display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">15</div></div></div>
+          <div style="display:flex;align-items:center;gap:7px"><span style="font-size:calc(9px * var(--fs,1));color:#8a8a85;width:34px">50대</span><div style="flex:1;display:flex;height:15px;border-radius:5px;overflow:hidden"><div style="width:65%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">주식 65</div><div style="width:35%;background:#FF5B97;display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">35</div></div></div>
+          <div style="display:flex;align-items:center;gap:7px"><span style="font-size:calc(9px * var(--fs,1));color:#8a8a85;width:34px">60대</span><div style="flex:1;display:flex;height:15px;border-radius:5px;overflow:hidden"><div style="width:50%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">50</div><div style="width:50%;background:#FF5B97;display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">50</div></div></div>
+          <div style="display:flex;align-items:center;gap:7px"><span style="font-size:calc(9px * var(--fs,1));color:#8a8a85;width:34px">70대+</span><div style="flex:1;display:flex;height:15px;border-radius:5px;overflow:hidden"><div style="width:28%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">28</div><div style="width:72%;background:#FF5B97;display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">72</div></div></div>
         </div>
       </div>
       <button class="sim-toggle" onclick="simToggle('glide',this)">🧪 시험해보기 — 내 나이 권장배분 & 은퇴자산 예측</button>
@@ -4859,7 +4852,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">🗂️</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">② 나이대별 세부 구성 (한국 계좌)</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">IRP·ISA·일반계좌 배치 전략</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">IRP·ISA·일반계좌 배치 전략</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -4899,7 +4892,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">🌦️</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">③ 올웨더 & 바벨 — 변동성 방어형</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">Ray Dalio · 최대낙폭(MDD) 최소화</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">Ray Dalio · 최대낙폭(MDD) 최소화</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -4912,7 +4905,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
         <tr><td>중기채</td><td>15%</td><td>15%</td><td>KODEX 국채10년</td></tr>
         <tr><td>금</td><td>7.5%</td><td>10%</td><td>KODEX 골드선물</td></tr>
         <tr><td>원자재</td><td>7.5%</td><td>5%</td><td>TIGER 원자재</td></tr>
-        <tr><td><b style="color:#9b85f6">달러현금</b></td><td>없음</td><td><b style="color:#9b85f6">15%</b></td><td>달러 RP·MMF</td></tr>
+        <tr><td><b style="color:var(--accent2)">달러현금</b></td><td>없음</td><td><b style="color:var(--accent2)">15%</b></td><td>달러 RP·MMF</td></tr>
       </table>
       <div class="pr-callout">🇰🇷 원화 자산만 보유하면 달러 약세 때 실질 가치가 하락해요. <b>달러 현금성 15%</b> 편입으로 환헤지 효과를 확보하는 게 한국형 핵심 조정입니다.</div>
       <b style="color:#3E3E3E">바벨 전략</b><br>
@@ -4934,7 +4927,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">🛡️</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">④ 은퇴 후 채권·안전자산 선택</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">자산별 역할과 한국 상품</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">자산별 역할과 한국 상품</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -4954,7 +4947,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
   </div><!-- /alloc -->
   <div class="inv-sec" data-sec="index" style="display:none">
   <!-- 인트로 -->
-  <div style="margin:0 16px 14px;background:linear-gradient(135deg,rgba(126,98,243,.10),rgba(255,91,151,.07));border:1px solid var(--border2);border-radius:16px;padding:16px">
+  <div style="margin:0 16px 14px;background:var(--accent-dim);border:1px solid var(--border2);border-radius:16px;padding:16px">
     <div style="font-size:calc(14px * var(--fs,1));font-weight:800;color:#3E3E3E;margin-bottom:6px">🇺🇸 미국 지수추종 장기투자</div>
     <div style="font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.7">개별 종목을 고르는 대신 <b>시장 전체</b>를 사는 방식이에요. 워런 버핏조차 "대부분의 투자자에겐 저비용 인덱스펀드가 최선"이라 말합니다. S&P500·나스닥·다우의 특성과 시기별 비중 조절 원칙을 정리했어요.</div>
   </div>
@@ -4965,7 +4958,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">📈</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">① 3대 지수 장기 수익률 비교</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">S&P500 · 나스닥 · 다우존스</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">S&P500 · 나스닥 · 다우존스</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -4996,14 +4989,14 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">🎯</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">② 워런 버핏 90/10 원칙</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">Berkshire Hathaway 2013 주주서한</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">Berkshire Hathaway 2013 주주서한</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
       <div class="pr-callout"><b style="color:#3E3E3E">💬 버핏의 유언 같은 조언</b><br>버핏은 2013년 버크셔해서웨이 주주서한에서, 자신의 아내를 위한 신탁에 <b>"90%는 저비용 S&P500 인덱스펀드, 10%는 단기 국채"</b>에 투자하라고 지시했어요. 이 단순한 전략이 고비용 펀드매니저 대부분을 장기적으로 이긴다고 믿기 때문입니다.</div>
       <div style="background:var(--card2);border-radius:9px;padding:11px;margin:9px 0">
         <div style="display:flex;height:24px;border-radius:6px;overflow:hidden">
-          <div style="width:90%;background:#9b85f6;display:flex;align-items:center;justify-content:center;font-size:calc(10px * var(--fs,1));color:#fff;font-weight:800">S&P500 인덱스 90%</div>
+          <div style="width:90%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:calc(10px * var(--fs,1));color:#fff;font-weight:800">S&P500 인덱스 90%</div>
           <div style="width:10%;background:#FF5B97;display:flex;align-items:center;justify-content:center;font-size:calc(8px * var(--fs,1));color:#fff;font-weight:700">국채10</div>
         </div>
       </div>
@@ -5032,7 +5025,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">⚖️</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">③ S&P500 vs 나스닥 — 시기별 조절</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">나이 들수록 변동성 줄이기</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">나이 들수록 변동성 줄이기</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -5063,7 +5056,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       <div style="font-size:calc(24px * var(--fs,1))">🌍</div>
       <div style="flex:1">
         <div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">④ 글로벌 분산 (선진국·신흥국)</div>
-        <div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">미국 집중 리스크 분산</div>
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">미국 집중 리스크 분산</div>
       </div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -5089,7 +5082,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
 
   </div><!-- /index -->
   <div class="inv-sec" data-sec="isairp" style="display:none">
-  <div style="margin:0 16px 14px;background:linear-gradient(135deg,rgba(155,133,246,.10),rgba(34,197,94,.06));border:1px solid var(--border2);border-radius:16px;padding:16px">
+  <div style="margin:0 16px 14px;background:var(--accent-dim);border:1px solid var(--border2);border-radius:16px;padding:16px">
     <div style="font-size:calc(14px * var(--fs,1));font-weight:800;color:#3E3E3E;margin-bottom:6px">🏦 한국 절세계좌 3총사 (2026 기준)</div>
     <div style="font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.7">은퇴 자산은 <b>어떤 계좌에 담느냐</b>로 세금이 크게 달라져요. ISA·연금저축·IRP의 핵심 사실만 객관적으로 정리했어요.</div>
   </div>
@@ -5097,7 +5090,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
   <div class="pr-card" style="margin:0 16px 12px;background:var(--card);border:1px solid var(--border2);border-radius:16px;overflow:hidden">
     <div class="pr-open-head" style="padding:15px 16px;display:flex;align-items:center;gap:10px">
       <div style="font-size:calc(24px * var(--fs,1))">🏦</div>
-      <div style="flex:1"><div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">ISA · 개인종합자산관리계좌</div><div style="font-size:calc(11px * var(--fs,1));color:#9b85f6;font-weight:700;margin-top:3px">비과세 + 9.9% 분리과세 + 손익통산</div></div>
+      <div style="flex:1"><div style="font-size:calc(14.5px * var(--fs,1));font-weight:800;color:#3E3E3E">ISA · 개인종합자산관리계좌</div><div style="font-size:calc(11px * var(--fs,1));color:var(--accent2);font-weight:700;margin-top:3px">비과세 + 9.9% 분리과세 + 손익통산</div></div>
       <div class="pr-arrow" style="font-size:calc(13px * var(--fs,1));color:#9a9a95;transition:transform .2s">▾</div>
     </div>
     <div class="pr-body" style="display:block;padding:0 16px 16px;font-size:calc(12.5px * var(--fs,1));color:#8a8a85;line-height:1.85">
@@ -5105,7 +5098,7 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
         <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">가입자격</span><span>만 19세↑(15~19세 근로자 포함)·1인 1계좌</span></div>
         <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">의무가입</span><span>3년</span></div>
         <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">납입한도</span><span>연 2,000만원·누적 최대 1억원(이월 가능)</span></div>
-        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">비과세</span><span><b style="color:#9b85f6">일반형 200만원</b> / <b style="color:#9b85f6">서민형 400만원</b></span></div>
+        <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">비과세</span><span><b style="color:var(--accent2)">일반형 200만원</b> / <b style="color:var(--accent2)">서민형 400만원</b></span></div>
         <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">서민형 요건</span><span>총급여 5,000만원↓ 또는 종합소득 3,800만원↓</span></div>
         <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:700;color:#3E3E3E">초과수익</span><span>9.9% 분리과세(일반 15.4%·종합과세 제외)</span></div>
         <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:6px;padding:8px 0"><span style="font-weight:700;color:#3E3E3E">손익통산</span><span>계좌 내 이익·손실 상계 후 순이익만 과세</span></div>
@@ -11196,16 +11189,16 @@ function irpRenderMirror(){
   wrap.innerHTML=
     '<div style="background:rgba(34,197,94,.06);border:1px solid var(--border2);border-radius:11px;padding:11px;margin-bottom:10px">'+
       '<div style="font-size:calc(10px * var(--fs,1));font-weight:800;color:#22c55e;margin-bottom:9px">📈 적립·복리 시뮬레이션 <span style="font-size:calc(8.5px * var(--fs,1));color:#9a9a95;font-weight:600">· 여기서 바꾸면 적립복리 탭도 같이 바뀌어요</span></div>'+
-      row('💵','월 투자금액','#B3FF3B','#B3FF3B','irp-m-monthly',5,300,5,monthly,'만원')+
-      row('📅','투자 기간','#FF5B97','#FF5B97','irp-m-years',1,40,1,years,'년')+
-      row('📊','예상 연수익률','#9b85f6','#9b85f6','irp-m-rate',1,25,0.5,rate,'%')+
+      row('💵','월 투자금액','var(--iv-lime)','var(--iv-lime)','irp-m-monthly',5,300,5,monthly,'만원')+
+      row('📅','투자 기간','var(--blue)','var(--blue)','irp-m-years',1,40,1,years,'년')+
+      row('📊','예상 연수익률','var(--accent2)','var(--accent2)','irp-m-rate',1,25,0.5,rate,'%')+
       '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:9px 11px">'+
         '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:calc(9.5px * var(--fs,1));color:#9a9a95;font-weight:600">🏦 물가상승률 반영</span>'+
           '<span id="irp-m-inf-toggle" onclick="irpMirrorInfl()" style="width:34px;height:18px;background:'+(infOn?'#22c55e':'var(--border2)')+';border-radius:9px;position:relative;cursor:pointer;transition:background .2s"><span id="irp-m-inf-thumb" style="width:14px;height:14px;background:#fff;border-radius:50%;position:absolute;top:2px;left:'+(infOn?'18px':'2px')+';transition:left .2s"></span></span>'+
         '</div>'+
         '<div id="irp-m-inf-slider" style="display:'+(infOn?'block':'none')+';margin-top:8px">'+
-          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:calc(9px * var(--fs,1));color:#9a9a95">물가상승률</span><span id="irp-m-inflation-lbl" style="font-size:calc(13px * var(--fs,1));font-weight:800;color:#7BA3FF">'+infl+'%</span></div>'+
-          '<input type="range" id="irp-m-inflation" min="0.5" max="6" step="0.5" value="'+infl+'" oninput="irpMirrorInput()" style="width:100%;accent-color:#7BA3FF"/>'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:calc(9px * var(--fs,1));color:#9a9a95">물가상승률</span><span id="irp-m-inflation-lbl" style="font-size:calc(13px * var(--fs,1));font-weight:800;color:var(--minus)">'+infl+'%</span></div>'+
+          '<input type="range" id="irp-m-inflation" min="0.5" max="6" step="0.5" value="'+infl+'" oninput="irpMirrorInput()" style="width:100%;accent-color:var(--minus)"/>'+
         '</div>'+
       '</div>'+
     '</div>';
@@ -11971,6 +11964,14 @@ function closeGlobalConfirm(confirmed){
   }
 }
 
+// 이론설명 탭 슬라이더: 같은 카드 안에서 서로 구분되도록 카드별로 색을 순환 배정
+function colorizeSimSliders(){
+  document.querySelectorAll('#page-invest-principle .pr-card').forEach(card=>{
+    card.querySelectorAll('.sim-srow').forEach((row,i)=>{
+      row.style.setProperty('--sr-c','var(--sr-'+(i%4+1)+')');
+    });
+  });
+}
 // ── INIT ──────────────────────────────────────────────────────────────────────
 privacyMode=ls('privacy-mode')===true; // 프라이버시 모드 복원
 if(privacyMode)document.body.classList.add('privacy-on');
@@ -11982,6 +11983,7 @@ migrateCategoriesV2();
 migrateCatColorsV3();
 refreshCats();
 renderAll();
+colorizeSimSliders();
 
 // 새로고침 시 마지막 보던 페이지 복원 (홈 제외)
 (function(){
