@@ -1004,20 +1004,37 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
         <div class="ann-sum-item"><div class="ann-sum-label">총 적금납입</div><div class="ann-sum-val" id="ann-total-sav" style="color:var(--c-sav)"></div></div>
         <div class="ann-sum-item"><div class="ann-sum-label">총 예금납입</div><div class="ann-sum-val" id="ann-total-dep" style="color:var(--c-sav)"></div></div>
         <div class="ann-sum-item"><div class="ann-sum-label">연간 잔여</div><div class="ann-sum-val" id="ann-total-bal"></div></div>
+        <div class="ann-sum-item" style="grid-column:1/-1"><div class="ann-sum-label">순자산 증감 (연초 → 연말)</div><div class="ann-sum-val" id="ann-total-nw"></div></div>
       </div>
-      <!-- 연간 수입 상세 분석 -->
-      <div id="ann-inc-detail-wrap" style="display:none;background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:14px;margin-bottom:10px">
-        <div style="font-size:calc(11px * var(--fs,1));color:var(--blue);margin-bottom:10px;font-weight:600">💵 연간 수입 상세 (세전·공제·상여)</div>
-        <div id="ann-inc-detail"></div>
-      </div>
-      <!-- 적금 연간 요약 -->
-      <div style="background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:14px;margin-bottom:4px">
-        <div style="font-size:calc(11px * var(--fs,1));color:var(--blue);margin-bottom:10px;font-weight:600">🏦 연간 적금 현황</div>
-        <div id="ann-sav-summary" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
-      </div>
-      <div style="background:var(--card2);border-radius:12px;padding:14px;border:1px solid var(--red-border);margin-bottom:4px">
-        <div style="font-size:calc(11px * var(--fs,1));color:var(--red);margin-bottom:10px;font-weight:600">🏛️ 연간 대출 상환 현황</div>
-        <div id="ann-loan-summary" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+    </div>
+    <div class="section">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+          <div class="section-label" style="margin-bottom:0">💵 수입계</div>
+          <div id="ann-inc-detail-wrap" style="display:none;background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:12px">
+            <div style="font-size:calc(11px * var(--fs,1));color:var(--blue);margin-bottom:8px;font-weight:600">수입 상세</div>
+            <div id="ann-inc-detail"></div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:12px">
+            <div style="font-size:calc(11px * var(--fs,1));color:var(--c-sav);margin-bottom:8px;font-weight:600">🏦 적금</div>
+            <div id="ann-sav-summary" style="display:grid;grid-template-columns:1fr;gap:8px"></div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:12px">
+            <div style="font-size:calc(11px * var(--fs,1));color:var(--c-sav);margin-bottom:8px;font-weight:600">💎 예금</div>
+            <div id="ann-dep-summary" style="display:grid;grid-template-columns:1fr;gap:8px"></div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:12px">
+            <div style="font-size:calc(11px * var(--fs,1));color:var(--c-sav);margin-bottom:8px;font-weight:600">📈 투자</div>
+            <div id="ann-inv-summary" style="display:grid;grid-template-columns:1fr;gap:8px"></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+          <div class="section-label" style="margin-bottom:0">💸 지출계</div>
+          <div style="background:var(--card2);border-radius:12px;padding:12px;border:1px solid var(--red-border)">
+            <div style="font-size:calc(11px * var(--fs,1));color:var(--red);margin-bottom:8px;font-weight:600">🏛️ 대출</div>
+            <div id="ann-loan-summary" style="display:grid;grid-template-columns:1fr;gap:8px"></div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="section">
@@ -1029,6 +1046,13 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
           <div class="ann-legend-item"><div class="ann-legend-dot" style="background:var(--red)"></div>지출</div>
           <div class="ann-legend-item"><div class="ann-legend-dot" style="background:var(--exp3)"></div>대출</div>
         </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">📈 월별 자산 추이 (적금+예금+투자)</div>
+      <div class="card">
+        <svg class="mini-graph" id="ann-asset-graph" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
+        <div style="display:flex;justify-content:space-between;margin-top:2px" id="ann-asset-graph-labels"></div>
       </div>
     </div>
     <div class="section"><div class="section-label">💵 수입 분류 (연간)</div><div class="card" id="ann-inc-cats"></div></div>
@@ -6314,6 +6338,30 @@ function getMonthDepositPay(deps,y,m){
     return a+amt;
   },0);
 }
+// 특정 연/월 기준 자산·부채·순자산 스냅샷 (연간분석 전용 — 과거 시점 조회이므로 보유종목도 그 시점까지의 최신값만 사용)
+function getNetWorthAt(y,m){
+  const savConfigs=ls('saving-configs')||getDefaultSavingConfigs();
+  const savTotal=savConfigs.reduce((a,cfg)=>a+getSavingCumulative(cfg,y,m),0);
+  const depConfigs=ls('deposit-configs')||[];
+  const depTotal=depConfigs.reduce((a,d)=>a+getDepositBalance(d,y,m),0);
+  const ymKey=mk(y,m);
+  const holdings=ls('invest-holdings')||[];
+  const invTotal=holdings.reduce((a,h)=>{
+    if(!h.history||!h.history.length)return a+num(h.value);
+    const upto=h.history.filter(r=>r.ym&&r.ym<=ymKey).slice().sort((x,z)=>x.ym>z.ym?1:-1);
+    return a+(upto.length?num(upto[upto.length-1].value):0);
+  },0);
+  const assetTotal=savTotal+depTotal+invTotal;
+  const debtTotal=getLoans().reduce((a,l)=>{
+    const P=num(l.principal);if(!P)return a;
+    const sch=getLoanSchedule(l);
+    let curBal=P;
+    const past=sch.filter(e=>e.year<y||(e.year===y&&e.month<=m));
+    if(past.length>0)curBal=past[past.length-1].balance;
+    return a+curBal;
+  },0);
+  return {savTotal,depTotal,invTotal,assetTotal,debtTotal,netWorth:assetTotal-debtTotal};
+}
 // 특정 연/월에 투자연동된 고정지출 항목들의 기여금 합계 (고정탭·홈탭 공용)
 function getMonthInvestPay(fixedList,expsCur,y,m){
   return (fixedList||[]).reduce((a,f)=>{
@@ -6919,6 +6967,7 @@ function renderAnnual(){
   const fixed=ls('budget:fixed')||getDefaultFixed();
   const savConfigs=ls('saving-configs')||getDefaultSavingConfigs();
   const depConfigs=ls('deposit-configs')||[];
+  const holdings=ls('invest-holdings')||[];
   let annFixedTotal=0; // 월별 활성 고정지출 누적
 
   for(let m=1;m<=12;m++){
@@ -6973,6 +7022,17 @@ function renderAnnual(){
   const balEl2=document.getElementById('ann-total-bal');
   balEl2.textContent=(bal>=0?'+':'')+fmt(bal);
   balEl2.style.color=bal>=0?'var(--green)':'var(--red)';
+
+  // 순자산 증감 (연초=작년 12월 말 → 연말=집계 마지막 달)
+  const nwStart=getNetWorthAt(annualYear-1,12);
+  const nwEnd=getNetWorthAt(annualYear,cutoff);
+  const nwDelta=nwEnd.netWorth-nwStart.netWorth;
+  const nwEl=document.getElementById('ann-total-nw');
+  if(nwEl){
+    nwEl.innerHTML=fmt(nwStart.netWorth)+' <span style="color:var(--text4);font-weight:400">→</span> '+fmt(nwEnd.netWorth)
+      +' <span style="font-size:calc(11px * var(--fs,1))">('+(nwDelta>=0?'+':'')+fmt(nwDelta)+')</span>';
+    nwEl.style.color=nwDelta>=0?'var(--green)':'var(--red)';
+  }
 
   // 연간 수입 상세 (세전·공제·상여 + 공제율 링)
   const annIncWrap=document.getElementById('ann-inc-detail-wrap');
@@ -7060,6 +7120,65 @@ function renderAnnual(){
       ).join('')+'</div>':'');
   }
 
+  // 예금 연간 현황 (적금과 동일 구성, 적금과 같은 계열이라 핑크로 통일)
+  const annDepEl=document.getElementById('ann-dep-summary');
+  if(annDepEl){
+    const depSi_total=depConfigs.reduce((a,d)=>a+calcDepositInterest(d),0);
+    const depTax_total=depConfigs.reduce((a,d)=>{
+      const si=calcDepositInterest(d);
+      return a+Math.round(si*numf(d.taxRate!=null?d.taxRate:15.4)/100);
+    },0);
+    const depAfterTax_total=depSi_total-depTax_total;
+    const depTotalCumul=depConfigs.reduce((a,d)=>a+getDepositBalance(d,annualYear,cutoff),0);
+    const depDetails=depConfigs.map(d=>({name:d.name,cumul:getDepositBalance(d,annualYear,cutoff)}));
+    annDepEl.innerHTML=
+      '<div style="background:rgba(245,91,147,.08);border-radius:8px;padding:10px;border:1px solid var(--c-sav)">'+
+      '<div style="font-size:calc(10px * var(--fs,1));color:var(--text4);margin-bottom:3px">'+annualYear+'년 순유입액</div>'+
+      '<div style="font-size:calc(15px * var(--fs,1));font-weight:700;color:var(--c-sav)">'+fmt(annDepTotal)+'</div></div>'+
+      '<div style="background:rgba(245,91,147,.08);border-radius:8px;padding:10px;border:1px solid var(--c-sav)">'+
+      '<div style="font-size:calc(10px * var(--fs,1));color:var(--text4);margin-bottom:3px">연말 잔액 합계</div>'+
+      '<div style="font-size:calc(15px * var(--fs,1));font-weight:700;color:var(--c-sav)">'+fmt(depTotalCumul)+'</div></div>'+
+      (depSi_total>0?
+      '<div style="background:rgba(245,91,147,.08);border-radius:8px;padding:10px;border:1px solid var(--c-sav)">'+
+      '<div style="font-size:calc(10px * var(--fs,1));color:var(--text4);margin-bottom:3px">예상 세후 이자</div>'+
+      '<div style="font-size:calc(15px * var(--fs,1));font-weight:700;color:var(--c-sav)">+'+fmt(depAfterTax_total)+'</div></div>'
+      :'<div style="font-size:calc(11px * var(--fs,1));color:var(--text4);padding:4px 0">※ 금리 입력 시 이자 예상액이 표시됩니다</div>')+
+      (depDetails.length>0?'<div style="margin-top:4px">'+depDetails.filter(d=>d.cumul>0).map(d=>
+        '<div style="display:flex;justify-content:space-between;font-size:calc(12px * var(--fs,1));padding:4px 0;border-top:1px solid var(--c-sav)">'+
+        '<span style="color:var(--c-sav)">'+d.name+'</span>'+
+        '<span style="color:var(--c-sav);font-weight:600">'+fmt(d.cumul)+' 누적</span></div>'
+      ).join('')+'</div>':'');
+  }
+
+  // 투자 연간 현황 (연초 대비 연말 평가액 — 같은 계열이라 핑크로 통일)
+  const annInvEl=document.getElementById('ann-inv-summary');
+  if(annInvEl){
+    const invStartYm=mk(annualYear-1,12);
+    const invEndYm=mk(annualYear,cutoff);
+    const valAt=(h,ymKey)=>{
+      if(!h.history||!h.history.length)return num(h.value);
+      const upto=h.history.filter(r=>r.ym&&r.ym<=ymKey).slice().sort((x,z)=>x.ym>z.ym?1:-1);
+      return upto.length?num(upto[upto.length-1].value):0;
+    };
+    const invDetails=holdings.map(h=>({name:h.name,start:valAt(h,invStartYm),end:valAt(h,invEndYm)}));
+    const invStartTotal=invDetails.reduce((a,h)=>a+h.start,0);
+    const invEndTotal=invDetails.reduce((a,h)=>a+h.end,0);
+    const invDelta=invEndTotal-invStartTotal;
+    const invPct=invStartTotal>0?(invDelta/invStartTotal*100):null;
+    annInvEl.innerHTML=holdings.length===0?'<div style="font-size:calc(12px * var(--fs,1));color:var(--text4);padding:4px 0">등록된 보유종목 없음</div>':
+      '<div style="background:rgba(245,91,147,.08);border-radius:8px;padding:10px;border:1px solid var(--c-sav)">'+
+      '<div style="font-size:calc(10px * var(--fs,1));color:var(--text4);margin-bottom:3px">연말 평가액 합계</div>'+
+      '<div style="font-size:calc(15px * var(--fs,1));font-weight:700;color:var(--c-sav)">'+fmt(invEndTotal)+'</div></div>'+
+      '<div style="background:rgba(245,91,147,.08);border-radius:8px;padding:10px;border:1px solid var(--c-sav)">'+
+      '<div style="font-size:calc(10px * var(--fs,1));color:var(--text4);margin-bottom:3px">연중 증감</div>'+
+      '<div style="font-size:calc(15px * var(--fs,1));font-weight:700;color:var(--c-sav)">'+(invDelta>=0?'+':'')+fmt(invDelta)+(invPct!=null?' ('+(invDelta>=0?'+':'')+invPct.toFixed(1)+'%)':'')+'</div></div>'+
+      '<div style="margin-top:4px">'+invDetails.filter(h=>h.end>0).map(h=>
+        '<div style="display:flex;justify-content:space-between;font-size:calc(12px * var(--fs,1));padding:4px 0;border-top:1px solid var(--c-sav)">'+
+        '<span style="color:var(--c-sav)">'+h.name+'</span>'+
+        '<span style="color:var(--c-sav);font-weight:600">'+fmt(h.end)+'</span></div>'
+      ).join('')+'</div>';
+  }
+
   // 대출 연간 현황 + 수입대비 %
   const annLoanEl=document.getElementById('ann-loan-summary');
   if(loans.length>0){
@@ -7107,6 +7226,11 @@ function renderAnnual(){
       <div style="font-size:calc(8px * var(--fs,1));color:${isNow?'var(--accent)':'var(--text4)'};font-weight:${isNow?700:400}">${i+1}</div>
     </div>`;
   }).join('');
+
+  // 월별 자산(적금+예금+투자) 추이 선 그래프
+  const assetGraphData=[];
+  for(let m=1;m<=cutoff;m++)assetGraphData.push({v:getNetWorthAt(annualYear,m).assetTotal,lbl:m+'월'});
+  drawMiniGraph('ann-asset-graph','ann-asset-graph-labels',assetGraphData,'var(--c-sav)');
 
   // 연간 수입/지출 분류
   const incItems=[
