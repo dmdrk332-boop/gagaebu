@@ -5373,11 +5373,12 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
   <div class="modal">
     <div class="modal-title">📤 적금 출금</div>
     <div style="font-size:calc(11px * var(--fs,1));color:var(--text3);margin-bottom:14px" id="withdraw-sub">적금에서 일부를 출금해요</div>
-    <div class="field"><label>출금 금액</label><input type="number" id="withdraw-amount" placeholder="300000"/></div>
+    <div class="field"><label>출금 금액</label><input type="number" id="withdraw-amount" placeholder="300000" oninput="renderWithdrawAllocs()"/></div>
     <div class="field"><label>출금 월</label><input type="month" id="withdraw-date" style="background:transparent;border:none;border-bottom:1px solid var(--border2);padding-bottom:6px;color:var(--text);font-size:calc(14px * var(--fs,1));font-weight:600;font-family:'Noto Sans KR',sans-serif;width:100%"/></div>
-    <div style="font-size:calc(11px * var(--fs,1));color:var(--text3);font-weight:600;margin:14px 0 8px">이 돈을 어디에 쓰실 건가요?</div>
-    <div id="withdraw-opts" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
-    <div id="withdraw-note" style="font-size:calc(10.5px * var(--fs,1));line-height:1.6;color:var(--purple);background:var(--purple-dim);border-radius:9px;padding:10px 11px;margin-bottom:14px"></div>
+    <div style="font-size:calc(11px * var(--fs,1));color:var(--text3);font-weight:600;margin:14px 0 8px">이 돈을 어디에 배분할까요? (여러 곳에 나눠도 돼요)</div>
+    <div id="withdraw-allocs"></div>
+    <button onclick="addWithdrawAlloc()" style="font-size:calc(11px * var(--fs,1));color:var(--accent);background:none;border:1px dashed var(--accent-border);border-radius:8px;padding:7px;cursor:pointer;width:100%;font-family:'Noto Sans KR',sans-serif;margin-bottom:8px">+ 배분 추가</button>
+    <div id="withdraw-alloc-total" style="font-size:calc(11px * var(--fs,1));text-align:right;margin-bottom:14px"></div>
     <div class="field"><label>메모 (선택)</label><input type="text" id="withdraw-memo" placeholder="비상출금, 여행경비 등"/></div>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeWithdrawModal()">취소</button>
@@ -7168,14 +7169,15 @@ function renderAnnual(){
       const upto=h.history.filter(r=>r.ym&&r.ym<=ymKey).slice().sort((x,z)=>x.ym>z.ym?1:-1);
       return upto.length?num(upto[upto.length-1].value):0;
     };
-    const invDetails=holdings.map(h=>({name:h.name,start:valAt(h,invStartYm),end:valAt(h,invEndYm)}));
+    const invHoldings=holdings.filter(h=>h.annualInclude!==false); // 종목별 "연간요약 포함" 체크 반영
+    const invDetails=invHoldings.map(h=>({name:h.name,start:valAt(h,invStartYm),end:valAt(h,invEndYm)}));
     const invStartTotal=invDetails.reduce((a,h)=>a+h.start,0);
     const invEndTotal=invDetails.reduce((a,h)=>a+h.end,0);
     const invDelta=invEndTotal-invStartTotal;
     const invPct=invStartTotal>0?(invDelta/invStartTotal*100):null;
     const annInvTotalEl=document.getElementById('ann-total-inv');
     if(annInvTotalEl)annInvTotalEl.textContent=(invDelta>=0?'+':'')+fmt(invDelta);
-    annInvEl.innerHTML=holdings.length===0?'<div style="font-size:calc(12px * var(--fs,1));color:var(--text4);grid-column:1/-1;padding:4px 0">등록된 보유종목 없음</div>':
+    annInvEl.innerHTML=invHoldings.length===0?'<div style="font-size:calc(12px * var(--fs,1));color:var(--text4);grid-column:1/-1;padding:4px 0">'+(holdings.length===0?'등록된 보유종목 없음':'연간요약에 포함된 종목 없음 (실투자 탭에서 체크)')+'</div>':
       '<div style="background:rgba(245,91,147,.08);border-radius:8px;padding:10px;border:1px solid var(--c-sav)">'+
       '<div style="font-size:calc(10px * var(--fs,1));color:var(--text4);margin-bottom:3px">연말 평가액 합계</div>'+
       '<div style="font-size:calc(15px * var(--fs,1));font-weight:700;color:var(--c-sav)">'+fmt(invEndTotal)+'</div></div>'+
@@ -7238,8 +7240,20 @@ function renderAnnual(){
   }).join('');
 
   // 월별 자산(적금+예금+투자) 추이 선 그래프
+  const graphInvHoldings=holdings.filter(h=>h.annualInclude!==false); // 종목별 "연간요약 포함" 체크 반영
+  const invValAt=(h,ymKey)=>{
+    if(!h.history||!h.history.length)return num(h.value);
+    const upto=h.history.filter(r=>r.ym&&r.ym<=ymKey).slice().sort((x,z)=>x.ym>z.ym?1:-1);
+    return upto.length?num(upto[upto.length-1].value):0;
+  };
   const assetGraphData=[];
-  for(let m=1;m<=cutoff;m++)assetGraphData.push({v:getNetWorthAt(annualYear,m).assetTotal,lbl:m+'월'});
+  for(let m=1;m<=cutoff;m++){
+    const ymKey=mk(annualYear,m);
+    const savT=savConfigs.reduce((a,cfg)=>a+getSavingCumulative(cfg,annualYear,m),0);
+    const depT=depConfigs.reduce((a,d)=>a+getDepositBalance(d,annualYear,m),0);
+    const invT=graphInvHoldings.reduce((a,h)=>a+invValAt(h,ymKey),0);
+    assetGraphData.push({v:savT+depT+invT,lbl:m+'월'});
+  }
   drawMiniGraph('ann-asset-graph','ann-asset-graph-labels',assetGraphData,'var(--c-sav)');
 
   // 연간 수입/지출 분류
@@ -8170,17 +8184,21 @@ function saveExp(){
   lss('exp:'+mk(),exps);
   document.getElementById('exp-overlay').classList.remove('show');
   if(pendingWithdrawLink){
-    // 적금 출금-지출 자동 상계: 같은 달에 수입(적금인출) 항목을 자동 생성
-    const inc=ls('inc:'+mk())||{};
-    if(!inc.items)inc.items=[];
-    inc.items.push({id:Date.now().toString()+'w',label:'적금인출 ('+pendingWithdrawLink.savingName+')',amount:String(pendingWithdrawLink.amount),note:'자동기록·상계',auto:true,savingId:pendingWithdrawLink.savingId,withdrawalId:pendingWithdrawLink.withdrawalId});
-    lss('inc:'+mk(),inc);
+    // 적금 출금액을 지출로 전환 — 이미 출금 시점에 적금 잔액은 줄어든 상태라, 여기선 지출만 기록 (수입 만들지 않음 — 실제 번 돈이 아니므로)
     const configs=ls('saving-configs')||getDefaultSavingConfigs();
     const cfg=configs.find(c=>c.id===pendingWithdrawLink.savingId);
-    if(cfg){ const w=(cfg.withdrawals||[]).find(x=>x.id===pendingWithdrawLink.withdrawalId); if(w){w.resolved=true;w.linkedExpId=newExpId;} lss('saving-configs',configs); }
-    showToast('지출과 수입(적금인출)이 함께 기록돼 상계됐어요 ✓');
+    if(cfg){
+      const w=(cfg.withdrawals||[]).find(x=>x.id===pendingWithdrawLink.withdrawalId);
+      if(w){
+        if(w.allocations){ const a=w.allocations.find(x=>x.type==='cash'&&!x.resolved); if(a){a.resolved=true;a.expId=newExpId;} }
+        else w.resolved=true; // 구버전 기록
+        w.linkedExpId=newExpId;
+      }
+      lss('saving-configs',configs);
+    }
+    showToast('출금액이 지출로 기록됐어요 ✓');
     pendingWithdrawLink=null;
-    renderIncome();renderSavings();
+    renderSavings();
   }else{
     showToast('저장됐어요! ✓');
   }
@@ -8346,74 +8364,141 @@ function toggleSavHistory(i){
 function updSavingConfig(i,k,v){if(typeof v==='string'&&/^[\d,]*$/.test(v))v=v.replace(/,/g,'');const c=ls('saving-configs')||getDefaultSavingConfigs();c[i][k]=v;lss('saving-configs',c);renderSavings();renderHome();}function addSaving(){const c=ls('saving-configs')||getDefaultSavingConfigs();c.push({id:Date.now().toString(),name:'새 적금',monthlyAmount:'',rate:'',goal:'',startDate:'',endDate:'',extras:[],inMonthly:true});lss('saving-configs',c);renderSavings();}
 function delSavingConfig(i){showConfirm('삭제할까요?',()=>{const c=ls('saving-configs')||getDefaultSavingConfigs();c.splice(i,1);lss('saving-configs',c);renderSavings();renderHome();},{danger:true,okLabel:'삭제'});}
 
-// ── 적금 출금 (비상출금) ─────────────────────────────────────────────────────────
-let withdrawSavingIdx=null, withdrawMode='spend', pendingWithdrawLink=null;
-const WITHDRAW_OPTS=[
-  {id:'move',icon:'🔄',title:'다른 자산으로 이동',desc:'예금·투자로 옮겨요. 자산 합계엔 변화 없어요',
-   note:'적금 잔액만 줄고 예금(또는 투자) 잔액이 늘어요. 다른 자산 잔액은 해당 탭에서 직접 반영해주세요.'},
-  {id:'spend',icon:'💸',title:'바로 지출로 사용',desc:'지금 바로 지출을 등록해요',
-   note:'출금과 동시에 지출을 등록해요. 그 날짜에 <b style="color:var(--text2)">수입(적금인출)</b>과 <b style="color:var(--text2)">지출</b>이 함께 잡혀 같은 돈이 두 번 빠지지 않아요.'},
-  {id:'cash',icon:'🏦',title:'현금으로 보관',desc:'아직 안 썼다면 여기 두세요',
-   note:'적금 잔액만 줄고, 아직 지출로 잡히지 않아요. \'보관중인 출금\' 목록에 남고, 나중에 실제로 쓸 때 지출로 전환할 수 있어요.'},
+// ── 적금 출금 (비상출금) — 출금액을 여러 곳으로 나눠 배분 ──────────────────────────
+let withdrawSavingIdx=null, pendingWithdrawLink=null;
+let withdrawAllocs=[]; // 모달 편집중 임시 상태: [{type:'cash'|'expense'|'invest'|'redeposit', amt, name, cat, holdingId, target}]
+const WITHDRAW_ALLOC_TYPES=[
+  {id:'cash',icon:'🏦',label:'아직 미정 (보관)'},
+  {id:'expense',icon:'💸',label:'지출로 사용'},
+  {id:'invest',icon:'📈',label:'투자로 이동'},
+  {id:'redeposit',icon:'🔄',label:'적금·예금에 재입금'},
 ];
 function openWithdrawModal(i){
-  withdrawSavingIdx=i; withdrawMode='spend';
+  withdrawSavingIdx=i;
   const c=(ls('saving-configs')||getDefaultSavingConfigs())[i];
   document.getElementById('withdraw-sub').textContent=(c?c.name:'적금')+'에서 일부를 출금해요';
   document.getElementById('withdraw-amount').value='';
   document.getElementById('withdraw-date').value=mk();
   document.getElementById('withdraw-memo').value='';
-  renderWithdrawOpts();
+  withdrawAllocs=[{type:'cash',amt:''}];
+  renderWithdrawAllocs();
   document.getElementById('withdraw-overlay').classList.add('show');
 }
 function closeWithdrawModal(e){ if(e&&e.target!==document.getElementById('withdraw-overlay'))return; document.getElementById('withdraw-overlay').classList.remove('show'); }
-function renderWithdrawOpts(){
-  document.getElementById('withdraw-opts').innerHTML=WITHDRAW_OPTS.map(o=>{
-    const on=withdrawMode===o.id;
-    return `<div onclick="selectWithdrawMode('${o.id}')" style="border:1px solid ${on?'var(--accent-border)':'var(--border)'};background:${on?'var(--accent-dim)':'var(--card2)'};border-radius:12px;padding:11px;display:flex;gap:10px;align-items:flex-start;cursor:pointer">
-      <span style="font-size:calc(18px * var(--fs,1));flex-shrink:0">${o.icon}</span>
-      <div><div style="font-size:calc(12.5px * var(--fs,1));font-weight:700;color:var(--text)">${o.title}</div><div style="font-size:calc(10px * var(--fs,1));color:var(--text3);margin-top:2px">${o.desc}</div></div>
+function addWithdrawAlloc(){ withdrawAllocs.push({type:'cash',amt:''}); renderWithdrawAllocs(); }
+function delWithdrawAlloc(idx){ if(withdrawAllocs.length<=1)return; withdrawAllocs.splice(idx,1); renderWithdrawAllocs(); }
+function updWithdrawAlloc(idx,k,v){
+  if(k==='amt'&&typeof v==='string')v=v.replace(/,/g,'');
+  withdrawAllocs[idx][k]=v;
+  if(k==='type')renderWithdrawAllocs(); else renderWithdrawAllocTotal();
+}
+function renderWithdrawAllocTotal(){
+  const total=num(document.getElementById('withdraw-amount').value);
+  const sum=withdrawAllocs.reduce((a,r)=>a+num(r.amt),0);
+  const el=document.getElementById('withdraw-alloc-total'); if(!el)return;
+  const ok=sum===total;
+  el.innerHTML='배분 합계 <b style="color:'+(ok?'var(--green)':'var(--minus)')+'">'+fmt(sum)+'</b> / '+fmt(total)+(sum<total?' <span style="color:var(--text4)">(모자란 만큼은 저장 시 \'미정\'으로 남아요)</span>':(sum>total?' <span style="color:var(--minus)">— 출금액을 초과했어요</span>':' ✓'));
+}
+function renderWithdrawAllocs(){
+  const holdings=ls('invest-holdings')||[];
+  const savConfigs=ls('saving-configs')||getDefaultSavingConfigs();
+  const depConfigs=ls('deposit-configs')||[];
+  document.getElementById('withdraw-allocs').innerHTML=withdrawAllocs.map((r,idx)=>{
+    const typeOpts=WITHDRAW_ALLOC_TYPES.map(t=>`<option value="${t.id}"${r.type===t.id?' selected':''}>${t.icon} ${t.label}</option>`).join('');
+    let sub='';
+    if(r.type==='expense'){
+      const catOpts=CATS.map(c=>`<option value="${c.id}"${r.cat===c.id?' selected':''}>${c.icon} ${c.label}</option>`).join('');
+      sub=`<div style="display:flex;gap:6px;margin-top:6px">
+        <input type="text" placeholder="항목명" value="${r.name||''}" onchange="updWithdrawAlloc(${idx},'name',this.value)" style="flex:1;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(12px * var(--fs,1));padding:6px 8px;font-family:'Noto Sans KR',sans-serif"/>
+        <select onchange="updWithdrawAlloc(${idx},'cat',this.value)" style="flex:1;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(12px * var(--fs,1));padding:6px 8px;font-family:'Noto Sans KR',sans-serif"><option value="">카테고리 선택</option>${catOpts}</select>
+      </div>`;
+    }else if(r.type==='invest'){
+      const holdOpts=holdings.map((h,hi)=>`<option value="${hi}"${r.holdingId===String(hi)?' selected':''}>${h.name||'종목'}</option>`).join('');
+      sub=holdings.length?`<select onchange="updWithdrawAlloc(${idx},'holdingId',this.value)" style="width:100%;margin-top:6px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(12px * var(--fs,1));padding:6px 8px;font-family:'Noto Sans KR',sans-serif"><option value="">종목 선택</option>${holdOpts}</select>`
+        :'<div style="font-size:calc(10.5px * var(--fs,1));color:var(--text4);margin-top:6px">실투자 탭에 종목을 먼저 추가해주세요</div>';
+    }else if(r.type==='redeposit'){
+      const savOpts=savConfigs.map((c,ci)=>`<option value="s${ci}"${r.target==='s'+ci?' selected':''}>🏦 ${c.name}</option>`).join('');
+      const depOpts=depConfigs.map((d,di)=>`<option value="d${di}"${r.target==='d'+di?' selected':''}>💎 ${d.name}</option>`).join('');
+      sub=`<select onchange="updWithdrawAlloc(${idx},'target',this.value)" style="width:100%;margin-top:6px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(12px * var(--fs,1));padding:6px 8px;font-family:'Noto Sans KR',sans-serif"><option value="">넣을 곳 선택</option>${savOpts}${depOpts}</select>`;
+    }
+    return `<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px">
+      <div style="display:flex;gap:6px;align-items:center">
+        <select onchange="updWithdrawAlloc(${idx},'type',this.value)" style="flex:1;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(12px * var(--fs,1));font-weight:600;padding:6px 8px;font-family:'Noto Sans KR',sans-serif">${typeOpts}</select>
+        <input type="text" inputmode="numeric" class="money-input" placeholder="금액" value="${fmtNum(r.amt||'')}" onchange="updWithdrawAlloc(${idx},'amt',this.value)" style="width:104px;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(12px * var(--fs,1));font-weight:700;padding:6px 8px;text-align:right;font-family:'Noto Sans KR',sans-serif"/>
+        <button class="icon-btn" onclick="delWithdrawAlloc(${idx})" style="font-size:calc(13px * var(--fs,1))">🗑️</button>
+      </div>
+      ${sub}
     </div>`;
   }).join('');
-  const cur=WITHDRAW_OPTS.find(o=>o.id===withdrawMode);
-  document.getElementById('withdraw-note').innerHTML=cur?cur.note:'';
+  formatMoneyInputs();
+  renderWithdrawAllocTotal();
 }
-function selectWithdrawMode(id){ withdrawMode=id; renderWithdrawOpts(); }
 function saveWithdraw(){
   const amount=num(document.getElementById('withdraw-amount').value);
   const date=document.getElementById('withdraw-date').value||mk();
   const memo=document.getElementById('withdraw-memo').value.trim();
   if(amount<=0){showAlert('출금 금액을 입력해주세요');return;}
+  const allocSum=withdrawAllocs.reduce((a,r)=>a+num(r.amt),0);
+  if(allocSum>amount){showAlert('배분 합계가 출금액을 초과했어요');return;}
   const configs=ls('saving-configs')||getDefaultSavingConfigs();
   const cfg=configs[withdrawSavingIdx]; if(!cfg)return;
   const cumul=getSavingCumulative(cfg,curYear,curMonth);
   const proceed=()=>{
     if(!cfg.withdrawals)cfg.withdrawals=[];
     const wid=Date.now().toString();
-    cfg.withdrawals.push({id:wid,date,amount:String(amount),mode:withdrawMode,note:memo,resolved:withdrawMode!=='cash'&&withdrawMode!=='spend',linkedExpId:null});
+    const unallocated=amount-allocSum;
+    const allocs=withdrawAllocs.filter(r=>num(r.amt)>0).map(r=>({...r,amt:String(num(r.amt))}));
+    if(unallocated>0)allocs.push({type:'cash',amt:String(unallocated)});
+    cfg.withdrawals.push({id:wid,date,amount:String(amount),note:memo,allocations:allocs,resolved:allocs.every(a=>a.type!=='cash')});
     lss('saving-configs',configs);
+    applyWithdrawAllocations(wid,allocs,date,cfg.name);
     document.getElementById('withdraw-overlay').classList.remove('show');
-    if(withdrawMode==='spend'){
-      showToast('출금했어요. 이어서 지출을 등록해주세요 →');
-      convertWithdrawToExpense(withdrawSavingIdx,wid,cfg.name);
-    }else if(withdrawMode==='cash'){
-      showToast('출금해서 보관해뒀어요. 나중에 지출로 전환할 수 있어요');
-      renderSavings();renderHome();
-    }else{
-      showToast('다른 자산으로 이동 처리했어요 ✓');
-      renderSavings();renderHome();
-    }
+    showToast('출금을 배분했어요 ✓');
+    renderSavings();renderExpense();renderHoldings();renderDeposits();renderHome();
   };
   if(amount>cumul){ showConfirm(`현재 누적 적금(${fmt(cumul)})보다 많은 금액이에요. 계속할까요?`,proceed,{icon:'⚠️'}); }
   else proceed();
+}
+// 배분행 실제 반영: 지출 생성(수입은 만들지 않음) / 투자 종목에 가산 / 다른 적금·예금에 재입금. cash행은 '보관중' 목록에만 남음
+function applyWithdrawAllocations(withdrawId,allocs,date,savingName){
+  const ym=date&&date.length>=7?date.slice(0,7):mk();
+  allocs.forEach(r=>{
+    const amt=num(r.amt); if(!amt)return;
+    if(r.type==='expense'){
+      const exps=ls('exp:'+ym)||[];
+      exps.push({id:Date.now().toString()+Math.random().toString(36).slice(2,6),name:r.name||('적금출금 ('+savingName+')'),amount:String(amt),date,note:'적금출금 충당 ('+savingName+')',cat:r.cat||'etc',fixedId:'',fundedBySaving:true,fundedBySavingName:savingName});
+      lss('exp:'+ym,exps);
+    }else if(r.type==='invest'&&r.holdingId!==undefined&&r.holdingId!==''){
+      const holdings=ls('invest-holdings')||[];
+      const h=holdings[parseInt(r.holdingId)]; if(!h)return;
+      if(!h.history)h.history=[];
+      let entry=h.history.find(x=>x.ym===ym);
+      if(!entry){entry={ym,cost:'',value:'',valueAuto:true};h.history.push(entry);}
+      entry.cost=num(entry.cost)+amt;
+      if(entry.valueAuto!==false)entry.value=num(entry.value)+amt;
+      lss('invest-holdings',holdings);
+    }else if(r.type==='redeposit'&&r.target){
+      const kind=r.target[0],idx=parseInt(r.target.slice(1));
+      if(kind==='s'){
+        const savs=ls('saving-configs')||getDefaultSavingConfigs();
+        if(savs[idx]){ if(!savs[idx].extras)savs[idx].extras=[]; savs[idx].extras.push({date:ym,amount:String(amt),inMonthly:false}); lss('saving-configs',savs); }
+      }else if(kind==='d'){
+        const deps=ls('deposit-configs')||[];
+        if(deps[idx]){ if(!deps[idx].extras)deps[idx].extras=[]; deps[idx].extras.push({date:ym,amount:String(amt)}); lss('deposit-configs',deps); }
+      }
+    }
+    // cash행은 별도 반영 없음 — '보관중인 출금' 목록에서 나중에 지출로 전환
+  });
 }
 function convertWithdrawToExpense(savingIdx,withdrawalId,savingName){
   const configs=ls('saving-configs')||getDefaultSavingConfigs();
   const cfg=configs[savingIdx]; if(!cfg)return;
   const w=(cfg.withdrawals||[]).find(x=>x.id===withdrawalId); if(!w)return;
-  pendingWithdrawLink={savingId:cfg.id,savingName:savingName||cfg.name,withdrawalId,amount:num(w.amount)};
+  const pendingAmt=w.allocations?w.allocations.filter(a=>a.type==='cash'&&!a.resolved).reduce((a,x)=>a+num(x.amt),0):num(w.amount);
+  if(pendingAmt<=0)return;
+  pendingWithdrawLink={savingId:cfg.id,savingName:savingName||cfg.name,withdrawalId,amount:pendingAmt};
   openExpModal(null);
-  document.getElementById('exp-amount').value=w.amount;
+  document.getElementById('exp-amount').value=pendingAmt;
   formatMoneyInputs();
   document.getElementById('exp-note').value='적금출금 충당 ('+(savingName||cfg.name)+')';
 }
@@ -8426,11 +8511,20 @@ function delSavWithdraw(i,wi){
     renderSavings();renderHome();
   },{danger:true,okLabel:'삭제'});
 }
-// 보관중인 출금(cash 모드 또는 취소된 spend 모드처럼 아직 지출로 연결 안 된 것) 전체 목록
+// 보관중인 출금(아직 지출·투자·재입금 어디로도 안 정해진 금액) 전체 목록
 function getPendingCashWithdrawals(){
   const configs=ls('saving-configs')||getDefaultSavingConfigs();
   const list=[];
-  configs.forEach((cfg,ci)=>{ (cfg.withdrawals||[]).forEach((w,wi)=>{ if((w.mode==='cash'||w.mode==='spend')&&!w.resolved)list.push({...w,savingIdx:ci,savingName:cfg.name,wi}); }); });
+  configs.forEach((cfg,ci)=>{
+    (cfg.withdrawals||[]).forEach((w,wi)=>{
+      if(w.allocations){
+        const pendingAmt=w.allocations.filter(a=>a.type==='cash'&&!a.resolved).reduce((a,x)=>a+num(x.amt),0);
+        if(pendingAmt>0)list.push({...w,amount:String(pendingAmt),savingIdx:ci,savingName:cfg.name,wi});
+      }else if((w.mode==='cash'||w.mode==='spend')&&!w.resolved){ // 구버전 기록
+        list.push({...w,savingIdx:ci,savingName:cfg.name,wi});
+      }
+    });
+  });
   return list;
 }
 function renderPendingWithdrawals(){
@@ -10379,10 +10473,15 @@ function renderHoldings(){
       ownerToggle(i,h.owner,'updHolding')+
       '</div>'+
       // 연말정산 연동
-      '<div style="margin-bottom:'+(hist.length>=2?'12px':'0')+'">'+
+      '<div style="margin-bottom:12px">'+
       '<div style="font-size:calc(10px * var(--fs,1));color:#3E3E3E;margin-bottom:4px;font-weight:600">🧾 연말정산 공제 연동</div>'+
       taxLinkSelect('투자',h.taxLink,'updHolding('+i+',\'taxLink\',this.value)')+
       (h.taxLink&&h.taxLink!=='none'?'<div style="font-size:calc(9.5px * var(--fs,1));color:var(--text4);margin-top:4px">📥 올해 매수액 '+fmt(getInvestAnnualPayment(h,curYear))+'이 '+(h.owner==='sp'?'배우자':'본인')+' 연말정산에 자동 반영돼요</div>':'')+
+      '</div>'+
+      // 홈 연간분석의 "연간 투자 요약"에 포함할지 여부 (예: 회사주 등 성장 추이에서 빼고 싶은 종목 제외용)
+      '<div onclick="toggleHoldAnnualInclude('+i+')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;margin-bottom:'+(hist.length>=2?'12px':'0')+';cursor:pointer;background:var(--card2);border:1px solid var(--border)">'+
+      '<span style="flex-shrink:0;width:20px;height:20px;border-radius:5px;border:1px solid '+(h.annualInclude!==false?'var(--c-sav)':'var(--border2)')+';background:'+(h.annualInclude!==false?'var(--c-sav)':'transparent')+';color:#fff;font-size:calc(12px * var(--fs,1));display:flex;align-items:center;justify-content:center;font-weight:800">'+(h.annualInclude!==false?'✓':'')+'</span>'+
+      '<div style="font-size:calc(11px * var(--fs,1));color:var(--text2)">📅 홈 화면 연간 투자 요약에 포함</div>'+
       '</div>'+
       // 선형 그래프 (2개월 이상일 때)
       (hist.length>=2?'<div style="border-top:1px solid var(--border);padding-top:12px"><div style="font-size:calc(10px * var(--fs,1));color:#3E3E3E;font-weight:600;margin-bottom:8px">📈 원금 대비 평가액 추이</div>'+
@@ -10437,6 +10536,7 @@ function drawHoldingGraph(svgId,hist){
 }
 function addHolding(){const h=ls('invest-holdings')||[];h.push({id:'hold_'+Date.now(),name:'',history:[{ym:mk(),cost:'',value:''}]});lss('invest-holdings',h);renderHoldings();renderHome();}
 function updHolding(i,k,v){const h=ls('invest-holdings')||[];h[i][k]=v;lss('invest-holdings',h);renderHoldings();renderHome();}
+function toggleHoldAnnualInclude(i){const h=ls('invest-holdings')||[];h[i].annualInclude=h[i].annualInclude===false;lss('invest-holdings',h);renderHoldings();}
 function delHolding(i){showConfirm('삭제할까요?',()=>{const h=ls('invest-holdings')||[];h.splice(i,1);lss('invest-holdings',h);renderHoldings();renderHome();},{danger:true,okLabel:'삭제'});}
 function addHoldHist(i){const h=ls('invest-holdings')||[];if(!h[i].history)h[i].history=[];h[i].history.push({ym:mk(),cost:'',value:''});lss('invest-holdings',h);renderHoldings();renderHome();}
 function updHoldHist(i,ri,k,v){const h=ls('invest-holdings')||[];if(!h[i].history||!h[i].history[ri])return;h[i].history[ri][k]=v;if(k==='value')h[i].history[ri].valueAuto=(v===''||v==null);lss('invest-holdings',h);renderHoldings();renderHome();}
