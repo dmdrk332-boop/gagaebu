@@ -996,45 +996,52 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     </div>
     <div style="text-align:center;font-size:calc(10px * var(--fs,1));color:var(--text3);padding:4px 0" id="ann-cutoff-label"></div>
     <div class="section" style="margin-top:8px">
-      <div class="section-label">📈 연간 요약</div>
+      <div class="section-label">💵 연간 요약 · 수입계</div>
       <div class="ann-sum-grid">
         <div class="ann-sum-item"><div class="ann-sum-label">총 수입</div><div class="ann-sum-val" id="ann-total-inc" style="color:var(--blue)"></div></div>
-        <div class="ann-sum-item"><div class="ann-sum-label">총 지출</div><div class="ann-sum-val" id="ann-total-exp" style="color:var(--red)"></div></div>
-        <div class="ann-sum-item"><div class="ann-sum-label">총 대출상환</div><div class="ann-sum-val" id="ann-total-loan" style="color:var(--red)"></div></div>
         <div class="ann-sum-item"><div class="ann-sum-label">총 적금납입</div><div class="ann-sum-val" id="ann-total-sav" style="color:var(--c-sav)"></div></div>
         <div class="ann-sum-item"><div class="ann-sum-label">총 예금납입</div><div class="ann-sum-val" id="ann-total-dep" style="color:var(--c-sav)"></div></div>
-        <div class="ann-sum-item"><div class="ann-sum-label">연간 잔여</div><div class="ann-sum-val" id="ann-total-bal"></div></div>
+        <div class="ann-sum-item"><div class="ann-sum-label">연간 투자 증감</div><div class="ann-sum-val" id="ann-total-inv" style="color:var(--c-sav)"></div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">💸 연간 요약 · 지출계</div>
+      <div class="ann-sum-grid">
+        <div class="ann-sum-item"><div class="ann-sum-label">총 지출</div><div class="ann-sum-val" id="ann-total-exp" style="color:var(--red)"></div></div>
+        <div class="ann-sum-item"><div class="ann-sum-label">총 대출상환</div><div class="ann-sum-val" id="ann-total-loan" style="color:var(--red)"></div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">📈 연간 잔여 · 순자산</div>
+      <div class="ann-sum-grid">
+        <div class="ann-sum-item" style="grid-column:1/-1"><div class="ann-sum-label">연간 잔여</div><div class="ann-sum-val" id="ann-total-bal"></div></div>
         <div class="ann-sum-item" style="grid-column:1/-1"><div class="ann-sum-label">순자산 증감 (연초 → 연말)</div><div class="ann-sum-val" id="ann-total-nw"></div></div>
       </div>
     </div>
     <div class="section">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start">
-        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
-          <div class="section-label" style="margin-bottom:0">💵 수입계</div>
-          <div id="ann-inc-detail-wrap" style="display:none;background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:12px">
-            <div style="font-size:calc(11px * var(--fs,1));color:var(--blue);margin-bottom:8px;font-weight:600">수입 상세</div>
-            <div id="ann-inc-detail"></div>
-          </div>
-          <div style="background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:12px">
-            <div style="font-size:calc(11px * var(--fs,1));color:var(--c-sav);margin-bottom:8px;font-weight:600">🏦 적금</div>
-            <div id="ann-sav-summary" style="display:grid;grid-template-columns:1fr;gap:8px"></div>
-          </div>
-          <div style="background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:12px">
-            <div style="font-size:calc(11px * var(--fs,1));color:var(--c-sav);margin-bottom:8px;font-weight:600">💎 예금</div>
-            <div id="ann-dep-summary" style="display:grid;grid-template-columns:1fr;gap:8px"></div>
-          </div>
-          <div style="background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:12px">
-            <div style="font-size:calc(11px * var(--fs,1));color:var(--c-sav);margin-bottom:8px;font-weight:600">📈 투자</div>
-            <div id="ann-inv-summary" style="display:grid;grid-template-columns:1fr;gap:8px"></div>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
-          <div class="section-label" style="margin-bottom:0">💸 지출계</div>
-          <div style="background:var(--card2);border-radius:12px;padding:12px;border:1px solid var(--red-border)">
-            <div style="font-size:calc(11px * var(--fs,1));color:var(--red);margin-bottom:8px;font-weight:600">🏛️ 대출</div>
-            <div id="ann-loan-summary" style="display:grid;grid-template-columns:1fr;gap:8px"></div>
-          </div>
-        </div>
+      <div class="section-label">💵 수입계 상세</div>
+      <div id="ann-inc-detail-wrap" style="display:none;background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:14px;margin-bottom:10px">
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--blue);margin-bottom:10px;font-weight:600">💵 연간 수입 상세 (세전·공제·상여)</div>
+        <div id="ann-inc-detail"></div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:14px;margin-bottom:4px">
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--c-sav);margin-bottom:10px;font-weight:600">🏦 연간 적금 현황</div>
+        <div id="ann-sav-summary" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:14px;margin-bottom:4px">
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--c-sav);margin-bottom:10px;font-weight:600">💎 연간 예금 현황</div>
+        <div id="ann-dep-summary" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--blue-border);border-radius:12px;padding:14px;margin-bottom:4px">
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--c-sav);margin-bottom:10px;font-weight:600">📈 연간 투자 현황</div>
+        <div id="ann-inv-summary" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">💸 지출계 상세</div>
+      <div style="background:var(--card2);border-radius:12px;padding:14px;border:1px solid var(--red-border);margin-bottom:4px">
+        <div style="font-size:calc(11px * var(--fs,1));color:var(--red);margin-bottom:10px;font-weight:600">🏛️ 연간 대출 상환 현황</div>
+        <div id="ann-loan-summary" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
       </div>
     </div>
     <div class="section">
@@ -6381,6 +6388,7 @@ function syncInvestLinks(fixedList,expsCur,y,m){
   (fixedList||[]).forEach(f=>{
     if(!f.invLink)return;
     if(!isFxActive(f,y,m))return;
+    if(!isFxChecked(f))return; // 출금일(기관)·자동이체일 기준으로 실제 지난 달분만 투자 보유종목에 반영
     const amt=f.isBudget?(expsCur||[]).filter(e=>e.fixedId===f.id).reduce((s,e)=>s+num(e.amount),0):num(f.amount);
     contribByHolding[f.invLink]=(contribByHolding[f.invLink]||0)+amt;
   });
@@ -7142,8 +7150,8 @@ function renderAnnual(){
       '<div style="background:rgba(245,91,147,.08);border-radius:8px;padding:10px;border:1px solid var(--c-sav)">'+
       '<div style="font-size:calc(10px * var(--fs,1));color:var(--text4);margin-bottom:3px">예상 세후 이자</div>'+
       '<div style="font-size:calc(15px * var(--fs,1));font-weight:700;color:var(--c-sav)">+'+fmt(depAfterTax_total)+'</div></div>'
-      :'<div style="font-size:calc(11px * var(--fs,1));color:var(--text4);padding:4px 0">※ 금리 입력 시 이자 예상액이 표시됩니다</div>')+
-      (depDetails.length>0?'<div style="margin-top:4px">'+depDetails.filter(d=>d.cumul>0).map(d=>
+      :'<div style="font-size:calc(11px * var(--fs,1));color:var(--text4);grid-column:1/-1;padding:4px 0">※ 금리 입력 시 이자 예상액이 표시됩니다</div>')+
+      (depDetails.length>0?'<div style="grid-column:1/-1;margin-top:4px">'+depDetails.filter(d=>d.cumul>0).map(d=>
         '<div style="display:flex;justify-content:space-between;font-size:calc(12px * var(--fs,1));padding:4px 0;border-top:1px solid var(--c-sav)">'+
         '<span style="color:var(--c-sav)">'+d.name+'</span>'+
         '<span style="color:var(--c-sav);font-weight:600">'+fmt(d.cumul)+' 누적</span></div>'
@@ -7165,14 +7173,16 @@ function renderAnnual(){
     const invEndTotal=invDetails.reduce((a,h)=>a+h.end,0);
     const invDelta=invEndTotal-invStartTotal;
     const invPct=invStartTotal>0?(invDelta/invStartTotal*100):null;
-    annInvEl.innerHTML=holdings.length===0?'<div style="font-size:calc(12px * var(--fs,1));color:var(--text4);padding:4px 0">등록된 보유종목 없음</div>':
+    const annInvTotalEl=document.getElementById('ann-total-inv');
+    if(annInvTotalEl)annInvTotalEl.textContent=(invDelta>=0?'+':'')+fmt(invDelta);
+    annInvEl.innerHTML=holdings.length===0?'<div style="font-size:calc(12px * var(--fs,1));color:var(--text4);grid-column:1/-1;padding:4px 0">등록된 보유종목 없음</div>':
       '<div style="background:rgba(245,91,147,.08);border-radius:8px;padding:10px;border:1px solid var(--c-sav)">'+
       '<div style="font-size:calc(10px * var(--fs,1));color:var(--text4);margin-bottom:3px">연말 평가액 합계</div>'+
       '<div style="font-size:calc(15px * var(--fs,1));font-weight:700;color:var(--c-sav)">'+fmt(invEndTotal)+'</div></div>'+
       '<div style="background:rgba(245,91,147,.08);border-radius:8px;padding:10px;border:1px solid var(--c-sav)">'+
       '<div style="font-size:calc(10px * var(--fs,1));color:var(--text4);margin-bottom:3px">연중 증감</div>'+
       '<div style="font-size:calc(15px * var(--fs,1));font-weight:700;color:var(--c-sav)">'+(invDelta>=0?'+':'')+fmt(invDelta)+(invPct!=null?' ('+(invDelta>=0?'+':'')+invPct.toFixed(1)+'%)':'')+'</div></div>'+
-      '<div style="margin-top:4px">'+invDetails.filter(h=>h.end>0).map(h=>
+      '<div style="grid-column:1/-1;margin-top:4px">'+invDetails.filter(h=>h.end>0).map(h=>
         '<div style="display:flex;justify-content:space-between;font-size:calc(12px * var(--fs,1));padding:4px 0;border-top:1px solid var(--c-sav)">'+
         '<span style="color:var(--c-sav)">'+h.name+'</span>'+
         '<span style="color:var(--c-sav);font-weight:600">'+fmt(h.end)+'</span></div>'
