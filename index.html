@@ -5520,6 +5520,7 @@ const MONTHS=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10
 
 let curYear=new Date().getFullYear(), curMonth=new Date().getMonth()+1;
 let curTab='home', homeView='monthly', annualYear=new Date().getFullYear();
+let uiOpen={}; // 리스트가 매번 innerHTML로 통째로 다시 그려지는 아코디언들의 열림상태(입력해도 안 닫히게 렌더링과 무관하게 기억)
 let editExpId=null, editLoanId=null, selectedCat='etc', expFilter='all';
 let dpYear=curYear;
 let privacyMode=false; // 프라이버시 모드 (금액 별표 처리)
@@ -8319,9 +8320,9 @@ function renderSavings(){
       <div style="border-top:1px solid var(--border2);padding-top:10px">
         <div onclick="toggleSavHistory(${i})" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
           <span style="font-size:calc(11px * var(--fs,1));font-weight:600;color:var(--text2)">➕📤 추가납입·출금 내역 (${(cfg.extras||[]).length+(cfg.withdrawals||[]).length}건)</span>
-          <span id="sav-hist-chevron-${i}" style="color:var(--text3);transition:transform .2s">▾</span>
+          <span id="sav-hist-chevron-${i}" style="color:var(--text3);transition:transform .2s;transform:${uiOpen['sav-hist-'+i]?'rotate(180deg)':'rotate(0deg)'}">▾</span>
         </div>
-        <div id="sav-hist-${i}" style="display:none;margin-top:8px">
+        <div id="sav-hist-${i}" style="display:${uiOpen['sav-hist-'+i]?'block':'none'};margin-top:8px">
         <div style="font-size:calc(11px * var(--fs,1));font-weight:600;color:var(--text2);margin-bottom:8px">➕ 추가납입 내역</div>
         <div id="sav-extras-${i}">
           ${(cfg.extras||[]).map((e,ei)=>{
@@ -8355,11 +8356,11 @@ function renderSavings(){
   }).join('')||emptyState('🏦','등록된 적금이 없어요','<button class="add-btn" onclick="addSaving()">+ 적금 추가</button>');
 }
 function toggleSavHistory(i){
-  const el=document.getElementById('sav-hist-'+i),chevron=document.getElementById('sav-hist-chevron-'+i);
-  if(!el)return;
-  const open=el.style.display!=='none';
-  el.style.display=open?'none':'block';
-  if(chevron)chevron.style.transform=open?'rotate(0deg)':'rotate(180deg)';
+  const key='sav-hist-'+i;
+  uiOpen[key]=!uiOpen[key];
+  const el=document.getElementById(key),chevron=document.getElementById('sav-hist-chevron-'+i);
+  if(el)el.style.display=uiOpen[key]?'block':'none';
+  if(chevron)chevron.style.transform=uiOpen[key]?'rotate(180deg)':'rotate(0deg)';
 }
 function updSavingConfig(i,k,v){if(typeof v==='string'&&/^[\d,]*$/.test(v))v=v.replace(/,/g,'');const c=ls('saving-configs')||getDefaultSavingConfigs();c[i][k]=v;lss('saving-configs',c);renderSavings();renderHome();}function addSaving(){const c=ls('saving-configs')||getDefaultSavingConfigs();c.push({id:Date.now().toString(),name:'새 적금',monthlyAmount:'',rate:'',goal:'',startDate:'',endDate:'',extras:[],inMonthly:true});lss('saving-configs',c);renderSavings();}
 function delSavingConfig(i){showConfirm('삭제할까요?',()=>{const c=ls('saving-configs')||getDefaultSavingConfigs();c.splice(i,1);lss('saving-configs',c);renderSavings();renderHome();},{danger:true,okLabel:'삭제'});}
@@ -8795,6 +8796,8 @@ function renderLoans(){
   document.getElementById('ln-annual-total').textContent=fmt(annualTotal);
   if(loans.length===0){listEl.innerHTML=emptyState('🏦','등록된 대출이 없어요','<button class="add-btn" onclick="openLoanModal()">+ 대출 추가</button>');return;}
   listEl.innerHTML=loans.map((l,idx)=>{
+    const advKey='loan-adv-'+idx; if(!(advKey in uiOpen))uiOpen[advKey]=!!l.useImputed; // 최초엔 인정상여 사용여부 따라가고, 이후엔 사용자가 직접 연 상태를 기억
+    const advOpen=uiOpen[advKey];
     const sch=getLoanSchedule(l);const total=num(l.principal);
     const curEntry=sch.find(e=>e.year===curYear&&e.month===curMonth);
     const lastEntry=sch[sch.length-1];
@@ -8899,9 +8902,9 @@ function renderLoans(){
       <div style="border-top:1px solid var(--border2);padding-top:10px;margin-bottom:8px">
         <div onclick="toggleLoanAdvanced(${idx})" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
           <span style="font-size:calc(11px * var(--fs,1));font-weight:600;color:var(--text3)">⚙️ 고급 설정</span>
-          <span id="loan-adv-chevron-${idx}" style="color:var(--text3);transition:transform .2s;transform:${l.useImputed?'rotate(180deg)':'rotate(0deg)'}">▾</span>
+          <span id="loan-adv-chevron-${idx}" style="color:var(--text3);transition:transform .2s;transform:${advOpen?'rotate(180deg)':'rotate(0deg)'}">▾</span>
         </div>
-        <div id="loan-adv-${idx}" style="display:${l.useImputed?'block':'none'};margin-top:8px">
+        <div id="loan-adv-${idx}" style="display:${advOpen?'block':'none'};margin-top:8px">
         <div onclick="toggleLoanImputed(${idx})" style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;margin-bottom:8px;cursor:pointer;background:${l.useImputed?'var(--purple-dim)':'var(--card2)'};border:1px solid ${l.useImputed?'var(--purple-border)':'var(--border)'}">
           <span style="flex-shrink:0;width:20px;height:20px;border-radius:5px;border:1px solid ${l.useImputed?'var(--purple-border)':'var(--border2)'};background:${l.useImputed?'#a78bfa':'transparent'};color:#fff;font-size:calc(12px * var(--fs,1));display:flex;align-items:center;justify-content:center;font-weight:800">${l.useImputed?'✓':''}</span>
           <div style="flex:1">
@@ -8921,11 +8924,11 @@ function renderLoans(){
     </div>`;}).join('');
 }
 function toggleLoanAdvanced(idx){
-  const el=document.getElementById('loan-adv-'+idx),chevron=document.getElementById('loan-adv-chevron-'+idx);
-  if(!el)return;
-  const open=el.style.display!=='none';
-  el.style.display=open?'none':'block';
-  if(chevron)chevron.style.transform=open?'rotate(0deg)':'rotate(180deg)';
+  const key='loan-adv-'+idx;
+  uiOpen[key]=!uiOpen[key];
+  const el=document.getElementById(key),chevron=document.getElementById('loan-adv-chevron-'+idx);
+  if(el)el.style.display=uiOpen[key]?'block':'none';
+  if(chevron)chevron.style.transform=uiOpen[key]?'rotate(180deg)':'rotate(0deg)';
 }
 function toggleLoanTable(tblId,btnId){const tbl=document.getElementById(tblId),btn=document.getElementById(btnId);if(!tbl)return;const open=tbl.style.display!=='none';tbl.style.display=open?'none':'block';btn.textContent=open?'▼ 상환 스케줄 보기':'▲ 스케줄 닫기';}
 function addLoanPrepay(idx){const loans=getLoans();if(!loans[idx].prepayments)loans[idx].prepayments=[];loans[idx].prepayments.push({date:'',amount:'',fee:''});lss('loans',loans);renderLoans();renderHome();}
