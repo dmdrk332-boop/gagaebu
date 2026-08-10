@@ -7518,6 +7518,18 @@ function compressImage(file, maxW, quality){
   });
 }
 
+// Gemini가 추측한 카테고리 문구(자유 텍스트)를 지금 사용중인 카테고리 목록(사용자가 이름 바꿨을 수도 있음)과 대조
+function matchOcrCategory(guess){
+  if(!guess)return null;
+  guess=String(guess).trim();
+  if(!guess)return null;
+  let hit=CATS.find(c=>c.label===guess);
+  if(hit)return hit.id;
+  hit=CATS.find(c=>c.label.split('/').some(part=>part&&(guess.includes(part)||part.includes(guess))));
+  if(hit)return hit.id;
+  hit=CATS.find(c=>guess.includes(c.label)||c.label.includes(guess));
+  return hit?hit.id:null;
+}
 // 영수증 사진 -> Cloudflare Worker(gagaebu-ocr) -> Gemini OCR -> 지출 입력폼 자동채움
 const OCR_WORKER_URL='https://gagaebu-ocr.dmdrk332.workers.dev';
 function handleExpOcr(input){
@@ -7536,13 +7548,15 @@ function handleExpOcr(input){
       const res=await fetch(OCR_WORKER_URL,{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-        body:JSON.stringify({image:base64,mimeType:'image/jpeg'})
+        body:JSON.stringify({image:base64,mimeType:'image/jpeg',categories:CATS.map(c=>c.label)})
       });
       const data=await res.json().catch(()=>null);
       if(!res.ok||!data||!data.ok){ showAlert((data&&data.error)||'분석에 실패했어요. 다시 시도해주세요'); return; }
       if(data.name)document.getElementById('exp-name').value=data.name;
       if(data.amount)document.getElementById('exp-amount').value=data.amount;
       if(data.date)document.getElementById('exp-date').value=data.date;
+      const matchedCatId=matchOcrCategory(data.category);
+      if(matchedCatId)selectCat(matchedCatId);
       formatMoneyInputs();
       showToast('사진에서 읽어왔어요. 확인 후 저장해주세요 ✓');
     }catch(e){
