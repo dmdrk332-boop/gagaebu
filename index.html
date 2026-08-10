@@ -1205,7 +1205,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <button class="subtab active" onclick="switchSub('expense',this)">💸 지출</button>
     <button class="subtab" onclick="switchSub('fixed',this)">📌 고정지출</button>
   </div>
-  <div class="top-bar"><span class="page-title">💸 지출 관리</span><div style="display:flex;gap:6px"><button class="icon-btn" onclick="openExpSearch()" style="font-size:calc(14px * var(--fs,1))">🔍</button><button class="add-btn" onclick="openExpModal()" style="background:var(--purple-dim);border:1px solid var(--purple-border);color:var(--purple)">+ 추가</button></div></div>
+  <div class="top-bar"><span class="page-title">💸 지출 관리</span><div style="display:flex;gap:6px"><input type="file" id="exp-bulk-input" accept="image/*" style="display:none" onchange="handleBulkOcr(this)"/><button class="icon-btn" onclick="document.getElementById('exp-bulk-input').click()" title="은행 앱 캡쳐로 여러 건 한번에" style="font-size:calc(14px * var(--fs,1))">📑</button><button class="icon-btn" onclick="openExpSearch()" style="font-size:calc(14px * var(--fs,1))">🔍</button><button class="add-btn" onclick="openExpModal()" style="background:var(--purple-dim);border:1px solid var(--purple-border);color:var(--purple)">+ 추가</button></div></div>
   <div class="month-bar">
     <button class="arrow-btn" onclick="changeMonth(-1)">‹</button>
     <div style="text-align:center;cursor:pointer" onclick="openDatePicker()">
@@ -5388,6 +5388,23 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
     </div>
   </div>
 </div>
+<div class="overlay" id="exp-bulk-overlay" onclick="closeBulkImportModal(event)">
+  <div class="modal">
+    <div class="modal-title">📑 은행내역 일괄 등록</div>
+    <div style="font-size:calc(11px * var(--fs,1));color:var(--text3);margin-bottom:12px">캡쳐에서 읽은 지출내역이에요. 확인하고 필요하면 고친 뒤, 등록할 것만 체크된 상태로 두세요.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div onclick="toggleBulkSelectAll()" style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:calc(12px * var(--fs,1));color:var(--purple);font-weight:600">
+        <span id="exp-bulk-selectall-icon">☑️</span> 전체 선택/해제
+      </div>
+      <div id="exp-bulk-count" style="font-size:calc(11px * var(--fs,1));color:var(--text3)"></div>
+    </div>
+    <div id="exp-bulk-list"></div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeBulkImportModal()">취소</button>
+      <button class="btn btn-save" onclick="confirmBulkImport()" id="exp-bulk-confirm-btn">등록</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="loan-overlay" onclick="closeLoanModal(event)">
   <div class="modal">
     <div class="modal-title" id="loan-modal-title">대출 추가</div>
@@ -7565,6 +7582,99 @@ function handleExpOcr(input){
   }).catch(()=>{
     showAlert('이 사진 형식은 읽을 수 없어요 (아이폰 HEIC 등). 스크린샷을 찍거나 다른 사진으로 시도해주세요.');
   });
+}
+
+// 은행/카드 앱 거래내역 캡쳐 -> Gemini가 여러 건을 배열로 추출 -> 체크박스+수정 가능한 리스트로 검토 후 일괄 등록
+let bulkImportRows=[];
+function handleBulkOcr(input){
+  const file=input.files[0];
+  input.value='';
+  if(!file)return;
+  if(!cloudUser){
+    showAlert('일괄 등록은 Google 로그인 후 사용할 수 있어요. 설정 탭에서 로그인해주세요.');
+    return;
+  }
+  showToast('📑 은행내역 분석 중...');
+  compressImage(file,1400,0.82).then(async dataUrl=>{
+    const base64=dataUrl.split(',')[1]||'';
+    try{
+      const token=await cloudUser.getIdToken();
+      const res=await fetch(OCR_WORKER_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body:JSON.stringify({image:base64,mimeType:'image/jpeg',categories:CATS.map(c=>c.label),mode:'bulk'})
+      });
+      const data=await res.json().catch(()=>null);
+      if(!res.ok||!data||!data.ok){ showAlert((data&&data.error)||'분석에 실패했어요. 다시 시도해주세요'); return; }
+      const items=Array.isArray(data.items)?data.items:[];
+      if(!items.length){ showAlert('사진에서 지출 내역을 찾지 못했어요. 다른 캡쳐를 시도해보세요.'); return; }
+      bulkImportRows=items.map(it=>({
+        checked:true,
+        name:(it.name||'').trim(),
+        amount:num(it.amount)||'',
+        date:/^\d{4}-\d{2}-\d{2}$/.test(it.date||'')?it.date:today(),
+        catId:matchOcrCategory(it.category)||'etc'
+      }));
+      renderBulkImportList();
+      document.getElementById('exp-bulk-overlay').classList.add('show');
+    }catch(e){
+      showAlert('분석 중 문제가 생겼어요. 네트워크를 확인하고 다시 시도해주세요');
+    }
+  }).catch(()=>{
+    showAlert('이 사진 형식은 읽을 수 없어요 (아이폰 HEIC 등). 스크린샷을 찍거나 다른 사진으로 시도해주세요.');
+  });
+}
+function renderBulkImportList(){
+  const el=document.getElementById('exp-bulk-list'); if(!el)return;
+  el.innerHTML=bulkImportRows.map((r,i)=>{
+    const catOpts=CATS.map(c=>`<option value="${c.id}"${c.id===r.catId?' selected':''}>${c.icon} ${c.label}</option>`).join('');
+    return `<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;opacity:${r.checked?1:.5}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div onclick="toggleBulkRow(${i})" style="width:22px;height:22px;border-radius:6px;border:1.5px solid ${r.checked?'var(--purple)':'var(--border2)'};background:${r.checked?'var(--purple)':'transparent'};color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:calc(12px * var(--fs,1));font-weight:800">${r.checked?'✓':''}</div>
+        <input type="text" value="${r.name}" onchange="updBulkRow(${i},'name',this.value)" placeholder="항목명" style="flex:1;min-width:0;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(13px * var(--fs,1));font-weight:600;padding:6px 8px;font-family:'Noto Sans KR',sans-serif"/>
+        <input type="text" inputmode="numeric" class="money-input" value="${fmtNum(r.amount)}" onchange="updBulkRow(${i},'amount',this.value)" placeholder="금액" style="width:92px;flex-shrink:0;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--purple);font-weight:700;font-size:calc(13px * var(--fs,1));padding:6px 8px;text-align:right;font-family:'Noto Sans KR',sans-serif"/>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input type="date" value="${r.date}" onchange="updBulkRow(${i},'date',this.value)" style="flex:1;min-width:0;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(12px * var(--fs,1));padding:6px 8px;font-family:'Noto Sans KR',sans-serif"/>
+        <select onchange="updBulkRow(${i},'catId',this.value)" style="flex:1;min-width:0;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(12px * var(--fs,1));padding:6px 8px;font-family:'Noto Sans KR',sans-serif">${catOpts}</select>
+      </div>
+    </div>`;
+  }).join('');
+  const checkedCount=bulkImportRows.filter(r=>r.checked).length;
+  const countEl=document.getElementById('exp-bulk-count');
+  if(countEl)countEl.textContent=checkedCount+' / '+bulkImportRows.length+'건 선택됨';
+  const btn=document.getElementById('exp-bulk-confirm-btn');
+  if(btn)btn.textContent=checkedCount>0?(checkedCount+'건 등록'):'등록';
+  const allIcon=document.getElementById('exp-bulk-selectall-icon');
+  if(allIcon)allIcon.textContent=(bulkImportRows.length>0&&bulkImportRows.every(r=>r.checked))?'☑️':'⬜';
+  formatMoneyInputs();
+}
+function toggleBulkRow(i){ if(!bulkImportRows[i])return; bulkImportRows[i].checked=!bulkImportRows[i].checked; renderBulkImportList(); }
+function updBulkRow(i,k,v){
+  if(!bulkImportRows[i])return;
+  if(k==='amount'&&typeof v==='string')v=v.replace(/,/g,'');
+  bulkImportRows[i][k]=v;
+  renderBulkImportList();
+}
+function toggleBulkSelectAll(){
+  const allChecked=bulkImportRows.length>0&&bulkImportRows.every(r=>r.checked);
+  bulkImportRows.forEach(r=>r.checked=!allChecked);
+  renderBulkImportList();
+}
+function closeBulkImportModal(e){ if(e&&e.target!==document.getElementById('exp-bulk-overlay'))return; document.getElementById('exp-bulk-overlay').classList.remove('show'); }
+function confirmBulkImport(){
+  const checked=bulkImportRows.filter(r=>r.checked&&num(r.amount)>0);
+  if(!checked.length){ showAlert('선택된 항목이 없어요'); return; }
+  const byYm={};
+  checked.forEach((r,i)=>{
+    const ym=/^\d{4}-\d{2}/.test(r.date||'')?r.date.slice(0,7):mk();
+    if(!byYm[ym])byYm[ym]=ls('exp:'+ym)||[];
+    byYm[ym].push({id:Date.now().toString()+Math.random().toString(36).slice(2,6)+i,name:r.name||'지출',amount:String(num(r.amount)),date:r.date||today(),note:'은행내역 일괄등록',cat:r.catId||'etc',fixedId:''});
+  });
+  Object.keys(byYm).forEach(ym=>lss('exp:'+ym,byYm[ym]));
+  closeBulkImportModal();
+  showToast(checked.length+'건 등록됐어요 ✓');
+  renderExpense();renderHome();
 }
 
 let _viewingSlipType=null;
