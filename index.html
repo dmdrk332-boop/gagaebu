@@ -1136,10 +1136,6 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
       <span class="section-label" style="margin-bottom:0">💴 추가 수입 항목</span>
       <div style="display:flex;gap:6px">
-        <input type="file" id="inc-ocr-input" accept="image/*" style="display:none" onchange="handleIncOcr(this)"/>
-        <input type="file" id="inc-bulk-input" accept="image/*" style="display:none" onchange="handleIncBulkOcr(this)"/>
-        <button class="icon-btn" onclick="document.getElementById('inc-ocr-input').click()" title="입금 사진으로 자동입력" style="font-size:calc(13px * var(--fs,1))">📷</button>
-        <button class="icon-btn" onclick="document.getElementById('inc-bulk-input').click()" title="은행 앱 캡쳐로 여러 건 한번에" style="font-size:calc(13px * var(--fs,1))">📑</button>
         <button class="add-btn" onclick="addIncomeItem()">+ 항목 추가</button>
       </div>
     </div>
@@ -7512,10 +7508,43 @@ function handleSlipFile(type, input){
     }catch(e){
       showToast('저장 실패: 이미지가 너무 큽니다. 더 작은 파일을 사용해주세요.');
     }
+    if(cloudUser)ocrFillPayslip(type,b64);
   }).catch(()=>{
     showAlert('이 사진 형식은 읽을 수 없어요 (아이폰 HEIC 등). 스크린샷을 찍거나 다른 사진으로 시도해주세요.');
   });
   input.value='';
+}
+// 급여명세서 사진 -> Gemini OCR -> 세전급여/공제/상여 상세입력 자동 채움
+function ocrFillPayslip(type, dataUrl){
+  const base64=dataUrl.split(',')[1]||'';
+  showToast('📷 명세서 내용 분석 중...');
+  (async()=>{
+    try{
+      const token=await cloudUser.getIdToken();
+      const res=await fetch(OCR_WORKER_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body:JSON.stringify({image:base64,mimeType:'image/jpeg',mode:'payslip'})
+      });
+      const data=await res.json().catch(()=>null);
+      if(!res.ok||!data||!data.ok){ showToast('자동 인식은 실패했어요. 상세입력에서 직접 입력해주세요'); return; }
+      const earnings=Array.isArray(data.earnings)?data.earnings:[];
+      const deductions=Array.isArray(data.deductions)?data.deductions:[];
+      if(!earnings.length&&!deductions.length){ showToast('명세서에서 항목을 찾지 못했어요. 상세입력에서 직접 입력해주세요'); return; }
+      const inc=ls('inc:'+mk())||{};
+      inc[type+'Bonus']=earnings.filter(x=>num(x.amount)>0).map(x=>({name:(x.name||'').trim(),amount:String(num(x.amount)),regular:x.regular!==false}));
+      inc[type+'Deds']=deductions.filter(x=>num(x.amount)>0).map(x=>({name:(x.name||'').trim(),amount:String(num(x.amount))}));
+      lss('inc:'+mk(),inc);
+      _incDetailOpen[type]=true;
+      document.getElementById('i-'+type+'-detail').style.display='block';
+      document.getElementById('i-'+type+'-detail-btn').textContent='📋 상세 입력 닫기';
+      renderIncDetail(type);
+      renderHome();
+      showToast('상세입력에 자동으로 채웠어요. 확인해주세요 ✓');
+    }catch(e){
+      showToast('자동 인식 중 문제가 생겼어요. 상세입력에서 직접 입력해주세요');
+    }
+  })();
 }
 
 function compressImage(file, maxW, quality){
@@ -7591,9 +7620,7 @@ function handleExpOcr(input){
 }
 
 // 은행/카드 앱 거래내역 캡쳐 -> Gemini가 여러 건을 배열로 추출 -> 체크박스+수정 가능한 리스트로 검토 후 일괄 등록
-// bulkImportKind: 'expense'(지출, 카테고리 있음) | 'income'(수입, 카테고리 없음) — 같은 모달·리스트를 공유
 let bulkImportRows=[];
-let bulkImportKind='expense';
 function handleBulkOcr(input){
   const file=input.files[0];
   input.value='';
@@ -7602,7 +7629,6 @@ function handleBulkOcr(input){
     showAlert('일괄 등록은 Google 로그인 후 사용할 수 있어요. 설정 탭에서 로그인해주세요.');
     return;
   }
-  bulkImportKind='expense';
   showToast('📑 은행내역 분석 중...');
   compressImage(file,1400,0.82).then(async dataUrl=>{
     const base64=dataUrl.split(',')[1]||'';
@@ -7637,9 +7663,8 @@ function handleBulkOcr(input){
 }
 function renderBulkImportList(){
   const el=document.getElementById('exp-bulk-list'); if(!el)return;
-  const isExpense=bulkImportKind==='expense';
   el.innerHTML=bulkImportRows.map((r,i)=>{
-    const catOpts=isExpense?CATS.map(c=>`<option value="${c.id}"${c.id===r.catId?' selected':''}>${c.icon} ${c.label}</option>`).join(''):'';
+    const catOpts=CATS.map(c=>`<option value="${c.id}"${c.id===r.catId?' selected':''}>${c.icon} ${c.label}</option>`).join('');
     return `<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;opacity:${r.checked?1:.5}">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <div onclick="toggleBulkRow(${i})" style="width:22px;height:22px;border-radius:6px;border:1.5px solid ${r.checked?'var(--purple)':'var(--border2)'};background:${r.checked?'var(--purple)':'transparent'};color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:calc(12px * var(--fs,1));font-weight:800">${r.checked?'✓':''}</div>
@@ -7648,7 +7673,7 @@ function renderBulkImportList(){
       </div>
       <div style="display:flex;gap:8px">
         <input type="date" value="${r.date}" onchange="updBulkRow(${i},'date',this.value)" style="flex:1;min-width:0;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(12px * var(--fs,1));padding:6px 8px;font-family:'Noto Sans KR',sans-serif"/>
-        ${isExpense?`<select onchange="updBulkRow(${i},'catId',this.value)" style="flex:1;min-width:0;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(12px * var(--fs,1));padding:6px 8px;font-family:'Noto Sans KR',sans-serif">${catOpts}</select>`:''}
+        <select onchange="updBulkRow(${i},'catId',this.value)" style="flex:1;min-width:0;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(12px * var(--fs,1));padding:6px 8px;font-family:'Noto Sans KR',sans-serif">${catOpts}</select>
       </div>
     </div>`;
   }).join('');
@@ -7677,109 +7702,17 @@ function closeBulkImportModal(e){ if(e&&e.target!==document.getElementById('exp-
 function confirmBulkImport(){
   const checked=bulkImportRows.filter(r=>r.checked&&num(r.amount)>0);
   if(!checked.length){ showAlert('선택된 항목이 없어요'); return; }
-  if(bulkImportKind==='income'){
-    const byYm={};
-    checked.forEach((r,i)=>{
-      const ym=/^\d{4}-\d{2}/.test(r.date||'')?r.date.slice(0,7):mk();
-      if(!byYm[ym])byYm[ym]=ls('inc:'+ym)||{};
-      if(!byYm[ym].items)byYm[ym].items=[];
-      byYm[ym].items.push({id:Date.now().toString()+Math.random().toString(36).slice(2,6)+i,label:r.name||'수입',amount:String(num(r.amount)),note:'은행내역 일괄등록'});
-    });
-    Object.keys(byYm).forEach(ym=>lss('inc:'+ym,byYm[ym]));
-    closeBulkImportModal();
-    showToast(checked.length+'건 등록됐어요 ✓');
-    const curInc=ls('inc:'+mk())||{};
-    renderIncomeItems(curInc);incTotalRefresh(curInc);renderHome();
-  }else{
-    const byYm={};
-    checked.forEach((r,i)=>{
-      const ym=/^\d{4}-\d{2}/.test(r.date||'')?r.date.slice(0,7):mk();
-      if(!byYm[ym])byYm[ym]=ls('exp:'+ym)||[];
-      byYm[ym].push({id:Date.now().toString()+Math.random().toString(36).slice(2,6)+i,name:r.name||'지출',amount:String(num(r.amount)),date:r.date||today(),note:'은행내역 일괄등록',cat:r.catId||'etc',fixedId:''});
-    });
-    Object.keys(byYm).forEach(ym=>lss('exp:'+ym,byYm[ym]));
-    closeBulkImportModal();
-    showToast(checked.length+'건 등록됐어요 ✓');
-    renderExpense();renderHome();
-  }
-}
-// 수입탭: 입금 사진 한 장 -> 기타수입 항목 하나 자동 생성
-function handleIncOcr(input){
-  const file=input.files[0];
-  input.value='';
-  if(!file)return;
-  if(!cloudUser){
-    showAlert('사진 자동입력은 Google 로그인 후 사용할 수 있어요. 설정 탭에서 로그인해주세요.');
-    return;
-  }
-  showToast('📷 사진 분석 중...');
-  compressImage(file,1200,0.82).then(async dataUrl=>{
-    const base64=dataUrl.split(',')[1]||'';
-    try{
-      const token=await cloudUser.getIdToken();
-      const res=await fetch(OCR_WORKER_URL,{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-        body:JSON.stringify({image:base64,mimeType:'image/jpeg',kind:'income'})
-      });
-      const data=await res.json().catch(()=>null);
-      if(!res.ok||!data||!data.ok){ showAlert((data&&data.error)||'분석에 실패했어요. 다시 시도해주세요'); return; }
-      const inc=ls('inc:'+mk())||{};
-      if(!inc.items)inc.items=[];
-      inc.items.push({id:Date.now().toString(),label:data.name||'',amount:data.amount?String(num(data.amount)):'',note:''});
-      lss('inc:'+mk(),inc);
-      renderIncomeItems(inc);incTotalRefresh(inc);renderHome();
-      showToast('사진에서 읽어왔어요. 확인 후 필요하면 고쳐주세요 ✓');
-    }catch(e){
-      showAlert('분석 중 문제가 생겼어요. 네트워크를 확인하고 다시 시도해주세요');
-    }
-  }).catch(()=>{
-    showAlert('이 사진 형식은 읽을 수 없어요 (아이폰 HEIC 등). 스크린샷을 찍거나 다른 사진으로 시도해주세요.');
+  const byYm={};
+  checked.forEach((r,i)=>{
+    const ym=/^\d{4}-\d{2}/.test(r.date||'')?r.date.slice(0,7):mk();
+    if(!byYm[ym])byYm[ym]=ls('exp:'+ym)||[];
+    byYm[ym].push({id:Date.now().toString()+Math.random().toString(36).slice(2,6)+i,name:r.name||'지출',amount:String(num(r.amount)),date:r.date||today(),note:'은행내역 일괄등록',cat:r.catId||'etc',fixedId:''});
   });
+  Object.keys(byYm).forEach(ym=>lss('exp:'+ym,byYm[ym]));
+  closeBulkImportModal();
+  showToast(checked.length+'건 등록됐어요 ✓');
+  renderExpense();renderHome();
 }
-// 수입탭: 은행 앱 캡쳐 -> 입금 여러 건 일괄 등록 (기존 지출용 리뷰모달 재사용)
-function handleIncBulkOcr(input){
-  const file=input.files[0];
-  input.value='';
-  if(!file)return;
-  if(!cloudUser){
-    showAlert('일괄 등록은 Google 로그인 후 사용할 수 있어요. 설정 탭에서 로그인해주세요.');
-    return;
-  }
-  bulkImportKind='income';
-  showToast('📑 입금내역 분석 중...');
-  compressImage(file,1400,0.82).then(async dataUrl=>{
-    const base64=dataUrl.split(',')[1]||'';
-    try{
-      const token=await cloudUser.getIdToken();
-      const res=await fetch(OCR_WORKER_URL,{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-        body:JSON.stringify({image:base64,mimeType:'image/jpeg',mode:'bulk',kind:'income'})
-      });
-      const data=await res.json().catch(()=>null);
-      if(!res.ok||!data||!data.ok){ showAlert((data&&data.error)||'분석에 실패했어요. 다시 시도해주세요'); return; }
-      const items=Array.isArray(data.items)?data.items:[];
-      if(!items.length){ showAlert('사진에서 입금 내역을 찾지 못했어요. 다른 캡쳐를 시도해보세요.'); return; }
-      bulkImportRows=items.map(it=>({
-        checked:true,
-        name:(it.name||'').trim(),
-        amount:num(it.amount)||'',
-        date:/^\d{4}-\d{2}-\d{2}$/.test(it.date||'')?it.date:today(),
-        catId:null
-      }));
-      document.getElementById('exp-bulk-title').textContent='📑 입금내역 일괄 등록 (수입)';
-      document.getElementById('exp-bulk-sub').textContent='캡쳐에서 읽은 입금내역이에요. 확인하고 필요하면 고친 뒤, 등록할 것만 체크된 상태로 두세요.';
-      renderBulkImportList();
-      document.getElementById('exp-bulk-overlay').classList.add('show');
-    }catch(e){
-      showAlert('분석 중 문제가 생겼어요. 네트워크를 확인하고 다시 시도해주세요');
-    }
-  }).catch(()=>{
-    showAlert('이 사진 형식은 읽을 수 없어요 (아이폰 HEIC 등). 스크린샷을 찍거나 다른 사진으로 시도해주세요.');
-  });
-}
-
 let _viewingSlipType=null;
 function viewSlip(type){
   const data=ls(slipKey(type));
