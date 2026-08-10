@@ -5315,6 +5315,8 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
 <div class="overlay" id="exp-overlay" onclick="closeExpModal(event)">
   <div class="modal">
     <div class="modal-title" id="exp-modal-title">지출 추가</div>
+    <input type="file" id="exp-ocr-input" accept="image/*" style="display:none" onchange="handleExpOcr(this)"/>
+    <button type="button" onclick="document.getElementById('exp-ocr-input').click()" style="width:100%;margin-bottom:12px;background:var(--purple-dim);border:1px solid var(--purple-border);color:var(--purple);border-radius:12px;padding:11px;font-size:calc(13px * var(--fs,1));font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif">📷 영수증 사진으로 자동입력</button>
     <div class="section-label" style="margin-bottom:8px">카테고리</div>
     <div class="cat-grid" id="exp-cats"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin:-2px 0 14px">
@@ -7509,6 +7511,39 @@ function compressImage(file, maxW, quality){
       img.src=e.target.result;
     };
     reader.readAsDataURL(file);
+  });
+}
+
+// 영수증 사진 -> Cloudflare Worker(gagaebu-ocr) -> Gemini OCR -> 지출 입력폼 자동채움
+const OCR_WORKER_URL='https://gagaebu-ocr.dmdrk332.workers.dev';
+function handleExpOcr(input){
+  const file=input.files[0];
+  input.value='';
+  if(!file)return;
+  if(!cloudUser){
+    showAlert('사진 자동입력은 Google 로그인 후 사용할 수 있어요. 설정 탭에서 로그인해주세요.');
+    return;
+  }
+  showToast('📷 사진 분석 중...');
+  compressImage(file,1200,0.82).then(async dataUrl=>{
+    const base64=dataUrl.split(',')[1]||'';
+    try{
+      const token=await cloudUser.getIdToken();
+      const res=await fetch(OCR_WORKER_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body:JSON.stringify({image:base64,mimeType:'image/jpeg'})
+      });
+      const data=await res.json().catch(()=>null);
+      if(!res.ok||!data||!data.ok){ showAlert((data&&data.error)||'분석에 실패했어요. 다시 시도해주세요'); return; }
+      if(data.name)document.getElementById('exp-name').value=data.name;
+      if(data.amount)document.getElementById('exp-amount').value=data.amount;
+      if(data.date)document.getElementById('exp-date').value=data.date;
+      formatMoneyInputs();
+      showToast('사진에서 읽어왔어요. 확인 후 저장해주세요 ✓');
+    }catch(e){
+      showAlert('분석 중 문제가 생겼어요. 네트워크를 확인하고 다시 시도해주세요');
+    }
   });
 }
 
