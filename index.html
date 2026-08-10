@@ -7489,13 +7489,16 @@ function handleSlipFile(type, input){
     }catch(e){
       showToast('저장 실패: 이미지가 너무 큽니다. 더 작은 파일을 사용해주세요.');
     }
+  }).catch(()=>{
+    showAlert('이 사진 형식은 읽을 수 없어요 (아이폰 HEIC 등). 스크린샷을 찍거나 다른 사진으로 시도해주세요.');
   });
   input.value='';
 }
 
 function compressImage(file, maxW, quality){
-  return new Promise(resolve=>{
+  return new Promise((resolve,reject)=>{
     const reader=new FileReader();
+    reader.onerror=()=>reject(new Error('file read failed'));
     reader.onload=e=>{
       const img=new Image();
       img.onload=()=>{
@@ -7508,6 +7511,7 @@ function compressImage(file, maxW, quality){
         ctx.drawImage(img,0,0,w,h);
         resolve(canvas.toDataURL('image/jpeg', quality));
       };
+      img.onerror=()=>reject(new Error('image decode failed')); // HEIC 등 브라우저가 못 읽는 형식이면 여기로 옴 — onerror 없으면 Promise가 영원히 안 끝남
       img.src=e.target.result;
     };
     reader.readAsDataURL(file);
@@ -7544,6 +7548,8 @@ function handleExpOcr(input){
     }catch(e){
       showAlert('분석 중 문제가 생겼어요. 네트워크를 확인하고 다시 시도해주세요');
     }
+  }).catch(()=>{
+    showAlert('이 사진 형식은 읽을 수 없어요 (아이폰 HEIC 등). 스크린샷을 찍거나 다른 사진으로 시도해주세요.');
   });
 }
 
