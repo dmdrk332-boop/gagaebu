@@ -979,6 +979,11 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
       <div class="section-label">💎 예금 현황</div>
       <div class="card" id="h-deps"></div>
     </div>
+    <!-- 투자 현황 -->
+    <div class="section" id="h-invs-section" style="display:none">
+      <div class="section-label">📈 투자 현황</div>
+      <div class="card" id="h-invs"></div>
+    </div>
     <!-- 대출 현황 + 그래프 -->
     <div class="section" id="h-loans-section">
       <div class="section-label">🏛️ 대출 현황</div>
@@ -6881,6 +6886,24 @@ function renderHome(){
     }).join('');
   }else if(depsSec){depsSec.style.display='none';}
 
+  // 투자 현황
+  const invsSec=document.getElementById('h-invs-section');
+  const invsEl=document.getElementById('h-invs');
+  if(holdings.length>0&&invsSec&&invsEl){
+    invsSec.style.display='block';
+    invsEl.innerHTML=holdings.map(h=>{
+      const latest=holdingLatest(h);
+      const profit=latest.value-latest.cost;const pct=latest.cost>0?profit/latest.cost*100:0;
+      return '<div class="saving-item">'+
+        '<div class="saving-header">'+
+        '<span style="color:var(--text);font-weight:600;font-size:calc(13px * var(--fs,1))">'+(h.name||'(이름 없음)')+'</span>'+
+        '<span style="color:var(--purple);font-weight:700;font-size:calc(13px * var(--fs,1))">'+fmt(latest.value)+'</span>'+
+        '</div>'+
+        (latest.cost>0?'<div style="font-size:calc(10px * var(--fs,1));color:'+(profit>=0?'var(--blue)':'var(--minus)')+';margin-bottom:4px">'+(profit>=0?'▲ +':'▼ ')+fmt(Math.abs(profit))+' ('+(profit>=0?'+':'')+pct.toFixed(1)+'%)</div>':'')+
+        '</div>';
+    }).join('');
+  }else if(invsSec){invsSec.style.display='none';}
+
   // 대출 현황
   const loansSec=document.getElementById('h-loans-section'),loansEl=document.getElementById('h-loans');
   if(loans.length>0){
@@ -10659,6 +10682,8 @@ function renderHoldings(){
     return '<div style="background:var(--card);border:1px solid var(--purple-border);border-radius:12px;padding:13px;margin-bottom:10px">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
       '<input class="inline-input" style="font-size:calc(14px * var(--fs,1));font-weight:700;color:#3E3E3E;flex:1" value="'+(h.name||'')+'" placeholder="종목명 (예: 삼성전자)" onchange="updHolding('+i+',\'name\',this.value)"/>'+
+      '<button class="icon-btn" onclick="moveHolding('+i+',-1)" '+(i===0?'disabled style="opacity:.3"':'')+'>▲</button>'+
+      '<button class="icon-btn" onclick="moveHolding('+i+',1)" '+(i===holdings.length-1?'disabled style="opacity:.3"':'')+'>▼</button>'+
       '<button class="icon-btn" onclick="delHolding('+i+')">🗑️</button></div>'+
       // 최신 요약
       '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 11px;background:var(--card2);border-radius:9px;margin-bottom:10px">'+
@@ -10742,6 +10767,14 @@ function addHolding(){const h=ls('invest-holdings')||[];h.push({id:'hold_'+Date.
 function updHolding(i,k,v){const h=ls('invest-holdings')||[];h[i][k]=v;lss('invest-holdings',h);renderHoldings();renderHome();}
 function toggleHoldAnnualInclude(i){const h=ls('invest-holdings')||[];h[i].annualInclude=h[i].annualInclude===false;lss('invest-holdings',h);renderHoldings();}
 function delHolding(i){showConfirm('삭제할까요?',()=>{const h=ls('invest-holdings')||[];h.splice(i,1);lss('invest-holdings',h);renderHoldings();renderHome();},{danger:true,okLabel:'삭제'});}
+function moveHolding(i,dir){
+  const h=ls('invest-holdings')||[];
+  const j=i+dir;
+  if(j<0||j>=h.length)return;
+  [h[i],h[j]]=[h[j],h[i]];
+  lss('invest-holdings',h);
+  renderHoldings();renderHome();
+}
 function addHoldHist(i){const h=ls('invest-holdings')||[];if(!h[i].history)h[i].history=[];h[i].history.push({ym:mk(),cost:'',value:''});lss('invest-holdings',h);renderHoldings();renderHome();}
 function updHoldHist(i,ri,k,v){const h=ls('invest-holdings')||[];if(!h[i].history||!h[i].history[ri])return;h[i].history[ri][k]=v;if(k==='value')h[i].history[ri].valueAuto=(v===''||v==null);lss('invest-holdings',h);renderHoldings();renderHome();}
 function delHoldHist(i,ri){const h=ls('invest-holdings')||[];h[i].history.splice(ri,1);lss('invest-holdings',h);renderHoldings();renderHome();}
