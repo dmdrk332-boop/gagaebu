@@ -714,7 +714,6 @@ body.dark-mode .arrow-btn{width:34px !important;height:34px !important;border-ra
 body.dark-mode .add-btn{background:#B3FF3B !important;border:none !important;color:#0a0a0a !important;font-weight:800 !important;border-radius:99px !important}
 /* 팀 피드백: 탭별 색상 통일 */
 body.dark-mode #page-fixed .top-bar .add-btn{background:var(--purple-dim) !important;border:1px solid var(--purple-border) !important;color:var(--purple) !important}
-body.dark-mode #page-expense .top-bar .add-btn{background:var(--purple-dim) !important;border:1px solid var(--purple-border) !important;color:var(--purple) !important}
 body.dark-mode #e-list .add-btn{background:var(--purple-dim) !important;border:1px solid var(--purple-border) !important;color:var(--purple) !important}
 body.dark-mode #e-month{color:#7BA3FF !important}
 body.dark-mode .fx-end-date,body.dark-mode .fx-end-date:focus{color:var(--purple) !important}
@@ -1196,6 +1195,16 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
   <div id="exp-search-results" style="flex:1;overflow-y:auto;padding:12px 16px 30px"></div>
 </div>
 
+<!-- OCR 처리중 팝업 -->
+<style>@keyframes ocr-spin{to{transform:rotate(360deg)}}</style>
+<div id="ocr-progress-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;align-items:center;justify-content:center;padding:20px;box-sizing:border-box">
+  <div style="background:var(--card);border-radius:22px;padding:28px 22px;width:100%;max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.25);text-align:center">
+    <div style="width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--purple);border-radius:50%;margin:0 auto 16px;animation:ocr-spin .8s linear infinite"></div>
+    <div id="ocr-progress-msg" style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--text);margin-bottom:18px">분석하고 있어요...</div>
+    <button onclick="cancelOcrProgress()" style="width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);color:var(--text2);border-radius:13px;font-size:calc(13px * var(--fs,1));font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif">중단하기</button>
+  </div>
+</div>
+
 <!-- 명세서 이미지 뷰어 오버레이 -->
 <div id="slip-viewer-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:400;align-items:center;justify-content:center;flex-direction:column" onclick="closeSlipViewer()">
   <div style="position:relative;max-width:96vw;max-height:88vh">
@@ -1212,7 +1221,26 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <button class="subtab active" onclick="switchSub('expense',this)">💸 지출</button>
     <button class="subtab" onclick="switchSub('fixed',this)">📌 고정지출</button>
   </div>
-  <div class="top-bar"><span class="page-title">💸 지출 관리</span><div style="display:flex;gap:6px"><input type="file" id="exp-bulk-input" accept="image/*" style="display:none" onchange="handleBulkOcr(this)"/><button class="icon-btn" onclick="document.getElementById('exp-bulk-input').click()" title="은행 앱 캡쳐로 여러 건 한번에" style="font-size:calc(14px * var(--fs,1))">📑</button><button class="icon-btn" onclick="openExpSearch()" style="font-size:calc(14px * var(--fs,1))">🔍</button><button class="add-btn" onclick="openExpModal()" style="background:var(--purple-dim);border:1px solid var(--purple-border);color:var(--purple)">+ 추가</button></div></div>
+  <div class="top-bar"><span class="page-title">💸 지출 관리</span><div style="display:flex;align-items:center;gap:8px"><input type="file" id="exp-bulk-input" accept="image/*" style="display:none" onchange="handleBulkOcr(this)"/><button class="icon-btn" onclick="openExpSearch()" style="font-size:calc(14px * var(--fs,1))">🔍</button><button class="add-btn" onclick="openExpAddSheet()" style="background:var(--accent);color:#fff;border:none;padding:9px 20px;font-size:calc(14px * var(--fs,1));font-weight:800;box-shadow:0 4px 16px var(--accent-border)">+ 추가</button></div></div>
+  <!-- 지출 추가 방법 선택 시트 -->
+  <div id="exp-add-sheet" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeExpAddSheet()">
+    <div style="background:var(--card);border-radius:22px 22px 0 0;padding:10px 16px 28px;width:100%;max-width:480px;box-shadow:0 -8px 32px rgba(0,0,0,.25);box-sizing:border-box">
+      <div style="width:36px;height:4px;background:var(--border2);border-radius:99px;margin:6px auto 16px"></div>
+      <div style="font-size:calc(15px * var(--fs,1));font-weight:800;color:var(--text);margin-bottom:14px;padding:0 4px">지출 추가</div>
+      <button onclick="closeExpAddSheet();openExpModal()" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px;background:var(--card2);border:1px solid var(--border);border-radius:14px;margin-bottom:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;text-align:left">
+        <span style="font-size:calc(20px * var(--fs,1))">✏️</span>
+        <div><div style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--text)">직접 입력</div><div style="font-size:calc(11px * var(--fs,1));color:var(--text3);margin-top:1px">항목·금액을 손으로 입력해요</div></div>
+      </button>
+      <button onclick="closeExpAddSheet();document.getElementById('exp-ocr-input').click()" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px;background:var(--card2);border:1px solid var(--border);border-radius:14px;margin-bottom:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;text-align:left">
+        <span style="font-size:calc(20px * var(--fs,1))">📷</span>
+        <div><div style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--text)">영수증으로 자동입력</div><div style="font-size:calc(11px * var(--fs,1));color:var(--text3);margin-top:1px">영수증 사진 한 장을 찍거나 선택해요</div></div>
+      </button>
+      <button onclick="closeExpAddSheet();document.getElementById('exp-bulk-input').click()" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px;background:var(--card2);border:1px solid var(--border);border-radius:14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;text-align:left">
+        <span style="font-size:calc(20px * var(--fs,1))">📑</span>
+        <div><div style="font-size:calc(14px * var(--fs,1));font-weight:700;color:var(--text)">은행내역 일괄 등록</div><div style="font-size:calc(11px * var(--fs,1));color:var(--text3);margin-top:1px">은행·카드 앱 캡쳐로 여러 건 한번에 등록해요</div></div>
+      </button>
+    </div>
+  </div>
   <div class="month-bar">
     <button class="arrow-btn" onclick="changeMonth(-1)">‹</button>
     <div style="text-align:center;cursor:pointer" onclick="openDatePicker()">
@@ -7540,33 +7568,23 @@ function handleSlipFile(type, input){
 // 급여명세서 사진 -> Gemini OCR -> 세전급여/공제/상여 상세입력 자동 채움
 function ocrFillPayslip(type, dataUrl){
   const base64=dataUrl.split(',')[1]||'';
-  showToast('📷 명세서 내용 분석 중...');
   (async()=>{
-    try{
-      const token=await cloudUser.getIdToken();
-      const res=await fetch(OCR_WORKER_URL,{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-        body:JSON.stringify({image:base64,mimeType:'image/jpeg',mode:'payslip'})
-      });
-      const data=await res.json().catch(()=>null);
-      if(!res.ok||!data||!data.ok){ showToast('자동 인식은 실패했어요. 상세입력에서 직접 입력해주세요'); return; }
-      const earnings=Array.isArray(data.earnings)?data.earnings:[];
-      const deductions=Array.isArray(data.deductions)?data.deductions:[];
-      if(!earnings.length&&!deductions.length){ showToast('명세서에서 항목을 찾지 못했어요. 상세입력에서 직접 입력해주세요'); return; }
-      const inc=ls('inc:'+mk())||{};
-      inc[type+'Bonus']=earnings.filter(x=>num(x.amount)>0).map(x=>({name:(x.name||'').trim(),amount:String(num(x.amount)),regular:x.regular!==false}));
-      inc[type+'Deds']=deductions.filter(x=>num(x.amount)>0).map(x=>({name:(x.name||'').trim(),amount:String(num(x.amount))}));
-      lss('inc:'+mk(),inc);
-      _incDetailOpen[type]=true;
-      document.getElementById('i-'+type+'-detail').style.display='block';
-      document.getElementById('i-'+type+'-detail-btn').textContent='📋 상세 입력 닫기';
-      renderIncDetail(type);
-      renderHome();
-      showToast('상세입력에 자동으로 채웠어요. 확인해주세요 ✓');
-    }catch(e){
-      showToast('자동 인식 중 문제가 생겼어요. 상세입력에서 직접 입력해주세요');
-    }
+    const r=await ocrRequest('📷 명세서 내용을 분석하고 있어요...',{image:base64,mimeType:'image/jpeg',mode:'payslip'});
+    if(r.aborted)return;
+    if(!r.ok){ showToast('자동 인식은 실패했어요. 상세입력에서 직접 입력해주세요'); return; }
+    const earnings=Array.isArray(r.data.earnings)?r.data.earnings:[];
+    const deductions=Array.isArray(r.data.deductions)?r.data.deductions:[];
+    if(!earnings.length&&!deductions.length){ showToast('명세서에서 항목을 찾지 못했어요. 상세입력에서 직접 입력해주세요'); return; }
+    const inc=ls('inc:'+mk())||{};
+    inc[type+'Bonus']=earnings.filter(x=>num(x.amount)>0).map(x=>({name:(x.name||'').trim(),amount:String(num(x.amount)),regular:x.regular!==false}));
+    inc[type+'Deds']=deductions.filter(x=>num(x.amount)>0).map(x=>({name:(x.name||'').trim(),amount:String(num(x.amount))}));
+    lss('inc:'+mk(),inc);
+    _incDetailOpen[type]=true;
+    document.getElementById('i-'+type+'-detail').style.display='block';
+    document.getElementById('i-'+type+'-detail-btn').textContent='📋 상세 입력 닫기';
+    renderIncDetail(type);
+    renderHome();
+    showToast('상세입력에 자동으로 채웠어요. 확인해주세요 ✓');
   })();
 }
 
@@ -7607,6 +7625,41 @@ function matchOcrCategory(guess){
 }
 // 영수증 사진 -> Cloudflare Worker(gagaebu-ocr) -> Gemini OCR -> 지출 입력폼 자동채움
 const OCR_WORKER_URL='https://gagaebu-ocr.dmdrk332.workers.dev';
+let _ocrAbortCtrl=null;
+function showOcrProgress(msg){
+  document.getElementById('ocr-progress-msg').textContent=msg;
+  document.getElementById('ocr-progress-overlay').style.display='flex';
+}
+function hideOcrProgress(){
+  document.getElementById('ocr-progress-overlay').style.display='none';
+}
+function cancelOcrProgress(){
+  if(_ocrAbortCtrl)_ocrAbortCtrl.abort();
+  hideOcrProgress();
+}
+// 공용 OCR 요청: 진행 팝업 표시 -> Worker 호출 -> 팝업 닫고 결과 반환. 중단 시 {aborted:true}.
+async function ocrRequest(progressMsg,body){
+  const ctrl=new AbortController();
+  _ocrAbortCtrl=ctrl;
+  showOcrProgress(progressMsg);
+  try{
+    const token=await cloudUser.getIdToken();
+    const res=await fetch(OCR_WORKER_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify(body),
+      signal:ctrl.signal
+    });
+    const data=await res.json().catch(()=>null);
+    hideOcrProgress();
+    if(!res.ok||!data||!data.ok)return {ok:false,error:(data&&data.error)||'분석에 실패했어요. 다시 시도해주세요'};
+    return {ok:true,data};
+  }catch(e){
+    hideOcrProgress();
+    if(e.name==='AbortError')return {ok:false,aborted:true};
+    return {ok:false,error:'분석 중 문제가 생겼어요. 네트워크를 확인하고 다시 시도해주세요'};
+  }
+}
 function handleExpOcr(input){
   const file=input.files[0];
   input.value='';
@@ -7615,28 +7668,19 @@ function handleExpOcr(input){
     showAlert('사진 자동입력은 Google 로그인 후 사용할 수 있어요. 설정 탭에서 로그인해주세요.');
     return;
   }
-  showToast('📷 사진 분석 중...');
   compressImage(file,1200,0.82).then(async dataUrl=>{
     const base64=dataUrl.split(',')[1]||'';
-    try{
-      const token=await cloudUser.getIdToken();
-      const res=await fetch(OCR_WORKER_URL,{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-        body:JSON.stringify({image:base64,mimeType:'image/jpeg',categories:CATS.map(c=>c.label)})
-      });
-      const data=await res.json().catch(()=>null);
-      if(!res.ok||!data||!data.ok){ showAlert((data&&data.error)||'분석에 실패했어요. 다시 시도해주세요'); return; }
-      if(data.name)document.getElementById('exp-name').value=data.name;
-      if(data.amount)document.getElementById('exp-amount').value=data.amount;
-      if(data.date)document.getElementById('exp-date').value=data.date;
-      const matchedCatId=matchOcrCategory(data.category);
-      if(matchedCatId)selectCat(matchedCatId);
-      formatMoneyInputs();
-      showToast('사진에서 읽어왔어요. 확인 후 저장해주세요 ✓');
-    }catch(e){
-      showAlert('분석 중 문제가 생겼어요. 네트워크를 확인하고 다시 시도해주세요');
-    }
+    const r=await ocrRequest('📷 영수증을 분석하고 있어요...',{image:base64,mimeType:'image/jpeg',categories:CATS.map(c=>c.label)});
+    if(r.aborted)return;
+    if(!r.ok){ showAlert(r.error); return; }
+    const data=r.data;
+    if(data.name)document.getElementById('exp-name').value=data.name;
+    if(data.amount)document.getElementById('exp-amount').value=data.amount;
+    if(data.date)document.getElementById('exp-date').value=data.date;
+    const matchedCatId=matchOcrCategory(data.category);
+    if(matchedCatId)selectCat(matchedCatId);
+    formatMoneyInputs();
+    showToast('사진에서 읽어왔어요. 확인 후 저장해주세요 ✓');
   }).catch(()=>{
     showAlert('이 사진 형식은 읽을 수 없어요 (아이폰 HEIC 등). 스크린샷을 찍거나 다른 사진으로 시도해주세요.');
   });
@@ -7652,52 +7696,48 @@ function handleBulkOcr(input){
     showAlert('일괄 등록은 Google 로그인 후 사용할 수 있어요. 설정 탭에서 로그인해주세요.');
     return;
   }
-  showToast('📑 은행내역 분석 중...');
   compressImage(file,1400,0.82).then(async dataUrl=>{
     const base64=dataUrl.split(',')[1]||'';
-    try{
-      const token=await cloudUser.getIdToken();
-      const res=await fetch(OCR_WORKER_URL,{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-        body:JSON.stringify({image:base64,mimeType:'image/jpeg',categories:CATS.map(c=>c.label),mode:'bulk',kind:'expense'})
-      });
-      const data=await res.json().catch(()=>null);
-      if(!res.ok||!data||!data.ok){ showAlert((data&&data.error)||'분석에 실패했어요. 다시 시도해주세요'); return; }
-      const items=Array.isArray(data.items)?data.items:[];
-      if(!items.length){ showAlert('사진에서 지출 내역을 찾지 못했어요. 다른 캡쳐를 시도해보세요.'); return; }
-      bulkImportRows=items.map(it=>({
-        checked:true,
-        name:(it.name||'').trim(),
-        amount:num(it.amount)||'',
-        date:/^\d{4}-\d{2}-\d{2}$/.test(it.date||'')?it.date:today(),
-        catId:matchOcrCategory(it.category)||'etc'
-      }));
-      document.getElementById('exp-bulk-title').textContent='📑 은행내역 일괄 등록 (지출)';
-      document.getElementById('exp-bulk-sub').textContent='캡쳐에서 읽은 지출내역이에요. 확인하고 필요하면 고친 뒤, 등록할 것만 체크된 상태로 두세요.';
-      renderBulkImportList();
-      document.getElementById('exp-bulk-overlay').classList.add('show');
-    }catch(e){
-      showAlert('분석 중 문제가 생겼어요. 네트워크를 확인하고 다시 시도해주세요');
-    }
+    const r=await ocrRequest('📑 은행내역을 분석하고 있어요...',{image:base64,mimeType:'image/jpeg',categories:CATS.map(c=>c.label),mode:'bulk',kind:'expense'});
+    if(r.aborted)return;
+    if(!r.ok){ showAlert(r.error); return; }
+    const items=Array.isArray(r.data.items)?r.data.items:[];
+    if(!items.length){ showAlert('사진에서 지출 내역을 찾지 못했어요. 다른 캡쳐를 시도해보세요.'); return; }
+    bulkImportRows=items.map(it=>({
+      checked:true,
+      name:(it.name||'').trim(),
+      amount:num(it.amount)||'',
+      date:/^\d{4}-\d{2}-\d{2}$/.test(it.date||'')?it.date:today(),
+      catId:matchOcrCategory(it.category)||'etc',
+      fixedId:''
+    }));
+    document.getElementById('exp-bulk-title').textContent='📑 은행내역 일괄 등록 (지출)';
+    document.getElementById('exp-bulk-sub').textContent='캡쳐에서 읽은 지출내역이에요. 확인하고 필요하면 고친 뒤, 등록할 것만 체크된 상태로 두세요.';
+    renderBulkImportList();
+    document.getElementById('exp-bulk-overlay').classList.add('show');
   }).catch(()=>{
     showAlert('이 사진 형식은 읽을 수 없어요 (아이폰 HEIC 등). 스크린샷을 찍거나 다른 사진으로 시도해주세요.');
   });
 }
 function renderBulkImportList(){
   const el=document.getElementById('exp-bulk-list'); if(!el)return;
+  const budgetFixed=(ls('budget:fixed')||getDefaultFixed()).filter(f=>f.isBudget);
   el.innerHTML=bulkImportRows.map((r,i)=>{
     const catOpts=CATS.map(c=>`<option value="${c.id}"${c.id===r.catId?' selected':''}>${c.icon} ${c.label}</option>`).join('');
+    const fxOpts=budgetFixed.map(f=>`<option value="${f.id}"${f.id===r.fixedId?' selected':''}>${f.name||'(이름 없음)'}</option>`).join('');
     return `<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;opacity:${r.checked?1:.5}">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <div onclick="toggleBulkRow(${i})" style="width:22px;height:22px;border-radius:6px;border:1.5px solid ${r.checked?'var(--purple)':'var(--border2)'};background:${r.checked?'var(--purple)':'transparent'};color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:calc(12px * var(--fs,1));font-weight:800">${r.checked?'✓':''}</div>
         <input type="text" value="${r.name}" onchange="updBulkRow(${i},'name',this.value)" placeholder="항목명" style="flex:1;min-width:0;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(13px * var(--fs,1));font-weight:600;padding:6px 8px;font-family:'Noto Sans KR',sans-serif"/>
         <input type="text" inputmode="numeric" class="money-input" value="${fmtNum(r.amount)}" onchange="updBulkRow(${i},'amount',this.value)" placeholder="금액" style="width:92px;flex-shrink:0;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--purple);font-weight:700;font-size:calc(13px * var(--fs,1));padding:6px 8px;text-align:right;font-family:'Noto Sans KR',sans-serif"/>
       </div>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px${budgetFixed.length?';margin-bottom:8px':''}">
         <input type="date" value="${r.date}" onchange="updBulkRow(${i},'date',this.value)" style="flex:1;min-width:0;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(12px * var(--fs,1));padding:6px 8px;font-family:'Noto Sans KR',sans-serif"/>
         <select onchange="updBulkRow(${i},'catId',this.value)" style="flex:1;min-width:0;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:calc(12px * var(--fs,1));padding:6px 8px;font-family:'Noto Sans KR',sans-serif">${catOpts}</select>
       </div>
+      ${budgetFixed.length?`<select onchange="updBulkRow(${i},'fixedId',this.value)" style="width:100%;background:var(--card);border:1px solid var(--border2);border-radius:8px;color:var(--blue);font-size:calc(11.5px * var(--fs,1));padding:6px 8px;font-family:'Noto Sans KR',sans-serif">
+        <option value="">📊 예산 항목 연결 안 함</option>${fxOpts}
+      </select>`:''}
     </div>`;
   }).join('');
   const checkedCount=bulkImportRows.filter(r=>r.checked).length;
@@ -7729,7 +7769,7 @@ function confirmBulkImport(){
   checked.forEach((r,i)=>{
     const ym=/^\d{4}-\d{2}/.test(r.date||'')?r.date.slice(0,7):mk();
     if(!byYm[ym])byYm[ym]=ls('exp:'+ym)||[];
-    byYm[ym].push({id:Date.now().toString()+Math.random().toString(36).slice(2,6)+i,name:r.name||'지출',amount:String(num(r.amount)),date:r.date||today(),note:'은행내역 일괄등록',cat:r.catId||'etc',fixedId:''});
+    byYm[ym].push({id:Date.now().toString()+Math.random().toString(36).slice(2,6)+i,name:r.name||'지출',amount:String(num(r.amount)),date:r.date||today(),note:'은행내역 일괄등록',cat:r.catId||'etc',fixedId:r.fixedId||''});
   });
   Object.keys(byYm).forEach(ym=>lss('exp:'+ym,byYm[ym]));
   closeBulkImportModal();
@@ -8046,7 +8086,8 @@ function renderExpense(){
   const listEl=document.getElementById('e-list');
   if(filtered.length===0){listEl.innerHTML=emptyState('🌿','아직 지출 내역이 없어요','<button class="add-btn" onclick="openExpModal()" style="background:var(--purple-dim);border:1px solid var(--purple-border);color:var(--purple)">+ 첫 지출 추가</button>');return;}
   const fixedList=ls('budget:fixed')||getDefaultFixed();
-  listEl.innerHTML='<div class="card">'+[...filtered].reverse().map(e=>{
+  const sorted=[...filtered].reverse().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  listEl.innerHTML='<div class="card">'+sorted.map(e=>{
     const cat=CAT_MAP[e.cat]||CAT_MAP.etc;
     const linkedFx=e.fixedId?fixedList.find(f=>f.id===e.fixedId):null;
     return `<div class="exp-item"><span class="exp-icon" style="background:${cat.color}22;border:1.5px solid ${cat.color}55">${cat.icon}</span>
@@ -8058,6 +8099,8 @@ function renderExpense(){
 function setExpFilter(f){expFilter=f;renderExpense();}
 
 // ── 지출 전체 검색 (모든 달을 대상으로) ─────────────────────────────────────────
+function openExpAddSheet(){document.getElementById('exp-add-sheet').style.display='flex';}
+function closeExpAddSheet(){document.getElementById('exp-add-sheet').style.display='none';}
 function openExpSearch(){
   document.getElementById('exp-search-overlay').style.display='flex';
   document.getElementById('exp-search-results').innerHTML='';
@@ -9393,7 +9436,8 @@ function renderFixed(){
   const listEl=document.getElementById('fx-list');
   let html='';
   groups.forEach(g=>{
-    const items=fixed.map((f,i)=>({...f,_i:i})).filter(f=>(f.group||'기본')===g&&!isFxEnded(f,curYear,curMonth));
+    const items=fixed.map((f,i)=>({...f,_i:i})).filter(f=>(f.group||'기본')===g&&!isFxEnded(f,curYear,curMonth))
+      .sort((a,b)=>(parseInt(a.instDay||a.autoDay,10)||99)-(parseInt(b.instDay||b.autoDay,10)||99));
     if(!items.length)return; // 표시할 항목이 없으면 그룹 자체를 숨김
     const gTotal=items.filter(f=>isFxActive(f,curYear,curMonth)).reduce((a,f)=>a+fxAmount(f),0);
     html+=`<div style="margin-bottom:16px">
