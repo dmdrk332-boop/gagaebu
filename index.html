@@ -1246,6 +1246,7 @@ body.privacy-on.dark-mode #h-networth{color:#B3FF3B !important;text-shadow:0 0 1
     <div style="text-align:center;cursor:pointer" onclick="openDatePicker()">
       <div class="month-year" id="e-year"></div>
       <div class="month-name" id="e-month" style="display:flex;align-items:center;gap:4px;justify-content:center"></div>
+      <div id="e-cycle-range" style="font-size:calc(10px * var(--fs,1));color:var(--text3);margin-top:2px;display:none"></div>
     </div>
     <button class="arrow-btn" onclick="changeMonth(1)">›</button>
   </div>
@@ -5264,6 +5265,13 @@ try{pfLoad();render();pfSyncUI();}catch(e){console.warn("PF init",e);}
       </div>
     </div>
   </div>
+  <div class="settings-section">
+    <div class="settings-title">📅 예산 사이클</div>
+    <div class="card">
+      <div style="font-size:calc(12px * var(--fs,1));color:var(--text3);margin-bottom:14px;line-height:1.7">월급일 등을 기준으로 "이번 달"의 시작일을 바꿀 수 있어요. 예를 들어 10일로 설정하면 이번 달은 이번 달 10일 ~ 다음 달 9일이 돼요. 우선 지출탭에 적용돼요.</div>
+      <div class="field"><label>매월 시작일</label><input type="number" id="budget-cycle-day" min="1" max="28" placeholder="1" oninput="saveBudgetCycleDay()"/></div>
+    </div>
+  </div>
   <div class="settings-section" id="settings-brand-anchor">
     <div class="settings-title">🏷️ 앱 이름</div>
     <div class="card">
@@ -8041,14 +8049,58 @@ function renderCatDist(){
       </div>
     </div>`;
 }
+// ── 예산 사이클 (매월 시작일이 1일이 아닐 수 있음) ──────────────────────────────────
+function budgetStartDay(){ return Math.min(28,Math.max(1,parseInt(ls('budget-cycle-start-day'),10)||1)); }
+// 사이클(y,m)이 걸치는 달력월 버킷들. 시작일=1이면 그 달 하나, 아니면 다음달까지 두 개
+function cycleBuckets(y,m){
+  const sd=budgetStartDay();
+  if(sd===1)return [mk(y,m)];
+  const ny=m===12?y+1:y, nm=m===12?1:m+1;
+  return [mk(y,m),mk(ny,nm)];
+}
+// 사이클(y,m)의 실제 날짜 범위 [start,end] (YYYY-MM-DD, 양끝 포함)
+function cycleDateRange(y,m){
+  const sd=budgetStartDay();
+  if(sd===1){
+    const lastDay=new Date(y,m,0).getDate();
+    return {start:mk(y,m)+'-01',end:mk(y,m)+'-'+String(lastDay).padStart(2,'0')};
+  }
+  const ny=m===12?y+1:y, nm=m===12?1:m+1;
+  return {start:mk(y,m)+'-'+String(sd).padStart(2,'0'),end:mk(ny,nm)+'-'+String(sd-1).padStart(2,'0')};
+}
+// 이번 사이클(y,m)에 속하는 지출들. 각 항목에 실제 소속 버킷(_ym)을 태그해서 반환 (수정·삭제 시 필요)
+function getCycleExpenses(y,m){
+  const {start,end}=cycleDateRange(y,m);
+  const all=[];
+  cycleBuckets(y,m).forEach(ym=>{(ls('exp:'+ym)||[]).forEach(e=>all.push({...e,_ym:ym}));});
+  return all.filter(e=>e.date>=start&&e.date<=end);
+}
+// id로 지출 하나 찾기 (이번 사이클이 걸치는 버킷들 중에서) -> {ym,arr,idx} 또는 null
+function findCycleExpense(id,y,m){
+  const buckets=cycleBuckets(y,m);
+  for(const ym of buckets){
+    const arr=ls('exp:'+ym)||[];
+    const idx=arr.findIndex(e=>e.id===id);
+    if(idx>=0)return {ym,arr,idx};
+  }
+  return null;
+}
 function renderExpense(){
-  const exps=ls('exp:'+mk())||[];
+  const exps=getCycleExpenses(curYear,curMonth);
   const total=exps.reduce((a,e)=>a+num(e.amount),0);
   document.getElementById('e-total').textContent=fmt(total);
   document.getElementById('e-count').textContent=exps.length+'건';
+  const rangeEl=document.getElementById('e-cycle-range');
+  if(rangeEl){
+    if(budgetStartDay()===1){rangeEl.style.display='none';}
+    else{
+      const {start,end}=cycleDateRange(curYear,curMonth);
+      rangeEl.textContent=start.slice(5).replace('-','.')+' ~ '+end.slice(5).replace('-','.');
+      rangeEl.style.display='block';
+    }
+  }
   // 작년 같은 달 대비 증감 (지출은 증가가 나쁜 신호)
-  const lastYearExps=ls('exp:'+(curYear-1)+'-'+String(curMonth).padStart(2,'0'));
-  const lastYearExpTotal=Array.isArray(lastYearExps)?lastYearExps.reduce((a,e)=>a+num(e.amount),0):0;
+  const lastYearExpTotal=getCycleExpenses(curYear-1,curMonth).reduce((a,e)=>a+num(e.amount),0);
   renderYoyBadge('e-yoy',total,lastYearExpTotal,false);
   // 예산형 고정항목에 연결된 지출액 — 홈탭에선 '고정'으로 집계되므로 안내 표시
   const fixedForNote=ls('budget:fixed')||getDefaultFixed();
@@ -8281,7 +8333,7 @@ function openExpModal(id){
     budgetSel.innerHTML='<option value="">연결 안 함 (일반 지출)</option>'+
       fixed.map(f=>`<option value="${f.id}">📊 ${f.name} (예산 ${fmt(num(f.amount))})</option>`).join('');
   }else{budgetField.style.display='none';}
-  if(id){const e=(ls('exp:'+mk())||[]).find(x=>x.id===id);if(e){selectedCat=e.cat;document.getElementById('exp-name').value=e.name;document.getElementById('exp-amount').value=e.amount;document.getElementById('exp-date').value=e.date;document.getElementById('exp-note').value=e.note||'';budgetSel.value=e.fixedId||'';}}
+  if(id){const found=findCycleExpense(id,curYear,curMonth);const e=found?found.arr[found.idx]:null;if(e){selectedCat=e.cat;document.getElementById('exp-name').value=e.name;document.getElementById('exp-amount').value=e.amount;document.getElementById('exp-date').value=e.date;document.getElementById('exp-note').value=e.note||'';budgetSel.value=e.fixedId||'';}}
   else{document.getElementById('exp-name').value='';document.getElementById('exp-amount').value='';document.getElementById('exp-date').value=today();document.getElementById('exp-note').value='';budgetSel.value='';}
   selectCat(selectedCat);
   updateBudgetPreview();
@@ -8443,13 +8495,28 @@ function saveExp(){
   const date=document.getElementById('exp-date').value,note=document.getElementById('exp-note').value.trim();
   const fixedId=document.getElementById('exp-budget-link')?document.getElementById('exp-budget-link').value:'';
   if(!name||!amount){showAlert('항목명과 금액을 입력해주세요');return;}
-  let exps=ls('exp:'+mk())||[];
+  // 지출은 "보고 있던 달"이 아니라 실제 입력한 날짜의 달 버킷에 저장 (예산 사이클 계산이 날짜 기준이라 여기서 맞춰둬야 함)
+  const targetYm=/^\d{4}-\d{2}/.test(date)?date.slice(0,7):mk();
   const fundedBySaving=pendingWithdrawLink?pendingWithdrawLink.savingId:null;
   const fundedBySavingName=pendingWithdrawLink?pendingWithdrawLink.savingName:null;
   const newExpId=editExpId||Date.now().toString();
-  if(editExpId)exps=exps.map(e=>e.id===editExpId?{...e,name,amount,date,note,cat:selectedCat,fixedId}:e);
-  else exps.push({id:newExpId,name,amount,date,note,cat:selectedCat,fixedId,fundedBySaving,fundedBySavingName});
-  lss('exp:'+mk(),exps);
+  if(editExpId){
+    const found=findCycleExpense(editExpId,curYear,curMonth);
+    const updated=found?{...found.arr[found.idx],name,amount,date,note,cat:selectedCat,fixedId}:{id:editExpId,name,amount,date,note,cat:selectedCat,fixedId};
+    if(found&&found.ym===targetYm){
+      found.arr[found.idx]=updated;
+      lss('exp:'+found.ym,found.arr);
+    }else{
+      if(found){found.arr.splice(found.idx,1);lss('exp:'+found.ym,found.arr);}
+      const targetArr=ls('exp:'+targetYm)||[];
+      targetArr.push(updated);
+      lss('exp:'+targetYm,targetArr);
+    }
+  }else{
+    const targetArr=ls('exp:'+targetYm)||[];
+    targetArr.push({id:newExpId,name,amount,date,note,cat:selectedCat,fixedId,fundedBySaving,fundedBySavingName});
+    lss('exp:'+targetYm,targetArr);
+  }
   document.getElementById('exp-overlay').classList.remove('show');
   if(pendingWithdrawLink){
     // 적금 출금액을 지출로 전환 — 이미 출금 시점에 적금 잔액은 줄어든 상태라, 여기선 지출만 기록 (수입 만들지 않음 — 실제 번 돈이 아니므로)
@@ -8473,7 +8540,11 @@ function saveExp(){
   renderExpense();renderHome();
 }
 function editExp(id){openExpModal(id);}
-function delExp(id){showConfirm('삭제할까요?',()=>{lss('exp:'+mk(),(ls('exp:'+mk())||[]).filter(e=>e.id!==id));renderExpense();renderHome();},{danger:true,okLabel:'삭제'});}
+function delExp(id){showConfirm('삭제할까요?',()=>{
+  const found=findCycleExpense(id,curYear,curMonth);
+  if(found){found.arr.splice(found.idx,1);lss('exp:'+found.ym,found.arr);}
+  renderExpense();renderHome();
+},{danger:true,okLabel:'삭제'});}
 
 // ── SAVINGS ───────────────────────────────────────────────────────────────────
 function getDefaultSavingConfigs(){return[];}
@@ -12494,6 +12565,7 @@ runMigrations();
 loadTheme();
 loadFontScale();
 applyBrand();
+syncBudgetCycleInput();
 migrateCategoriesV2();
 migrateCatColorsV3();
 refreshCats();
@@ -12565,6 +12637,15 @@ function applyBrand(){
   const i1=document.getElementById('brand-name1'),i2=document.getElementById('brand-name2'),it=document.getElementById('brand-tagline');
   if(i1)i1.value=b.n1||''; if(i2)i2.value=b.n2||''; if(it)it.value=b.tag||'';
   if(typeof obApplyBrand==='function')obApplyBrand();
+}
+function syncBudgetCycleInput(){
+  const inp=document.getElementById('budget-cycle-day');
+  if(inp)inp.value=ls('budget-cycle-start-day')||1;
+}
+function saveBudgetCycleDay(){
+  const v=Math.min(28,Math.max(1,parseInt(document.getElementById('budget-cycle-day').value,10)||1));
+  lss('budget-cycle-start-day',v);
+  renderExpense();renderHome();
 }
 function saveBrand(){
   const n1=(document.getElementById('brand-name1').value||'').trim();
